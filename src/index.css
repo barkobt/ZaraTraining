@@ -1,0 +1,267 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 36 28% 94%;
+    --foreground: 20 25% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 25% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 25% 8%;
+    --primary: 20 25% 8%;
+    --primary-foreground: 36 28% 96%;
+    --secondary: 36 18% 88%;
+    --secondary-foreground: 20 25% 8%;
+    --muted: 36 14% 82%;
+    --muted-foreground: 20 12% 38%;
+    --accent: 35 38% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 36 18% 80%;
+    --input: 36 18% 80%;
+    --ring: 35 38% 52%;
+    --radius: 0.25rem;
+
+    /* Zara Modern Palette */
+    --zara-bg: #F5F1EA;
+    --zara-bg-alt: #EFEAE0;
+    --zara-bg-warm: #FAF6EE;
+    --zara-ink: #1A1614;
+    --zara-ink-soft: #2D2420;
+    --zara-ink-2: #3A322E;
+    --zara-line: rgba(26, 22, 20, 0.08);
+    --zara-line-strong: rgba(26, 22, 20, 0.18);
+    --zara-gold: #B8935A;
+    --zara-gold-soft: #D4B582;
+    --zara-gold-tint: rgba(184, 147, 90, 0.08);
+    --zara-bronze: #8B6F47;
+    --zara-stone: #9B8F80;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--zara-bg);
+    color: var(--zara-ink);
+    overscroll-behavior: none;
+  }
+
+  /* Subtle film grain — Zara editorial feel */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bodoni Moda', 'Playfair Display', serif;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: var(--zara-ink);
+    color: var(--zara-bg);
+  }
+}
+
+@layer components {
+  .font-serif {
+    font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  }
+  .font-sans {
+    font-family: 'Inter', sans-serif;
+  }
+  .font-mono {
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-feature-settings: "tnum" 1;
+  }
+  .text-gold { color: var(--zara-gold); }
+  .text-bronze { color: var(--zara-bronze); }
+  .bg-zara { background-color: var(--zara-bg); }
+  .bg-zara-alt { background-color: var(--zara-bg-alt); }
+  .bg-ink { background-color: var(--zara-ink); }
+  .text-ink { color: var(--zara-ink); }
+  .border-zara { border-color: var(--zara-line); }
+  .border-zara-strong { border-color: var(--zara-line-strong); }
+}
+
+/* === MOTION SYSTEM === */
+@layer utilities {
+  /* Entrance animations */
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-down {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes scale-fade {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slide-from-right {
+    from { opacity: 0; transform: translateX(28px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slide-from-left {
+    from { opacity: 0; transform: translateX(-28px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Curtain reveal (Show page) */
+  @keyframes curtain-left {
+    0%   { transform: translateX(0%); }
+    100% { transform: translateX(-105%); }
+  }
+  @keyframes curtain-right {
+    0%   { transform: translateX(0%); }
+    100% { transform: translateX(105%); }
+  }
+
+  /* Ambient glow pulse */
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 1; }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes blink-caret {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0; }
+  }
+  @keyframes float-soft {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+
+  /* Animation utilities */
+  .animate-fade-up   { animation: fade-up 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+  .animate-fade-down { animation: fade-down 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+  .animate-fade-in   { animation: fade-in 0.6s ease-out both; }
+  .animate-scale-fade { animation: scale-fade 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+  .animate-slide-r   { animation: slide-from-right 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+  .animate-slide-l   { animation: slide-from-left 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+  .animate-glow      { animation: glow-pulse 2.4s ease-in-out infinite; }
+  .animate-float     { animation: float-soft 4s ease-in-out infinite; }
+  .animate-blink     { animation: blink-caret 1.1s step-end infinite; }
+
+  /* Stagger delays */
+  .delay-50  { animation-delay: 50ms; }
+  .delay-100 { animation-delay: 100ms; }
+  .delay-150 { animation-delay: 150ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+  .delay-700 { animation-delay: 700ms; }
+  .delay-1000 { animation-delay: 1000ms; }
+
+  /* Shimmer (loading & gold accents) */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2.5s linear infinite;
+  }
+
+  /* Hover lift */
+  .lift {
+    transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+                box-shadow 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .lift:hover {
+    transform: translateY(-3px);
+  }
+
+  /* === SCROLL REVEAL SYSTEM === */
+  .reveal-init {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.95s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.95s cubic-bezier(0.22, 0.61, 0.36, 1);
+    will-change: opacity, transform;
+  }
+  .reveal-init[data-revealed="true"] {
+    opacity: 1;
+    transform: none;
+  }
+  .reveal-slide-l {
+    transform: translateX(-32px);
+  }
+  .reveal-slide-r {
+    transform: translateX(32px);
+  }
+  .reveal-slide-l[data-revealed="true"],
+  .reveal-slide-r[data-revealed="true"] {
+    transform: none;
+  }
+  .reveal-parallax {
+    transform: translateY(60px) scale(0.97);
+    transition:
+      opacity 1.1s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 1.1s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .reveal-parallax[data-revealed="true"] {
+    transform: none;
+  }
+  .reveal-zoom {
+    transform: scale(0.94);
+  }
+  .reveal-zoom[data-revealed="true"] {
+    transform: scale(1);
+  }
+
+  /* Cabin sprite cropping is now applied inline in CabinCurtain.tsx — */
+  /* dynamic class names (`cabin-sprite--${key}`) get purged by Tailwind. */
+
+  /* === MARQUEE === */
+  @keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .marquee {
+    display: inline-flex;
+    white-space: nowrap;
+    animation: marquee 40s linear infinite;
+    will-change: transform;
+  }
+  .marquee:hover { animation-play-state: paused; }
+
+  /* === SOFT BUTTON HOVER === */
+  @keyframes button-sweep {
+    0%   { transform: translateY(100%); }
+    100% { transform: translateY(0%); }
+  }
+
+  /* Reduced motion respect */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .reveal-init { opacity: 1 !important; transform: none !important; }
+  }
+}
