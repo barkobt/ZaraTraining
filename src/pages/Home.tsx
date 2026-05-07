@@ -15,7 +15,7 @@ const FASHION_IMAGES = [
 const MARQUEE_WORDS = [
   "THE FITTING ROOM",
   "·",
-  "7 SCENARIOS",
+  "4 SCENARIOS",
   "·",
   "3 CABINS",
   "·",
@@ -70,75 +70,89 @@ export default function Home() {
               {" "}Sürprizi.
             </h1>
             <p className="mt-5 sm:mt-6 max-w-md mx-auto text-sm sm:text-base text-ink/55 font-sans leading-relaxed px-4">
-              7 senaryo. Tek bir an. Müşterinin gününü kurtaran ya da kaybettiren karar.
+              4 senaryo. Tek bir an. Müşterinin gününü kurtaran ya da kaybettiren karar.
               Doğru kabini bulun.
             </p>
           </div>
 
-          {/* Symmetric image + QR cluster */}
-          <div className="mt-10 sm:mt-14 md:mt-16 grid grid-cols-12 gap-3 sm:gap-4 md:gap-8 items-center max-w-6xl mx-auto">
-            {/* LEFT image */}
+          {/* Mobile: stacked CTA + 2-col image grid below.
+              Desktop: symmetric 5/2/5 cluster. */}
+
+          {/* CTA + QR — always centered, full width on mobile */}
+          <div className="mt-10 sm:mt-14 flex flex-col items-center gap-5 animate-fade-up delay-300 sm:hidden">
+            <div className="relative p-2.5 bg-white shadow-sm">
+              <QRCodeSVG value={testUrl} size={120} level="M" bgColor="#ffffff" fgColor="#1A1614" className="block" />
+              <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2" style={{ borderColor: "var(--zara-ink)" }} />
+              <span className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2" style={{ borderColor: "var(--zara-ink)" }} />
+              <span className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2" style={{ borderColor: "var(--zara-ink)" }} />
+              <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2" style={{ borderColor: "var(--zara-ink)" }} />
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] font-mono tracking-[0.25em] uppercase text-ink/50">
+              <Smartphone size={10} /> Telefonunuzla başlayın
+            </div>
+            <SoftButton
+              variant="primary"
+              tone="ink"
+              size="lg"
+              onClick={() => navigate("/test")}
+              iconRight={<ArrowRight size={14} className="transition-transform duration-500 group-hover:translate-x-1" />}
+            >
+              Eğitime Başla
+            </SoftButton>
+          </div>
+
+          {/* Mobile: 2-col image row below CTA */}
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:hidden">
+            <div className="animate-slide-l delay-200">
+              <div className="aspect-[3/4] overflow-hidden bg-zara-alt">
+                <img src={FASHION_IMAGES[0]} alt="" className="w-full h-full object-cover grayscale" />
+              </div>
+              <div className="mt-2 text-[9px] font-mono tracking-[0.2em] uppercase text-ink/40">THE WELCOME</div>
+            </div>
+            <div className="animate-slide-r delay-200">
+              <div className="aspect-[3/4] overflow-hidden bg-zara-alt">
+                <img src={FASHION_IMAGES[1]} alt="" className="w-full h-full object-cover grayscale" />
+              </div>
+              <div className="mt-2 text-[9px] font-mono tracking-[0.2em] uppercase text-ink/40 text-right">THE MOMENT</div>
+            </div>
+          </div>
+
+          {/* Desktop: symmetric image + CTA cluster (sm and up) */}
+          <div className="hidden sm:grid mt-14 md:mt-16 grid-cols-12 gap-4 md:gap-8 items-center max-w-6xl mx-auto">
             <div className="col-span-3 lg:col-span-4 animate-slide-l delay-200">
               <div className="aspect-[3/4] overflow-hidden bg-zara-alt">
-                <img
-                  src={FASHION_IMAGES[0]}
-                  alt=""
-                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-[1200ms]"
-                />
+                <img src={FASHION_IMAGES[0]} alt="" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-[1200ms]" />
               </div>
-              <div className="mt-2 sm:mt-3 text-[8px] sm:text-[10px] font-mono tracking-[0.2em] sm:tracking-[0.25em] uppercase text-ink/40 text-center sm:text-left">
-                <span className="hidden sm:inline">FIG. 01 — </span>THE WELCOME
-              </div>
+              <div className="mt-3 text-[10px] font-mono tracking-[0.25em] uppercase text-ink/40">FIG. 01 — THE WELCOME</div>
             </div>
 
-            {/* CENTER — CTA + QR */}
-            <div className="col-span-6 lg:col-span-4 flex flex-col items-center gap-4 sm:gap-6 animate-fade-up delay-300">
-              <div className="flex flex-col items-center gap-3">
-                <div className="relative p-2 sm:p-2.5 bg-white shadow-sm">
-                  <QRCodeSVG
-                    value={testUrl}
-                    size={100}
-                    level="M"
-                    bgColor="#ffffff"
-                    fgColor="#1A1614"
-                    className="block"
-                  />
-                  {/* Corners */}
-                  <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2" style={{ borderColor: "var(--zara-ink)" }} />
-                  <span className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2" style={{ borderColor: "var(--zara-ink)" }} />
-                  <span className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2" style={{ borderColor: "var(--zara-ink)" }} />
-                  <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2" style={{ borderColor: "var(--zara-ink)" }} />
-                </div>
-                <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-mono tracking-[0.25em] uppercase text-ink/50">
-                  <Smartphone size={10} /> Telefonunuzla başlayın
-                </div>
+            <div className="col-span-6 lg:col-span-4 flex flex-col items-center gap-5 animate-fade-up delay-300">
+              <div className="relative p-2.5 bg-white shadow-sm">
+                <QRCodeSVG value={testUrl} size={110} level="M" bgColor="#ffffff" fgColor="#1A1614" className="block" />
+                <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2" style={{ borderColor: "var(--zara-ink)" }} />
+                <span className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2" style={{ borderColor: "var(--zara-ink)" }} />
+                <span className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2" style={{ borderColor: "var(--zara-ink)" }} />
+                <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2" style={{ borderColor: "var(--zara-ink)" }} />
               </div>
-
+              <div className="flex items-center gap-1.5 text-[10px] font-mono tracking-[0.25em] uppercase text-ink/50">
+                <Smartphone size={10} /> Telefonunuzla başlayın
+              </div>
               <SoftButton
                 variant="primary"
                 tone="ink"
                 size="lg"
                 onClick={() => navigate("/test")}
                 iconRight={<ArrowRight size={14} className="transition-transform duration-500 group-hover:translate-x-1" />}
-                fullWidth
-                className="!w-auto"
               >
                 Eğitime Başla
               </SoftButton>
             </div>
 
-            {/* RIGHT image */}
             <div className="col-span-3 lg:col-span-4 animate-slide-r delay-200">
               <div className="aspect-[3/4] overflow-hidden bg-zara-alt">
-                <img
-                  src={FASHION_IMAGES[1]}
-                  alt=""
-                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-[1200ms]"
-                />
+                <img src={FASHION_IMAGES[1]} alt="" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-[1200ms]" />
               </div>
-              <div className="mt-2 sm:mt-3 text-[8px] sm:text-[10px] font-mono tracking-[0.2em] sm:tracking-[0.25em] uppercase text-ink/40 text-center sm:text-right">
-                <span className="hidden sm:inline">FIG. 02 — </span>THE MOMENT
-              </div>
+              <div className="mt-3 text-[10px] font-mono tracking-[0.25em] uppercase text-ink/40 text-right">FIG. 02 — THE MOMENT</div>
             </div>
           </div>
         </div>
@@ -179,7 +193,7 @@ export default function Home() {
                 </h2>
               </div>
               <div className="hidden md:block text-[10px] font-mono tracking-[0.3em] uppercase text-ink/30 whitespace-nowrap">
-                03 STEPS · 7 QUESTIONS · 3 OUTCOMES
+                03 STEPS · 4 QUESTIONS · 3 OUTCOMES
               </div>
             </div>
           </RevealOnScroll>
@@ -195,7 +209,7 @@ export default function Home() {
               {
                 n: "02",
                 title: "ÖĞREN",
-                desc: "7 prova odası senaryosuyla müşteri deneyiminin ardındaki anı keşfedin.",
+                desc: "4 prova odası senaryosuyla müşteri deneyiminin ardındaki anı keşfedin.",
                 img: FASHION_IMAGES[3],
               },
               {

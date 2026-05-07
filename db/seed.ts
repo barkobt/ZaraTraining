@@ -1,4 +1,4 @@
-import { getDb } from "../api/queries/connection";
+import { getDb } from "../api/_lib/queries/connection.js";
 // TODO: import tables from "./schema"
 
 async function seed() {

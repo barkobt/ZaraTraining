@@ -1,7 +1,7 @@
-import { createRouter, publicQuery } from "./middleware";
+import { createRouter, publicQuery } from "./middleware.js";
 import { z } from "zod";
-import { SCORING_TABLE, calculateCabin } from "@contracts/constants";
-import { createParticipant, getParticipantById, getAllParticipants } from "./queries/participants";
+import { SCORING_TABLE, calculateCabin } from "../../contracts/constants.js";
+import { createParticipant, getParticipantById, getAllParticipants } from "./queries/participants.js";
 
 export const appRouter = createRouter({
   ping: publicQuery.query(() => ({ ok: true, ts: Date.now() })),
@@ -29,7 +29,7 @@ export const appRouter = createRouter({
           totalScore,
           cabin: cabinInfo.cabin,
         });
-        const insertId = Number(result[0].insertId);
+        const insertId = result?.id ?? 0;
         return {
           id: insertId,
           name: input.name,

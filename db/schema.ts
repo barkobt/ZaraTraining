@@ -1,17 +1,17 @@
 import {
-  mysqlTable,
+  pgTable,
   serial,
   varchar,
-  json,
-  int,
+  jsonb,
+  integer,
   timestamp,
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/pg-core";
 
-export const participants = mysqlTable("participants", {
+export const participants = pgTable("participants", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  answers: json("answers").notNull(),
-  totalScore: int("total_score").notNull(),
+  answers: jsonb("answers").notNull(),
+  totalScore: integer("total_score").notNull(),
   cabin: varchar("cabin", { length: 50 }).notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

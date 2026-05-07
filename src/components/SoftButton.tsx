@@ -52,7 +52,7 @@ export const SoftButton = forwardRef<HTMLButtonElement, SoftButtonProps>(functio
         style={{ borderColor: colors.bg, color: colors.bg }}
         {...rest}
       >
-        <span className="relative z-10 inline-flex items-center gap-2 transition-colors duration-300 group-hover:text-white group-disabled:!text-current">
+        <span className="relative z-10 inline-flex items-center gap-2 whitespace-nowrap transition-colors duration-300 group-hover:text-white group-disabled:!text-current">
           {iconLeft}
           {children}
           {iconRight}
@@ -70,7 +70,7 @@ export const SoftButton = forwardRef<HTMLButtonElement, SoftButtonProps>(functio
       <button
         ref={ref}
         disabled={disabled}
-        className={`inline-flex items-center justify-center ${sizeCls} font-sans uppercase font-medium text-ink/55 hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${fullWidth ? "w-full" : ""} ${className}`}
+        className={`inline-flex items-center justify-center whitespace-nowrap ${sizeCls} font-sans uppercase font-medium text-ink/55 hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${fullWidth ? "w-full" : ""} ${className}`}
         {...rest}
       >
         {iconLeft}
@@ -89,7 +89,7 @@ export const SoftButton = forwardRef<HTMLButtonElement, SoftButtonProps>(functio
       style={{ background: colors.bg, color: colors.text }}
       {...rest}
     >
-      <span className="relative z-10 inline-flex items-center gap-2">
+      <span className="relative z-10 inline-flex items-center gap-2 whitespace-nowrap">
         {iconLeft}
         {children}
         {iconRight}

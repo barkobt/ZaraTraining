@@ -138,7 +138,7 @@ export default function ResultPage() {
               <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-[var(--zara-gold)]">
                 · YOUR PRIVATE REVEAL
               </div>
-              <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl tracking-[-0.03em] leading-[0.95] text-ink">
+              <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl tracking-[-0.03em] leading-[0.95] text-ink">
                 Kabininiz <span className="italic font-light">hazır.</span>
               </h1>
               <p className="text-sm sm:text-base text-ink/55 font-sans max-w-md mx-auto leading-relaxed">
@@ -146,7 +146,7 @@ export default function ResultPage() {
               </p>
             </div>
 
-            <div className="w-full max-w-[400px] animate-scale-fade delay-200">
+            <div className="w-full max-w-[280px] sm:max-w-[400px] animate-scale-fade delay-200">
               <CabinCurtain
                 cabinKey={cabinKey}
                 revealed={false}
@@ -169,7 +169,7 @@ export default function ResultPage() {
       {view === "opened" && (
         <main key="v-opened" className="relative z-10 flex-1 flex flex-col items-center px-4 py-8 sm:py-12 gap-8 sm:gap-10">
           {/* Cabin (revealed) */}
-          <div className="w-full max-w-[420px] animate-fade-up">
+          <div className="w-full max-w-[300px] sm:max-w-[420px] animate-fade-up">
             <CabinCurtain
               cabinKey={cabinKey}
               revealed={true}
@@ -201,12 +201,12 @@ export default function ResultPage() {
                 </div>
                 <div className="mt-3 flex items-baseline justify-center gap-2">
                   <span
-                    className="font-serif font-light text-[120px] sm:text-[150px] leading-[0.85] tracking-[-0.05em] tabular-nums"
+                    className="font-serif font-light text-[88px] sm:text-[120px] md:text-[150px] leading-[0.85] tracking-[-0.05em] tabular-nums"
                     style={{ color: theme.accent }}
                   >
                     {score}
                   </span>
-                  <span className="font-serif text-3xl text-ink/30 italic">/21</span>
+                  <span className="font-serif text-2xl sm:text-3xl text-ink/30 italic">/12</span>
                 </div>
                 <div
                   className="mt-5 w-12 h-px"

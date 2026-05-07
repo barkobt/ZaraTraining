@@ -198,7 +198,7 @@ function AdminContent() {
                   ) : participants && participants.length > 0 ? (
                     participants.map((p, idx) => {
                       const meta = cabinMeta[p.cabin] || cabinMeta.gelisim;
-                      const pct = Math.min((p.totalScore / 21) * 100, 100);
+                      const pct = Math.min((p.totalScore / 12) * 100, 100);
                       return (
                         <tr
                           key={p.id}
@@ -223,7 +223,7 @@ function AdminContent() {
                             </div>
                           </td>
                           <td className="px-5 py-3 font-mono text-sm tabular-nums" style={{ color: meta.color }}>
-                            {p.totalScore}<span className="text-ink/20">/21</span>
+                            {p.totalScore}<span className="text-ink/20">/12</span>
                           </td>
                           <td className="px-5 py-3">
                             <span
