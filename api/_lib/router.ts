@@ -2,6 +2,20 @@ import { createRouter, publicQuery } from "./middleware.js";
 import { z } from "zod";
 import { SCORING_TABLE, calculateCabin } from "../../contracts/constants.js";
 import { createParticipant, getParticipantById, getAllParticipants } from "./queries/participants.js";
+import {
+  listStaff,
+  createStaff,
+  updateStaff,
+  deleteStaff,
+  upsertCompetency,
+} from "./queries/staff.js";
+import {
+  getSolverConfig,
+  upsertSolverConfig,
+  listForbiddenPairs,
+} from "./queries/solverConfig.js";
+
+const DEFAULT_STORE_ID = 1;
 
 export const appRouter = createRouter({
   ping: publicQuery.query(() => ({ ok: true, ts: Date.now() })),
@@ -97,6 +111,109 @@ export const appRouter = createRouter({
       }
       return stats;
     }),
+  }),
+
+  staff: createRouter({
+    list: publicQuery
+      .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
+      .query(async ({ input }) => {
+        return listStaff(input?.storeId ?? DEFAULT_STORE_ID);
+      }),
+
+    create: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          fullName: z.string().min(1).max(100),
+          shortName: z.string().min(1).max(30),
+          tenureLevel: z.string().min(1).max(20),
+          isManager: z.boolean().optional(),
+          note: z.string().nullable().optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const row = await createStaff({
+          storeId: input.storeId ?? DEFAULT_STORE_ID,
+          fullName: input.fullName,
+          shortName: input.shortName,
+          tenureLevel: input.tenureLevel,
+          isManager: input.isManager ?? false,
+          note: input.note ?? null,
+        });
+        return row;
+      }),
+
+    update: publicQuery
+      .input(
+        z.object({
+          id: z.number().int().positive(),
+          fullName: z.string().min(1).max(100).optional(),
+          shortName: z.string().min(1).max(30).optional(),
+          tenureLevel: z.string().min(1).max(20).optional(),
+          isManager: z.boolean().optional(),
+          isBlacklisted: z.boolean().optional(),
+          note: z.string().nullable().optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...patch } = input;
+        return updateStaff(id, patch);
+      }),
+
+    delete: publicQuery
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await deleteStaff(input.id);
+        return { ok: true };
+      }),
+  }),
+
+  competency: createRouter({
+    update: publicQuery
+      .input(
+        z.object({
+          staffId: z.number().int().positive(),
+          role: z.string().min(1).max(20),
+          level: z.number().int().min(0).max(4),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        await upsertCompetency(input.staffId, input.role, input.level);
+        return { ok: true };
+      }),
+  }),
+
+  solverConfig: createRouter({
+    get: publicQuery
+      .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
+      .query(async ({ input }) => {
+        return getSolverConfig(input?.storeId ?? DEFAULT_STORE_ID);
+      }),
+
+    update: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          competencyWeight: z.number().optional(),
+          fairnessWeight: z.number().optional(),
+          managerMorningPenalty: z.number().int().optional(),
+          managerNormalPenalty: z.number().int().optional(),
+          dualPenalty: z.number().int().optional(),
+          sprinterDualPenalty: z.number().int().optional(),
+          buddyViolationPenalty: z.number().int().optional(),
+          maxConsecutiveHours: z.number().int().optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const { storeId, ...patch } = input;
+        return upsertSolverConfig(storeId ?? DEFAULT_STORE_ID, patch);
+      }),
+
+    forbiddenPairs: publicQuery
+      .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
+      .query(async ({ input }) => {
+        return listForbiddenPairs(input?.storeId ?? DEFAULT_STORE_ID);
+      }),
   }),
 });
 
