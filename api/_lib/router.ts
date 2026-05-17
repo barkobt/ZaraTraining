@@ -2,9 +2,46 @@ import { createRouter, publicQuery } from "./middleware.js";
 import { z } from "zod";
 import { SCORING_TABLE, calculateCabin } from "../../contracts/constants.js";
 import { createParticipant, getParticipantById, getAllParticipants } from "./queries/participants.js";
+import {
+  listStaff,
+  createStaff,
+  updateStaff,
+  deleteStaff,
+  upsertCompetency,
+} from "./queries/staff.js";
+import {
+  getSolverConfig,
+  upsertSolverConfig,
+  listForbiddenPairs,
+  addForbiddenPair,
+  removeForbiddenPair,
+} from "./queries/solverConfig.js";
+import { insertChart, getChartById, listChartsForStore } from "./queries/charts.js";
+import { solveShift, pingSolver } from "./solver-client.js";
+import { staffRowsToSolverInput } from "./shift-mapping.js";
+import { env } from "./lib/env.js";
+
+const DEFAULT_STORE_ID = 1;
+
+const shiftInputSchema = z.object({
+  short_name: z.string().min(1),
+  start_hour: z.number().int().min(0).max(23),
+  end_hour: z.number().int().min(1).max(24),
+  breaks: z.array(z.tuple([z.number(), z.number()])).optional(),
+});
 
 export const appRouter = createRouter({
   ping: publicQuery.query(() => ({ ok: true, ts: Date.now() })),
+
+  auth: createRouter({
+    required: publicQuery.query(() => ({ required: !!env.shiftOrganizerPassword })),
+    check: publicQuery
+      .input(z.object({ token: z.string().min(1).max(200) }))
+      .mutation(({ input }) => {
+        if (!env.shiftOrganizerPassword) return { ok: true };
+        return { ok: input.token === env.shiftOrganizerPassword };
+      }),
+  }),
 
   participant: createRouter({
     submit: publicQuery
@@ -97,6 +134,230 @@ export const appRouter = createRouter({
       }
       return stats;
     }),
+  }),
+
+  staff: createRouter({
+    list: publicQuery
+      .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
+      .query(async ({ input }) => {
+        return listStaff(input?.storeId ?? DEFAULT_STORE_ID);
+      }),
+
+    create: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          fullName: z.string().min(1).max(100),
+          shortName: z.string().min(1).max(30),
+          tenureLevel: z.string().min(1).max(20),
+          isManager: z.boolean().optional(),
+          note: z.string().nullable().optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const row = await createStaff({
+          storeId: input.storeId ?? DEFAULT_STORE_ID,
+          fullName: input.fullName,
+          shortName: input.shortName,
+          tenureLevel: input.tenureLevel,
+          isManager: input.isManager ?? false,
+          note: input.note ?? null,
+        });
+        return row;
+      }),
+
+    update: publicQuery
+      .input(
+        z.object({
+          id: z.number().int().positive(),
+          fullName: z.string().min(1).max(100).optional(),
+          shortName: z.string().min(1).max(30).optional(),
+          tenureLevel: z.string().min(1).max(20).optional(),
+          isManager: z.boolean().optional(),
+          isBlacklisted: z.boolean().optional(),
+          note: z.string().nullable().optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...patch } = input;
+        return updateStaff(id, patch);
+      }),
+
+    delete: publicQuery
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await deleteStaff(input.id);
+        return { ok: true };
+      }),
+  }),
+
+  competency: createRouter({
+    update: publicQuery
+      .input(
+        z.object({
+          staffId: z.number().int().positive(),
+          role: z.string().min(1).max(20),
+          level: z.number().int().min(0).max(4),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        await upsertCompetency(input.staffId, input.role, input.level);
+        return { ok: true };
+      }),
+  }),
+
+  solverConfig: createRouter({
+    get: publicQuery
+      .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
+      .query(async ({ input }) => {
+        return getSolverConfig(input?.storeId ?? DEFAULT_STORE_ID);
+      }),
+
+    update: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          competencyWeight: z.number().optional(),
+          fairnessWeight: z.number().optional(),
+          managerMorningPenalty: z.number().int().optional(),
+          managerNormalPenalty: z.number().int().optional(),
+          dualPenalty: z.number().int().optional(),
+          sprinterDualPenalty: z.number().int().optional(),
+          buddyViolationPenalty: z.number().int().optional(),
+          maxConsecutiveHours: z.number().int().optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const { storeId, ...patch } = input;
+        return upsertSolverConfig(storeId ?? DEFAULT_STORE_ID, patch);
+      }),
+
+    forbiddenPairs: publicQuery
+      .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
+      .query(async ({ input }) => {
+        return listForbiddenPairs(input?.storeId ?? DEFAULT_STORE_ID);
+      }),
+
+    addForbiddenPair: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          roleA: z.string().min(1).max(20),
+          roleB: z.string().min(1).max(20),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        await addForbiddenPair(
+          input.storeId ?? DEFAULT_STORE_ID,
+          input.roleA,
+          input.roleB,
+        );
+        return { ok: true };
+      }),
+
+    removeForbiddenPair: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          roleA: z.string().min(1).max(20),
+          roleB: z.string().min(1).max(20),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        await removeForbiddenPair(
+          input.storeId ?? DEFAULT_STORE_ID,
+          input.roleA,
+          input.roleB,
+        );
+        return { ok: true };
+      }),
+  }),
+
+  chart: createRouter({
+    ping: publicQuery.query(async () => pingSolver()),
+
+    generate: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          shiftDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+          hours: z.array(z.number().int().min(0).max(23)).min(1),
+          shifts: z.array(shiftInputSchema).min(1),
+          timeLimitSeconds: z.number().int().min(1).max(120).optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const storeId = input.storeId ?? DEFAULT_STORE_ID;
+
+        const [staffRows, cfg] = await Promise.all([
+          listStaff(storeId),
+          getSolverConfig(storeId),
+        ]);
+
+        if (staffRows.length === 0) {
+          throw new Error("No staff in DB for this store. Seed first.");
+        }
+
+        const solverStaff = staffRowsToSolverInput(staffRows);
+        const solverConfigPayload = {
+          competency_weight: cfg?.competencyWeight ?? 3.0,
+          fairness_weight: cfg?.fairnessWeight ?? 0.5,
+          max_consecutive_hours: cfg?.maxConsecutiveHours ?? 2,
+          time_limit_seconds: input.timeLimitSeconds ?? 30,
+        };
+
+        const solveReq = {
+          shift_date: input.shiftDate,
+          hours: input.hours,
+          staff: solverStaff,
+          shifts: input.shifts.map((s) => ({
+            short_name: s.short_name,
+            start_hour: s.start_hour,
+            end_hour: s.end_hour,
+            breaks: s.breaks ?? [],
+          })),
+          config: solverConfigPayload,
+        };
+
+        const solveRes = await solveShift(solveReq);
+
+        const saved = await insertChart({
+          storeId,
+          shiftDate: input.shiftDate,
+          shiftData: { hours: input.hours, shifts: input.shifts },
+          chartData: solveRes.chart,
+          qualityScore: solveRes.quality_score,
+          configSnapshot: solverConfigPayload,
+          status: solveRes.status,
+        });
+
+        return {
+          chartId: saved?.id ?? null,
+          status: solveRes.status,
+          qualityScore: solveRes.quality_score,
+          warnings: solveRes.warnings,
+          errors: solveRes.errors,
+          elapsedSeconds: solveRes.elapsed_seconds,
+          chart: solveRes.chart,
+        };
+      }),
+
+    getById: publicQuery
+      .input(z.object({ id: z.number().int().positive() }))
+      .query(async ({ input }) => getChartById(input.id)),
+
+    list: publicQuery
+      .input(
+        z
+          .object({
+            storeId: z.number().int().positive().optional(),
+            limit: z.number().int().min(1).max(200).optional(),
+          })
+          .optional(),
+      )
+      .query(async ({ input }) =>
+        listChartsForStore(input?.storeId ?? DEFAULT_STORE_ID, input?.limit ?? 50),
+      ),
   }),
 });
 

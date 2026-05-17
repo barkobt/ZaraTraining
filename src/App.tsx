@@ -4,6 +4,7 @@ import TestPage from './pages/TestPage'
 import ResultPage from './pages/ResultPage'
 import AdminPage from './pages/AdminPage'
 import ShowPage from './pages/ShowPage'
+import ShiftOrganizer from './pages/ShiftOrganizer'
 import { ScrollToTop } from './components/ScrollToTop'
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/sonuc/:id" element={<ResultPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/show" element={<ShowPage />} />
+        <Route path="/shift-organizer" element={<ShiftOrganizer />} />
       </Routes>
     </>
   )
