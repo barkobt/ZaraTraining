@@ -14,8 +14,18 @@ import {
   upsertSolverConfig,
   listForbiddenPairs,
 } from "./queries/solverConfig.js";
+import { insertChart, getChartById, listChartsForStore } from "./queries/charts.js";
+import { solveShift, pingSolver } from "./solver-client.js";
+import { staffRowsToSolverInput } from "./shift-mapping.js";
 
 const DEFAULT_STORE_ID = 1;
+
+const shiftInputSchema = z.object({
+  short_name: z.string().min(1),
+  start_hour: z.number().int().min(0).max(23),
+  end_hour: z.number().int().min(1).max(24),
+  breaks: z.array(z.tuple([z.number(), z.number()])).optional(),
+});
 
 export const appRouter = createRouter({
   ping: publicQuery.query(() => ({ ok: true, ts: Date.now() })),
@@ -214,6 +224,93 @@ export const appRouter = createRouter({
       .query(async ({ input }) => {
         return listForbiddenPairs(input?.storeId ?? DEFAULT_STORE_ID);
       }),
+  }),
+
+  chart: createRouter({
+    ping: publicQuery.query(async () => pingSolver()),
+
+    generate: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          shiftDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+          hours: z.array(z.number().int().min(0).max(23)).min(1),
+          shifts: z.array(shiftInputSchema).min(1),
+          timeLimitSeconds: z.number().int().min(1).max(120).optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const storeId = input.storeId ?? DEFAULT_STORE_ID;
+
+        const [staffRows, cfg] = await Promise.all([
+          listStaff(storeId),
+          getSolverConfig(storeId),
+        ]);
+
+        if (staffRows.length === 0) {
+          throw new Error("No staff in DB for this store. Seed first.");
+        }
+
+        const solverStaff = staffRowsToSolverInput(staffRows);
+        const solverConfigPayload = {
+          competency_weight: cfg?.competencyWeight ?? 3.0,
+          fairness_weight: cfg?.fairnessWeight ?? 0.5,
+          max_consecutive_hours: cfg?.maxConsecutiveHours ?? 2,
+          time_limit_seconds: input.timeLimitSeconds ?? 30,
+        };
+
+        const solveReq = {
+          shift_date: input.shiftDate,
+          hours: input.hours,
+          staff: solverStaff,
+          shifts: input.shifts.map((s) => ({
+            short_name: s.short_name,
+            start_hour: s.start_hour,
+            end_hour: s.end_hour,
+            breaks: s.breaks ?? [],
+          })),
+          config: solverConfigPayload,
+        };
+
+        const solveRes = await solveShift(solveReq);
+
+        const saved = await insertChart({
+          storeId,
+          shiftDate: input.shiftDate,
+          shiftData: { hours: input.hours, shifts: input.shifts },
+          chartData: solveRes.chart,
+          qualityScore: solveRes.quality_score,
+          configSnapshot: solverConfigPayload,
+          status: solveRes.status,
+        });
+
+        return {
+          chartId: saved?.id ?? null,
+          status: solveRes.status,
+          qualityScore: solveRes.quality_score,
+          warnings: solveRes.warnings,
+          errors: solveRes.errors,
+          elapsedSeconds: solveRes.elapsed_seconds,
+          chart: solveRes.chart,
+        };
+      }),
+
+    getById: publicQuery
+      .input(z.object({ id: z.number().int().positive() }))
+      .query(async ({ input }) => getChartById(input.id)),
+
+    list: publicQuery
+      .input(
+        z
+          .object({
+            storeId: z.number().int().positive().optional(),
+            limit: z.number().int().min(1).max(200).optional(),
+          })
+          .optional(),
+      )
+      .query(async ({ input }) =>
+        listChartsForStore(input?.storeId ?? DEFAULT_STORE_ID, input?.limit ?? 50),
+      ),
   }),
 });
 
