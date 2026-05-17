@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { getDb } from "./connection.js";
 import { solverConfig, forbiddenRolePairs } from "../../../db/schema.js";
 
@@ -42,4 +42,25 @@ export async function listForbiddenPairs(storeId: number) {
     .select()
     .from(forbiddenRolePairs)
     .where(eq(forbiddenRolePairs.storeId, storeId));
+}
+
+export async function addForbiddenPair(storeId: number, roleA: string, roleB: string) {
+  const db = getDb();
+  await db
+    .insert(forbiddenRolePairs)
+    .values({ storeId, roleA, roleB })
+    .onConflictDoNothing();
+}
+
+export async function removeForbiddenPair(storeId: number, roleA: string, roleB: string) {
+  const db = getDb();
+  await db
+    .delete(forbiddenRolePairs)
+    .where(
+      and(
+        eq(forbiddenRolePairs.storeId, storeId),
+        eq(forbiddenRolePairs.roleA, roleA),
+        eq(forbiddenRolePairs.roleB, roleB),
+      ),
+    );
 }

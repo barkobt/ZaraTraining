@@ -12,4 +12,5 @@ function optional(name: string): string {
 export const env = {
   isProduction: process.env.NODE_ENV === "production",
   databaseUrl: optional("DATABASE_URL"),
+  shiftOrganizerPassword: optional("SHIFT_ORGANIZER_PASSWORD"),
 };

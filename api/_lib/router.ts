@@ -13,10 +13,13 @@ import {
   getSolverConfig,
   upsertSolverConfig,
   listForbiddenPairs,
+  addForbiddenPair,
+  removeForbiddenPair,
 } from "./queries/solverConfig.js";
 import { insertChart, getChartById, listChartsForStore } from "./queries/charts.js";
 import { solveShift, pingSolver } from "./solver-client.js";
 import { staffRowsToSolverInput } from "./shift-mapping.js";
+import { env } from "./lib/env.js";
 
 const DEFAULT_STORE_ID = 1;
 
@@ -29,6 +32,16 @@ const shiftInputSchema = z.object({
 
 export const appRouter = createRouter({
   ping: publicQuery.query(() => ({ ok: true, ts: Date.now() })),
+
+  auth: createRouter({
+    required: publicQuery.query(() => ({ required: !!env.shiftOrganizerPassword })),
+    check: publicQuery
+      .input(z.object({ token: z.string().min(1).max(200) }))
+      .mutation(({ input }) => {
+        if (!env.shiftOrganizerPassword) return { ok: true };
+        return { ok: input.token === env.shiftOrganizerPassword };
+      }),
+  }),
 
   participant: createRouter({
     submit: publicQuery
@@ -223,6 +236,40 @@ export const appRouter = createRouter({
       .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
       .query(async ({ input }) => {
         return listForbiddenPairs(input?.storeId ?? DEFAULT_STORE_ID);
+      }),
+
+    addForbiddenPair: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          roleA: z.string().min(1).max(20),
+          roleB: z.string().min(1).max(20),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        await addForbiddenPair(
+          input.storeId ?? DEFAULT_STORE_ID,
+          input.roleA,
+          input.roleB,
+        );
+        return { ok: true };
+      }),
+
+    removeForbiddenPair: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          roleA: z.string().min(1).max(20),
+          roleB: z.string().min(1).max(20),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        await removeForbiddenPair(
+          input.storeId ?? DEFAULT_STORE_ID,
+          input.roleA,
+          input.roleB,
+        );
+        return { ok: true };
       }),
   }),
 
