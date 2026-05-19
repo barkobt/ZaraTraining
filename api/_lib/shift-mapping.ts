@@ -18,16 +18,15 @@ const TENURE_TO_GROUP: Record<string, string> = {
 
 function competenciesToSolver(row: StaffWithCompetencies): Record<string, number> {
   const c = row.competencies;
-  const z34 = c["Z3-Z4"] ?? 0;
   return {
     WELCOME: c["Welcome"] ?? 0,
     KABIN: c["Kabin"] ?? 0,
-    RUNNER: c["Runner"] ?? 0,
+    KABIN_WELCOMER: c["Kabin Welcomer"] ?? 0,
     SPRINTER: c["Sprinter"] ?? 0,
-    ZONE_2: c["Welcome"] ?? 0,
-    ZONE_3: z34,
-    ZONE_4: z34,
-    ZONE_5: c["Z5"] ?? 0,
+    ZONE_2: c["Zone 2"] ?? 0,
+    ZONE_3: c["Zone 3"] ?? 0,
+    ZONE_4: c["Zone 4"] ?? 0,
+    ZONE_5: c["Zone 5"] ?? 0,
   };
 }
 

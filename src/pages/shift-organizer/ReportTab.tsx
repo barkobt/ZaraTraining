@@ -71,7 +71,7 @@ export function ReportTab({ staff }: { staff: StaffRow[] }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="grid grid-cols-6 gap-2 mt-4 text-[10px] tracking-wider uppercase text-stone-600">
+        <div className="grid grid-cols-4 md:grid-cols-8 gap-2 mt-4 text-[10px] tracking-wider uppercase text-stone-600">
           {roleSummary.map((r) => (
             <div key={r.role} className="border border-stone-200 p-2">
               <div className="font-semibold">{r.role}</div>

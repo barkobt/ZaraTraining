@@ -14,7 +14,16 @@ export const TENURE_LEVELS = [
   { id: "EXPERT", label: "Yetkin", color: "#000000" },
 ] as const;
 
-export const ROLES = ["Welcome", "Kabin", "Runner", "Sprinter", "Z3-Z4", "Z5"] as const;
+export const ROLES = [
+  "Welcome",
+  "Kabin",
+  "Kabin Welcomer",
+  "Sprinter",
+  "Zone 2",
+  "Zone 3",
+  "Zone 4",
+  "Zone 5",
+] as const;
 export type Role = (typeof ROLES)[number];
 
 export type StaffRow = {
