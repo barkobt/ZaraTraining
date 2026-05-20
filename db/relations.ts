@@ -6,7 +6,7 @@ import {
   solverConfig,
   forbiddenRolePairs,
   charts,
-} from "./schema";
+} from "./schema.js";
 
 export const storesRelations = relations(stores, ({ many, one }) => ({
   staff: many(staff),
