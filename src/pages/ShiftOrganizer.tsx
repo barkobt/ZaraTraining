@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { Users, Calendar, BarChart3, Settings, LogOut } from "lucide-react";
+import { Users, Calendar, BarChart3, Settings, LogOut, Archive } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { CompetencyTab } from "./shift-organizer/CompetencyTab";
 import { GenerateTab } from "./shift-organizer/GenerateTab";
 import { ReportTab } from "./shift-organizer/ReportTab";
 import { SettingsTab } from "./shift-organizer/SettingsTab";
+import { ArchiveTab } from "./shift-organizer/ArchiveTab";
 import { AddPersonModal } from "./shift-organizer/AddPersonModal";
 import type { StaffRow } from "./shift-organizer/constants";
 import { useAuthGate } from "./shift-organizer/auth-gate";
 
-type TabId = "competency" | "generate" | "report" | "settings";
+type TabId = "competency" | "generate" | "archive" | "report" | "settings";
 
 export default function ShiftOrganizer() {
   const gate = useAuthGate();
@@ -52,6 +53,7 @@ function ShiftOrganizerInner({
   const TABS = [
     { id: "competency" as const, label: "Yetkinlik", icon: Users, count: staff.length },
     { id: "generate" as const, label: "Shift & Chart", icon: Calendar },
+    { id: "archive" as const, label: "Arşiv", icon: Archive },
     { id: "report" as const, label: "Rapor", icon: BarChart3 },
     { id: "settings" as const, label: "Ayarlar", icon: Settings },
   ];
@@ -125,6 +127,8 @@ function ShiftOrganizerInner({
         )}
 
         {tab === "generate" && <GenerateTab staff={staff} generate={generateChart} />}
+
+        {tab === "archive" && <ArchiveTab staff={staff} />}
 
         {tab === "report" && <ReportTab staff={staff} />}
 
