@@ -108,6 +108,7 @@ export const charts = pgTable(
     chartData: jsonb("chart_data").notNull(),
     qualityScore: real("quality_score"),
     configSnapshot: jsonb("config_snapshot"),
+    responsibilities: jsonb("responsibilities"),
     status: varchar("status", { length: 20 }).notNull().default("generated"),
   },
   (t) => ({

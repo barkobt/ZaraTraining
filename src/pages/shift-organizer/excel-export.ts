@@ -16,16 +16,26 @@ export function exportChartToExcel(result: GenerateResult, shiftDate: string) {
   const data = [header, ...rows];
 
   // Meta sheet
-  const meta = [
+  const meta: (string | number)[][] = [
     ["Tarih", shiftDate],
     ["Durum", result.status],
     ["Skor", result.qualityScore ?? "-"],
     ["Süre (s)", result.elapsedSeconds.toFixed(2)],
     ["Chart ID", result.chartId ?? "-"],
     [],
-    ["Uyarılar"],
-    ...result.warnings.map((w) => [w]),
   ];
+
+  // Sorumlular
+  if (result.responsibilities && Object.keys(result.responsibilities).length > 0) {
+    meta.push(["Günün Sorumluları"]);
+    for (const [role, person] of Object.entries(result.responsibilities)) {
+      if (person) meta.push([role, person]);
+    }
+    meta.push([]);
+  }
+
+  meta.push(["Uyarılar"]);
+  for (const w of result.warnings) meta.push([w]);
 
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);

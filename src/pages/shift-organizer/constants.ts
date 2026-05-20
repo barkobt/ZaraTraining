@@ -35,3 +35,16 @@ export type StaffRow = {
   note: string | null;
   competencies: Record<string, number>;
 };
+
+/**
+ * Manuel atanan günlük sorumluluklar — solver'dan bağımsız.
+ * Kullanıcı chart üretildikten sonra her birine bir kişi atar.
+ */
+export const RESPONSIBILITY_ROLES = [
+  "Runner Lider",
+  "Aksiyon Sorumlusu",
+  "iPod Sorumlusu",
+  "CX Sorumlusu",
+  "Liderlik",
+] as const;
+export type ResponsibilityRole = (typeof RESPONSIBILITY_ROLES)[number];

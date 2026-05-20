@@ -1,5 +1,7 @@
 import { useMemo } from "react";
-import { Download } from "lucide-react";
+import { Download, FileDown } from "lucide-react";
+import { ResponsibilitiesPanel, type Responsibilities } from "./ResponsibilitiesPanel";
+import type { StaffRow } from "./constants";
 
 export type GenerateResult = {
   chartId: number | null;
@@ -9,14 +11,21 @@ export type GenerateResult = {
   errors: string[];
   elapsedSeconds: number;
   chart: Array<{ role: string; hour: number; persons: string[] }>;
+  responsibilities?: Responsibilities | null;
 };
 
 export function ChartResult({
   result,
+  staff,
+  shiftDate: _shiftDate,
   onExportExcel,
+  onExportPdf,
 }: {
   result: GenerateResult;
+  staff?: StaffRow[];
+  shiftDate?: string;
   onExportExcel?: () => void;
+  onExportPdf?: () => void;
 }) {
   const cellsByHourRole = useMemo(() => {
     const m = new Map<string, string[]>();
@@ -56,13 +65,25 @@ export function ChartResult({
         )}
         <span className="text-stone-400">{result.elapsedSeconds.toFixed(2)}s</span>
         {result.chartId && <span className="text-stone-400">#{result.chartId}</span>}
-        {onExportExcel && result.chart.length > 0 && (
-          <button
-            onClick={onExportExcel}
-            className="ml-auto border border-black px-3 py-1 text-[10px] tracking-[0.2em] uppercase flex items-center gap-1 hover:bg-stone-100"
-          >
-            <Download size={11} strokeWidth={1.5} /> Excel
-          </button>
+        {result.chart.length > 0 && (
+          <div className="ml-auto flex gap-2">
+            {onExportPdf && (
+              <button
+                onClick={onExportPdf}
+                className="border border-black px-3 py-1 text-[10px] tracking-[0.2em] uppercase flex items-center gap-1 hover:bg-stone-100"
+              >
+                <FileDown size={11} strokeWidth={1.5} /> PDF
+              </button>
+            )}
+            {onExportExcel && (
+              <button
+                onClick={onExportExcel}
+                className="border border-black px-3 py-1 text-[10px] tracking-[0.2em] uppercase flex items-center gap-1 hover:bg-stone-100"
+              >
+                <Download size={11} strokeWidth={1.5} /> Excel
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -121,6 +142,16 @@ export function ChartResult({
               <li key={i}>{w}</li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {staff && result.chart.length > 0 && (
+        <div className="px-4 pb-4">
+          <ResponsibilitiesPanel
+            chartId={result.chartId}
+            staff={staff}
+            initial={result.responsibilities ?? undefined}
+          />
         </div>
       )}
     </div>

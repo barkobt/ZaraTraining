@@ -371,6 +371,8 @@ export function GenerateTab({
       {generate.data && (
         <ChartResult
           result={generate.data}
+          staff={staff}
+          shiftDate={shiftDate}
           onExportExcel={() => exportChartToExcel(generate.data!, shiftDate)}
         />
       )}

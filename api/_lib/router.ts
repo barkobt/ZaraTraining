@@ -16,7 +16,13 @@ import {
   addForbiddenPair,
   removeForbiddenPair,
 } from "./queries/solverConfig.js";
-import { insertChart, getChartById, listChartsForStore } from "./queries/charts.js";
+import {
+  insertChart,
+  getChartById,
+  listChartsForStore,
+  deleteChart,
+  updateChartResponsibilities,
+} from "./queries/charts.js";
 import { solveShift, pingSolver } from "./solver-client.js";
 import { staffRowsToSolverInput } from "./shift-mapping.js";
 import { env } from "./lib/env.js";
@@ -333,6 +339,7 @@ export const appRouter = createRouter({
 
         return {
           chartId: saved?.id ?? null,
+          responsibilities: (saved?.responsibilities as Record<string, string> | null) ?? null,
           status: solveRes.status,
           qualityScore: solveRes.quality_score,
           warnings: solveRes.warnings,
@@ -358,6 +365,28 @@ export const appRouter = createRouter({
       .query(async ({ input }) =>
         listChartsForStore(input?.storeId ?? DEFAULT_STORE_ID, input?.limit ?? 50),
       ),
+
+    delete: publicQuery
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await deleteChart(input.id);
+        return { ok: true };
+      }),
+
+    updateResponsibilities: publicQuery
+      .input(
+        z.object({
+          id: z.number().int().positive(),
+          responsibilities: z.record(z.string(), z.string().nullable()),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const result = await updateChartResponsibilities(
+          input.id,
+          input.responsibilities,
+        );
+        return { ok: true, responsibilities: result };
+      }),
   }),
 });
 

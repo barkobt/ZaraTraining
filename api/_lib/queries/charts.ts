@@ -55,3 +55,24 @@ export async function findChartByDate(storeId: number, shiftDate: string) {
     .limit(1);
   return row ?? null;
 }
+
+export async function deleteChart(id: number) {
+  const db = getDb();
+  await db.delete(charts).where(eq(charts.id, id));
+}
+
+export async function updateChartResponsibilities(
+  id: number,
+  responsibilities: Record<string, string | null>,
+) {
+  const db = getDb();
+  const cleaned = Object.fromEntries(
+    Object.entries(responsibilities).filter(([, v]) => v),
+  );
+  const [row] = await db
+    .update(charts)
+    .set({ responsibilities: cleaned })
+    .where(eq(charts.id, id))
+    .returning();
+  return row?.responsibilities ?? null;
+}
