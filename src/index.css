@@ -85,6 +85,9 @@
     font-family: 'JetBrains Mono', 'SF Mono', monospace;
     font-feature-settings: "tnum" 1;
   }
+  .font-instrument {
+    font-family: 'Instrument Serif', 'Bodoni Moda', serif;
+  }
   .text-gold { color: var(--zara-gold); }
   .text-bronze { color: var(--zara-bronze); }
   .bg-zara { background-color: var(--zara-bg); }

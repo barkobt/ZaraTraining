@@ -1,8 +1,11 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router";
 import { ArrowDown } from "lucide-react";
 import { ProjectCard, type Project } from "@/components/ProjectCard";
+import { ZMark } from "@/components/ZMark";
+import { CornerVignette } from "@/components/CornerVignette";
+import { LiveClock } from "@/components/LiveClock";
 
 /**
  * Atelye Hub — ZARA · The Academy ana sayfa.
@@ -76,17 +79,25 @@ export default function Home() {
         style={{ borderColor: "var(--zara-line)" }}
       >
         <Link to="/" className="flex items-center gap-3">
-          <div className="font-serif font-semibold text-xl sm:text-2xl tracking-[-0.02em] text-ink">
-            ZARA
+          <ZMark size={26} className="text-ink" />
+          <div className="font-instrument italic text-[22px] sm:text-[24px] leading-none tracking-[-0.01em] text-ink pr-3 border-r" style={{ borderColor: "var(--zara-line-strong)" }}>
+            Atelye
           </div>
-          <div className="hidden md:block w-px h-5" style={{ background: "var(--zara-line-strong)" }} />
-          <div className="hidden md:block text-[10px] tracking-[0.32em] font-sans uppercase text-ink/50">
-            The Academy · Atelye
+          <div className="hidden md:block text-[10px] tracking-[0.32em] font-mono uppercase text-ink/50">
+            The Academy · ZARA
           </div>
         </Link>
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-glow" />
-          <span className="text-[10px] tracking-[0.3em] font-mono uppercase text-ink/60">LIVE</span>
+        <div className="flex items-center gap-3 sm:gap-5">
+          <div className="hidden sm:block"><LiveClock /></div>
+          <div className="hidden md:inline-flex items-center gap-1 border px-2 py-1 rounded-md font-mono text-[10px] tracking-[0.08em] text-ink/55"
+               style={{ borderColor: "var(--zara-line-strong)" }}
+               title="Yakında — komut paleti">
+            <span>⌘</span><span>K</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-glow" />
+            <span className="text-[10px] tracking-[0.3em] font-mono uppercase text-ink/60">LIVE</span>
+          </div>
         </div>
       </header>
 
@@ -95,6 +106,11 @@ export default function Home() {
         ref={heroRef}
         className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 md:px-12 pt-24"
       >
+        {/* Atelier-tarzı köşe işaretleri */}
+        <div className="absolute inset-6 sm:inset-12 pointer-events-none">
+          <CornerVignette color="var(--zara-ink)" opacity={0.5} />
+        </div>
+
         {/* Parallax ornament */}
         <motion.div
           aria-hidden
@@ -114,32 +130,33 @@ export default function Home() {
           style={{ y: heroY, opacity: heroOpacity }}
           className="relative z-10 max-w-6xl mx-auto text-center"
         >
-          {/* Eyebrow */}
+          {/* Eyebrow — atelier kuralla eyebrow */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.22, 0.61, 0.36, 1] }}
             className="flex items-center justify-center gap-3 sm:gap-4 mb-10"
           >
-            <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/40">
-              VOL · 2026
+            <div className="hidden sm:block w-16 h-px" style={{ background: "var(--zara-line-strong)" }} />
+            <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">
+              VOL · 2026 — № 01
             </div>
-            <div className="w-12 h-px" style={{ background: "var(--zara-line-strong)" }} />
-            <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/40">
+            <span className="text-ink/30">·</span>
+            <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">
               ATELYE
             </div>
+            <div className="hidden sm:block w-16 h-px" style={{ background: "var(--zara-line-strong)" }} />
           </motion.div>
 
-          {/* Headline */}
+          {/* Headline — Instrument Serif italic + roman */}
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, ease: [0.22, 0.61, 0.36, 1], delay: 0.1 }}
-            className="font-serif text-[14vw] sm:text-[11vw] md:text-[8.5vw] lg:text-[7.5vw] xl:text-[6.5vw] leading-[0.92] tracking-[-0.035em] text-ink"
+            className="font-instrument text-[15vw] sm:text-[11vw] md:text-[9vw] lg:text-[8vw] xl:text-[7vw] leading-[0.9] tracking-[-0.035em] text-ink"
           >
-            <span className="italic font-light">Atelye</span>
-            <br />
-            ZARA Academy.
+            <span className="italic block">Atelye,</span>
+            <span className="block">ZARA Academy.</span>
           </motion.h1>
 
           {/* Subhead */}
@@ -173,11 +190,8 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        {/* Ornamental edge marks */}
-        <span className="absolute top-24 left-4 sm:left-12 w-4 h-4 border-t-2 border-l-2" style={{ borderColor: "var(--zara-line-strong)" }} aria-hidden />
-        <span className="absolute top-24 right-4 sm:right-12 w-4 h-4 border-t-2 border-r-2" style={{ borderColor: "var(--zara-line-strong)" }} aria-hidden />
-        <span className="absolute bottom-8 left-4 sm:left-12 w-4 h-4 border-b-2 border-l-2" style={{ borderColor: "var(--zara-line-strong)" }} aria-hidden />
-        <span className="absolute bottom-8 right-4 sm:right-12 w-4 h-4 border-b-2 border-r-2" style={{ borderColor: "var(--zara-line-strong)" }} aria-hidden />
+        {/* Hero-meta — 4 sütun monospace (Edition · Bugün · Mağaza · Personel) */}
+        <HeroMeta />
       </section>
 
       {/* ─────────── PROJECTS ─────────── */}
@@ -230,6 +244,23 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ─────────── PAGEMARK — dev italic Z + açıklama ─────────── */}
+      <section className="relative z-10 px-4 sm:px-6 md:px-12 pb-12">
+        <div className="max-w-7xl mx-auto flex items-end justify-between gap-6">
+          <ZMark size={120} className="text-ink/85 hidden sm:block" />
+          <ZMark size={72} className="text-ink/85 block sm:hidden" />
+          <div className="max-w-xs text-right">
+            <div className="font-instrument italic text-3xl sm:text-5xl leading-none text-ink/85">
+              Maison
+            </div>
+            <p className="mt-3 font-mono text-[10px] tracking-[0.28em] uppercase text-ink/45 leading-relaxed">
+              Bir koleksiyondaki parçalar gibi —<br />
+              her biri farklı, hep birlikte ZARA.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ─────────── FOOTER ─────────── */}
       <footer
         className="relative z-10 border-t px-4 sm:px-6 md:px-12 py-10"
@@ -237,10 +268,11 @@ export default function Home() {
       >
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="font-serif text-lg tracking-[-0.02em] text-ink">ZARA</div>
+            <ZMark size={18} className="text-ink/80" />
+            <div className="font-instrument italic text-lg leading-none text-ink">Atelye</div>
             <div className="w-px h-4" style={{ background: "var(--zara-line-strong)" }} />
             <div className="text-[10px] tracking-[0.3em] font-mono uppercase text-ink/50">
-              © 2026 · Atelye
+              © 2026 · ZARA Academy
             </div>
           </div>
           <div className="flex items-center gap-4 text-[10px] tracking-[0.25em] font-mono uppercase text-ink/40">
@@ -251,5 +283,57 @@ export default function Home() {
         </div>
       </footer>
     </div>
+  );
+}
+
+/** CountUp — atelier-tarzı hero metric animation. */
+function CountUp({ to, duration = 1400, format }: { to: number; duration?: number; format?: (v: number) => string }) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    let start: number | null = null;
+    const step = (t: number) => {
+      if (start === null) start = t;
+      const p = Math.min(1, (t - start) / duration);
+      const e = 1 - Math.pow(1 - p, 3);
+      setV(Math.round(to * e));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [to, duration]);
+  return <>{format ? format(v) : v}</>;
+}
+
+/** Atelier-style 4-cell hero meta: Edition · Bugün · Mağaza · Personel. */
+function HeroMeta() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const dateStr = now.toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" });
+
+  const cells = [
+    { label: "Edition", val: <><span className="font-instrument italic text-lg leading-none">N°</span> 026 · MMXXVI</> },
+    { label: "Bugün", val: dateStr },
+    { label: "Aktif mağaza", val: <><CountUp to={1} /> &nbsp;<span style={{ color: "var(--zara-gold)" }}>●</span></> },
+    { label: "Personel", val: <CountUp to={30} format={(v) => v.toLocaleString("tr-TR")} /> },
+  ];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1, ease: "easeOut", delay: 0.9 }}
+      className="absolute bottom-12 left-6 right-6 sm:left-12 sm:right-12 grid grid-cols-2 md:grid-cols-4 gap-6 pt-5 border-t"
+      style={{ borderColor: "var(--zara-line-strong)" }}
+    >
+      {cells.map((c) => (
+        <div key={c.label} className="flex flex-col gap-1.5">
+          <span className="font-mono text-[10px] tracking-[0.18em] uppercase text-ink/45">{c.label}</span>
+          <span className="text-sm sm:text-[15px] text-ink">{c.val}</span>
+        </div>
+      ))}
+    </motion.div>
   );
 }
