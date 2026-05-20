@@ -86,7 +86,7 @@ export function ReportTab({ staff }: { staff: StaffRow[] }) {
         <h3 className="text-lg mb-1" style={{ fontFamily: "Georgia, serif" }}>
           Tenure Dağılımı
         </h3>
-        <div className="grid grid-cols-5 gap-px bg-stone-300 border border-stone-300 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-px bg-stone-300 border border-stone-300 mt-4">
           {tenureSummary.map((t) => (
             <div key={t.name} className="bg-white p-4">
               <div className="text-[9px] tracking-[0.25em] uppercase text-stone-500 mb-1">

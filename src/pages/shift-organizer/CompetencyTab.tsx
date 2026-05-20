@@ -32,7 +32,7 @@ export function CompetencyTab(props: {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-4 gap-px bg-stone-300 border border-stone-300">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-stone-300 border border-stone-300">
         {[
           { label: "Toplam Personel", value: stats.total },
           { label: "Çok Yeni (0–1 ay)", value: stats.veryNew, accent: "#ef4444" },

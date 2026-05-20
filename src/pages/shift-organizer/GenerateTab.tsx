@@ -3,7 +3,12 @@ import { Loader2, Upload, FileText } from "lucide-react";
 import type { StaffRow } from "./constants";
 import { ChartResult, type GenerateResult } from "./ChartResult";
 import { exportChartToExcel } from "./excel-export";
-import { parseShiftsFromPdf, parseShiftsFromText, type ParsedShift } from "./pdf-parser";
+import {
+  parseShiftsFromPdfWithReport,
+  parseShiftsFromTextWithReport,
+  type ParsedShift,
+  type ParseReport,
+} from "./pdf-parser";
 
 export type ShiftInput = {
   short_name: string;
@@ -38,6 +43,8 @@ export function GenerateTab({
     },
   );
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [parseReport, setParseReport] = useState<ParseReport | null>(null);
+  const [unmatchedNames, setUnmatchedNames] = useState<string[]>([]);
   const [pasteText, setPasteText] = useState("");
   const [showPaste, setShowPaste] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -59,8 +66,25 @@ export function GenerateTab({
     return arr;
   }, [startHour, endHour]);
 
+  function matchStaff(name: string) {
+    const n = name.toLowerCase().trim();
+    // 1) tam shortName eşleşmesi
+    let target = staff.find((s) => s.shortName.toLowerCase() === n);
+    if (target) return target;
+    // 2) tam fullName eşleşmesi
+    target = staff.find((s) => s.fullName.toLowerCase() === n);
+    if (target) return target;
+    // 3) fullName içinde geçiyor
+    target = staff.find((s) => s.fullName.toLowerCase().includes(n));
+    if (target) return target;
+    // 4) name içinde shortName geçiyor (örn parser "Pelin Aydin" döndü, db'de "Pelin")
+    target = staff.find((s) => n.includes(s.shortName.toLowerCase()));
+    return target;
+  }
+
   const applyParsed = (parsed: ParsedShift[]) => {
-    if (parsed.length === 0) return;
+    const unmatched: string[] = [];
+    if (parsed.length === 0) return unmatched;
     setShiftsState((prev) => {
       const next = { ...prev };
       // Reset all included → false; only matched ones become true
@@ -70,12 +94,11 @@ export function GenerateTab({
       let minStart = 24;
       let maxEnd = 0;
       for (const p of parsed) {
-        const target = staff.find(
-          (s) =>
-            s.shortName.toLowerCase() === p.name.toLowerCase() ||
-            s.fullName.toLowerCase().includes(p.name.toLowerCase()),
-        );
-        if (!target) continue;
+        const target = matchStaff(p.name);
+        if (!target) {
+          unmatched.push(p.name);
+          continue;
+        }
         next[target.id] = { start: p.startHour, end: p.endHour, included: true };
         minStart = Math.min(minStart, p.startHour);
         maxEnd = Math.max(maxEnd, p.endHour);
@@ -84,19 +107,24 @@ export function GenerateTab({
       if (maxEnd > 0) setEndHour(maxEnd);
       return next;
     });
+    return unmatched;
   };
 
   const onPdfUpload = async (file: File) => {
     setPdfError(null);
+    setParseReport(null);
+    setUnmatchedNames([]);
     try {
-      const parsed = await parseShiftsFromPdf(file);
-      if (parsed.length === 0) {
+      const report = await parseShiftsFromPdfWithReport(file);
+      setParseReport(report);
+      if (report.shifts.length === 0) {
         setPdfError(
-          "PDF okundu ama vardiya satırı bulunamadı. Aşağıdan metni yapıştırmayı dene.",
+          `PDF okundu (${report.totalLines} satır) ama vardiya satırı bulunamadı. Aşağıdan metni yapıştırmayı dene.`,
         );
         return;
       }
-      applyParsed(parsed);
+      const unmatched = applyParsed(report.shifts);
+      setUnmatchedNames(unmatched);
     } catch (err) {
       setPdfError(`PDF parse hatası: ${(err as Error).message}`);
     }
@@ -104,12 +132,16 @@ export function GenerateTab({
 
   const onPasteParse = () => {
     setPdfError(null);
-    const parsed = parseShiftsFromText(pasteText);
-    if (parsed.length === 0) {
-      setPdfError("Metinden vardiya çıkarılamadı.");
+    setParseReport(null);
+    setUnmatchedNames([]);
+    const report = parseShiftsFromTextWithReport(pasteText);
+    setParseReport(report);
+    if (report.shifts.length === 0) {
+      setPdfError(`Metinden vardiya çıkarılamadı (${report.totalLines} satır okundu).`);
       return;
     }
-    applyParsed(parsed);
+    const unmatched = applyParsed(report.shifts);
+    setUnmatchedNames(unmatched);
     setShowPaste(false);
     setPasteText("");
   };
@@ -130,7 +162,7 @@ export function GenerateTab({
 
   return (
     <div className="space-y-6">
-      <div className="border border-stone-300 p-8">
+      <div className="border border-stone-300 p-4 sm:p-6 md:p-8">
         <h3 className="text-lg mb-2" style={{ fontFamily: "Georgia, serif" }}>
           Chart Üretimi
         </h3>
@@ -139,7 +171,7 @@ export function GenerateTab({
           ile bulunur.
         </p>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div>
             <label className="block text-[9px] tracking-[0.25em] uppercase text-stone-500 mb-1">
               Tarih
@@ -180,11 +212,11 @@ export function GenerateTab({
         </div>
 
         <div className="border-t border-stone-200 pt-4 mb-4">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
             <div className="text-[9px] tracking-[0.25em] uppercase text-stone-500">
               Vardiyalar ({includedCount}/{staff.length})
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <input
                 ref={fileRef}
                 type="file"
@@ -217,13 +249,44 @@ export function GenerateTab({
             </div>
           )}
 
+          {parseReport && parseReport.shifts.length > 0 && (
+            <div className="mb-3 border border-emerald-300 bg-emerald-50 p-2 text-[11px] text-emerald-900">
+              <strong>{parseReport.matchedLines}</strong>/{parseReport.totalLines} satır
+              eşleşti, <strong>{parseReport.shifts.length}</strong> personel için vardiya
+              çıkarıldı.
+              {unmatchedNames.length > 0 && (
+                <div className="mt-1 text-amber-800">
+                  ⚠️ DB'de bulunamayan isimler:{" "}
+                  <span className="font-mono">{unmatchedNames.join(", ")}</span>
+                </div>
+              )}
+              {parseReport.skippedSamples.length > 0 && (
+                <details className="mt-1">
+                  <summary className="cursor-pointer text-stone-600">
+                    {parseReport.skippedSamples.length} atlanmış satır örneği
+                  </summary>
+                  <ul className="mt-1 pl-4 font-mono text-[10px] text-stone-500">
+                    {parseReport.skippedSamples.map((s, i) => (
+                      <li key={i}>{s}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          )}
+
           {showPaste && (
             <div className="mb-3 border border-stone-300 p-3">
               <textarea
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
-                placeholder="Her satıra: 'Baran 10:00-19:00' veya 'Pelin 10 19'"
-                rows={5}
+                placeholder={`Her satıra bir vardiya. Desteklenen formatlar:
+  Pelin Aydin 10:00-19:00
+  Sevim 10:00 - 19:00
+  Fatma 10-19
+  Sude  10  19
+  10:00-19:00 Asya`}
+                rows={6}
                 className="w-full text-xs border border-stone-200 p-2 outline-none focus:border-black font-mono"
               />
               <button
@@ -236,7 +299,7 @@ export function GenerateTab({
             </div>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {staff.map((p) => {
               const row = shiftsState[p.id] ?? { start: startHour, end: endHour, included: true };
               return (

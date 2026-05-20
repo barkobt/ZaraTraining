@@ -67,7 +67,7 @@ export function SettingsTab() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
               {CONFIG_FIELDS.map((f) => (
                 <div key={f.key}>
                   <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-600 mb-1">
