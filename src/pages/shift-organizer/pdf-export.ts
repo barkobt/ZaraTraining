@@ -2,33 +2,42 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { GenerateResult } from "./ChartResult";
 
+/**
+ * Chart sonucunu A4 landscape **tek sayfa** PDF olarak indir.
+ * Boyutlandırma: autoTable parametreleri agresif sıkıştırılır, başlık + chart + sorumlular
+ * + uyarılar tek sayfaya sığar.
+ */
 export function exportChartToPdf(result: GenerateResult, shiftDate: string) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageWidth = doc.internal.pageSize.getWidth();   // 297
+  const pageHeight = doc.internal.pageSize.getHeight(); // 210
+  const margin = 10;
 
-  // ─── Header ───
+  // ─── Header (kompakt: 22mm) ───
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.text("ZARA · ATELYE", 14, 18);
+  doc.setFontSize(15);
+  doc.text("ZARA · ATELYE", margin, 12);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFontSize(8);
   doc.setTextColor(120);
-  doc.text("Shift Organizer · Mağaza 3643", 14, 24);
+  doc.text("Shift Organizer · Mağaza 3643", margin, 17);
 
-  // Sağ üst köşeye tarih + chart id
-  doc.setFontSize(9);
-  doc.text(`Tarih: ${shiftDate}`, pageWidth - 14, 18, { align: "right" });
-  doc.text(`Chart #${result.chartId ?? "-"}`, pageWidth - 14, 23, { align: "right" });
-  doc.text(`Durum: ${result.status}`, pageWidth - 14, 28, { align: "right" });
-  if (result.qualityScore !== null) {
-    doc.text(`Skor: ${result.qualityScore.toFixed(1)}`, pageWidth - 14, 33, { align: "right" });
-  }
+  doc.setFontSize(8);
+  doc.setTextColor(40);
+  const meta = [
+    `Tarih: ${shiftDate}`,
+    `Chart #${result.chartId ?? "-"}`,
+    `Durum: ${result.status}`,
+    result.qualityScore !== null ? `Skor: ${result.qualityScore.toFixed(1)}` : "",
+  ].filter(Boolean);
+  meta.forEach((m, i) => {
+    doc.text(m, pageWidth - margin, 11 + i * 4, { align: "right" });
+  });
 
-  // Çizgi
   doc.setDrawColor(0);
   doc.setLineWidth(0.3);
-  doc.line(14, 38, pageWidth - 14, 38);
+  doc.line(margin, 22, pageWidth - margin, 22);
 
   // ─── Chart Tablosu ───
   const hours = [...new Set(result.chart.map((c) => c.hour))].sort((a, b) => a - b);
@@ -39,86 +48,122 @@ export function exportChartToPdf(result: GenerateResult, shiftDate: string) {
   const head = [["Rol", ...hours.map((h) => `${String(h).padStart(2, "0")}:00`)]];
   const body = roles.map((r) => [r, ...hours.map((h) => byKey.get(`${h}|${r}`) ?? "—")]);
 
+  // Sayı: chart için ~ 8 rol × 11 saat. Sığması için font 6.5, padding 1.
   autoTable(doc, {
-    startY: 44,
+    startY: 25,
     head,
     body,
     theme: "grid",
     headStyles: {
       fillColor: [0, 0, 0],
       textColor: [255, 255, 255],
-      fontSize: 8,
+      fontSize: 7,
       fontStyle: "bold",
+      cellPadding: 1.2,
+      halign: "center",
+      minCellHeight: 5,
     },
-    bodyStyles: { fontSize: 8, textColor: [30, 30, 30] },
-    columnStyles: { 0: { fontStyle: "bold", fillColor: [245, 245, 244] } },
-    margin: { left: 14, right: 14 },
-    styles: { cellPadding: 2.5, lineColor: [200, 200, 200], lineWidth: 0.2 },
+    bodyStyles: {
+      fontSize: 6.5,
+      textColor: [30, 30, 30],
+      cellPadding: 1,
+      minCellHeight: 5,
+      valign: "middle",
+      halign: "center",
+      overflow: "linebreak",
+    },
+    columnStyles: {
+      0: {
+        fontStyle: "bold",
+        fillColor: [245, 245, 244],
+        cellWidth: 26,
+        halign: "left",
+      },
+    },
+    margin: { left: margin, right: margin },
+    styles: { lineColor: [200, 200, 200], lineWidth: 0.15 },
+    tableWidth: pageWidth - margin * 2,
+    rowPageBreak: "avoid",
+    pageBreak: "avoid",
   });
 
-  // ─── Sorumlular ───
-  let afterY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY ?? 100;
-  const resp = result.responsibilities;
-  if (resp && Object.keys(resp).length > 0) {
-    afterY += 8;
-    if (afterY > 180) {
-      doc.addPage();
-      afterY = 20;
-    }
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(0);
-    doc.text("Günün Sorumluları", 14, afterY);
-    afterY += 2;
+  let afterY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
+    .finalY;
 
+  // ─── Sorumlular (tek satır, küçük) ───
+  const resp = result.responsibilities;
+  const respEntries = resp
+    ? Object.entries(resp).filter(([, v]) => v)
+    : [];
+  if (respEntries.length > 0) {
+    afterY += 4;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(0);
+    doc.text("Günün Sorumluları", margin, afterY);
+    afterY += 1;
+
+    // Yatay 5 hücre — tek satırda
     autoTable(doc, {
-      startY: afterY + 2,
-      head: [["Rol", "Kişi"]],
-      body: Object.entries(resp).filter(([, v]) => v).map(([r, p]) => [r, p]),
+      startY: afterY + 1,
+      head: [respEntries.map(([role]) => role)],
+      body: [respEntries.map(([, person]) => person ?? "—")],
       theme: "plain",
-      headStyles: { fontSize: 8, fontStyle: "bold", textColor: [120, 120, 120] },
-      bodyStyles: { fontSize: 9 },
-      columnStyles: { 0: { cellWidth: 50, fontStyle: "bold" } },
-      margin: { left: 14, right: 14 },
+      headStyles: {
+        fontSize: 6.5,
+        fontStyle: "bold",
+        textColor: [120, 120, 120],
+        cellPadding: 0.8,
+        minCellHeight: 4,
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [20, 20, 20],
+        cellPadding: 1.5,
+        minCellHeight: 6,
+      },
+      margin: { left: margin, right: margin },
+      tableWidth: pageWidth - margin * 2,
+      pageBreak: "avoid",
     });
-    afterY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+    afterY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
+      .finalY;
   }
 
-  // ─── Uyarılar ───
-  if (result.warnings.length > 0) {
-    afterY += 8;
-    if (afterY > 175) {
-      doc.addPage();
-      afterY = 20;
-    }
+  // ─── Uyarılar (özet, en fazla 3 satır) ───
+  if (result.warnings.length > 0 && afterY < pageHeight - 18) {
+    afterY += 3;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
+    doc.setFontSize(7.5);
     doc.setTextColor(180, 90, 0);
-    doc.text("Uyarılar", 14, afterY);
+    doc.text("Uyarılar", margin, afterY);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(60);
-    let y = afterY + 5;
-    for (const w of result.warnings.slice(0, 8)) {
-      const lines = doc.splitTextToSize(`• ${w}`, pageWidth - 28);
-      doc.text(lines, 14, y);
-      y += lines.length * 4;
+    doc.setFontSize(6.5);
+    doc.setTextColor(80);
+    afterY += 3;
+    const max = 3;
+    const shown = result.warnings.slice(0, max);
+    for (const w of shown) {
+      if (afterY > pageHeight - 10) break;
+      const lines = doc.splitTextToSize(`• ${w}`, pageWidth - margin * 2);
+      doc.text(lines.slice(0, 1), margin, afterY);
+      afterY += 3;
+    }
+    if (result.warnings.length > max) {
+      doc.setTextColor(140);
+      doc.text(`+ ${result.warnings.length - max} uyarı daha`, margin, afterY);
     }
   }
 
   // ─── Footer ───
-  const pageCount = doc.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(7);
-    doc.setTextColor(160);
-    doc.text(
-      `ZARA · Atelye · ${shiftDate} · ${i}/${pageCount}`,
-      pageWidth / 2,
-      doc.internal.pageSize.getHeight() - 6,
-      { align: "center" },
-    );
-  }
+  doc.setFontSize(6.5);
+  doc.setTextColor(160);
+  doc.text(
+    `ZARA · Atelye · ${shiftDate}`,
+    pageWidth / 2,
+    pageHeight - 4,
+    { align: "center" },
+  );
 
   doc.save(`shift-${shiftDate}.pdf`);
 }

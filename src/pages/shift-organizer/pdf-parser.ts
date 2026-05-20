@@ -16,12 +16,18 @@
  *   - "Pazartesi  Ahmet  10:00  19:00"  (tab/multi-space)
  *   - Türkçe karakterler (ı, ö, ü, ç, ş, ğ, İ, Ö, Ü, Ç, Ş, Ğ)
  */
-import * as pdfjsLib from "pdfjs-dist";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+// pdfjs lazy yüklenir — text parser Node'da test edilebilsin diye.
+let _pdfjsLib: typeof import("pdfjs-dist") | null = null;
+async function loadPdfjs() {
+  if (_pdfjsLib) return _pdfjsLib;
+  const pdfjsLib = await import("pdfjs-dist");
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore — Vite ?url import
+  const pdfWorker = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+  _pdfjsLib = pdfjsLib;
+  return pdfjsLib;
+}
 
 export type ParsedShift = {
   name: string;
@@ -74,9 +80,10 @@ const PATTERNS: Array<{
   extract: (m: RegExpMatchArray) => { name: string; startHour: number; endHour: number } | null;
 }> = [
   {
-    // "Name HH:MM-HH:MM" (en yaygın)
-    name: "name + HH:MM-HH:MM",
-    re: /^(.+?)\s+(\d{1,2}[:.,]\d{1,2})\s*[-–—]\s*(\d{1,2}[:.,]\d{1,2})\s*$/,
+    // "Name HH:MM-HH:MM ..." — satır başında isim + ilk saat aralığı. Sonrasında
+    // break saati veya total saat olabilir, yoksayılır.
+    name: "name + HH:MM-HH:MM (anchored start)",
+    re: /^([A-Za-zÇĞİÖŞÜçğıöşü.][\wÇĞİÖŞÜçğıöşü.\s-]{1,60}?)\s+(\d{1,2}[:.,]\d{1,2})\s*[-–—]\s*(\d{1,2}[:.,]\d{1,2})(?:\s|$)/,
     extract: (m) => {
       const sh = parseHour(m[2]);
       const eh = parseHour(m[3]);
@@ -85,9 +92,9 @@ const PATTERNS: Array<{
     },
   },
   {
-    // "Name H-H" (saat numarası, ikisi de int)
-    name: "name + H-H",
-    re: /^(.+?)\s+(\d{1,2})\s*[-–—]\s*(\d{1,2})\s*$/,
+    // "Name H-H" (yalnız satır sonu) — daha eski format
+    name: "name + H-H (anchored end)",
+    re: /^([A-Za-zÇĞİÖŞÜçğıöşü.][\wÇĞİÖŞÜçğıöşü.\s-]{1,60}?)\s+(\d{1,2})\s*[-–—]\s*(\d{1,2})\s*$/,
     extract: (m) => {
       const sh = parseHour(m[2]);
       const eh = parseHour(m[3]);
@@ -96,9 +103,9 @@ const PATTERNS: Array<{
     },
   },
   {
-    // "Name HH HH" (multi-space ile ayrılmış 2 saat)
+    // "Name HH HH" (multi-space)
     name: "name + H<space>H",
-    re: /^(.+?)\s+(\d{1,2}[:.,]\d{1,2}|\d{1,2})\s+(\d{1,2}[:.,]\d{1,2}|\d{1,2})\s*$/,
+    re: /^([A-Za-zÇĞİÖŞÜçğıöşü.][\wÇĞİÖŞÜçğıöşü.\s-]{1,60}?)\s+(\d{1,2}[:.,]\d{1,2}|\d{1,2})\s+(\d{1,2}[:.,]\d{1,2}|\d{1,2})\s*$/,
     extract: (m) => {
       const sh = parseHour(m[2]);
       const eh = parseHour(m[3]);
@@ -109,7 +116,7 @@ const PATTERNS: Array<{
     },
   },
   {
-    // "HH:MM-HH:MM Name" (saat önce)
+    // "HH:MM-HH:MM Name" — saat önce
     name: "HH:MM-HH:MM + name",
     re: /^(\d{1,2}[:.,]\d{1,2})\s*[-–—]\s*(\d{1,2}[:.,]\d{1,2})\s+(.+?)\s*$/,
     extract: (m) => {
@@ -163,22 +170,55 @@ export function parseShiftsFromText(text: string): ParsedShift[] {
   return parseShiftsFromTextWithReport(text).shifts;
 }
 
+// Orquest PDF'inde sadece BASIC bölümü ele alınır; diğer bölümler atlanır.
+// Section başlığı tespiti: tek kelime, all-caps, ≤12 karakter, sayı/saat içermez.
+const SECTION_NAMES = [
+  "BASIC", "WOMAN", "WOMEN", "MAN", "MEN", "KIDS", "KID", "CHILD",
+  "TRF", "BABY", "ACCESSORIES", "ACCESORIES", "SHOES", "BEAUTY",
+];
+const KNOWN_SECTIONS = new Set(SECTION_NAMES.map((s) => s.toUpperCase()));
+
+function detectSection(line: string): string | null {
+  // Satır section adı içeriyor mu? (multi-column extract bazen "BASIC" ile başka şeyleri birleştirir)
+  const cleaned = line.trim().toUpperCase();
+  // Tam eşleşme
+  if (KNOWN_SECTIONS.has(cleaned)) return cleaned;
+  // Satır başında section adı (örn "BASIC Ada Ozasci 07:00...")
+  const firstWord = cleaned.split(/\s+/)[0];
+  if (firstWord && KNOWN_SECTIONS.has(firstWord)) return firstWord;
+  return null;
+}
+
 export function parseShiftsFromTextWithReport(text: string): ParseReport {
   const lines = text.split(/[\r\n]+/);
-  const seen = new Map<string, ParsedShift>(); // isim normalize -> shift (son eşleşen kazanır)
+  const seen = new Map<string, ParsedShift>();
   const skipped: string[] = [];
   let matched = 0;
+  let inBasic = false;
+  let sawAnySection = false;
 
   for (const raw of lines) {
     const line = raw.trim();
     if (!line || line.length < 4) continue;
+
+    const section = detectSection(line);
+    if (section) {
+      sawAnySection = true;
+      inBasic = section === "BASIC";
+      continue;
+    }
+
+    // BASIC dışındaysa veya hiç section görmediysek atla
+    if (sawAnySection && !inBasic) continue;
+    // Section hiç görünmemişse (header-less PDF) eski davranış: tüm satırlar denenir
+    // — ama Orquest PDF'inde her zaman BASIC marker'ı olur, bu fallback.
+
     const p = tryParseLine(line);
     if (p) {
       const key = p.name.toLowerCase();
       seen.set(key, p);
       matched++;
     } else if (line.match(/\d/) && skipped.length < 5) {
-      // sayı içeren ama eşleşmeyen satırları sample olarak al
       skipped.push(line.slice(0, 80));
     }
   }
@@ -196,6 +236,7 @@ export async function parseShiftsFromPdf(file: File): Promise<ParsedShift[]> {
 }
 
 export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseReport> {
+  const pdfjsLib = await loadPdfjs();
   const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
   const allLines: string[] = [];

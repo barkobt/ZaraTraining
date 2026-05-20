@@ -45,7 +45,6 @@ export function GenerateTab({
   );
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [parseReport, setParseReport] = useState<ParseReport | null>(null);
-  const [unmatchedNames, setUnmatchedNames] = useState<string[]>([]);
   const [pasteText, setPasteText] = useState("");
   const [showPaste, setShowPaste] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -114,18 +113,17 @@ export function GenerateTab({
   const onPdfUpload = async (file: File) => {
     setPdfError(null);
     setParseReport(null);
-    setUnmatchedNames([]);
     try {
       const report = await parseShiftsFromPdfWithReport(file);
-      setParseReport(report);
+      // BASIC dışındaki / eşleşmeyen satırların raporunu kullanıcıya göstermiyoruz
+      setParseReport({ ...report, skippedSamples: [] });
       if (report.shifts.length === 0) {
         setPdfError(
-          `PDF okundu (${report.totalLines} satır) ama vardiya satırı bulunamadı. Aşağıdan metni yapıştırmayı dene.`,
+          `PDF okundu ama BASIC bölümünde vardiya bulunamadı. Metin yapıştırmayı dene.`,
         );
         return;
       }
-      const unmatched = applyParsed(report.shifts);
-      setUnmatchedNames(unmatched);
+      applyParsed(report.shifts);
     } catch (err) {
       setPdfError(`PDF parse hatası: ${(err as Error).message}`);
     }
@@ -134,15 +132,13 @@ export function GenerateTab({
   const onPasteParse = () => {
     setPdfError(null);
     setParseReport(null);
-    setUnmatchedNames([]);
     const report = parseShiftsFromTextWithReport(pasteText);
-    setParseReport(report);
+    setParseReport({ ...report, skippedSamples: [] });
     if (report.shifts.length === 0) {
-      setPdfError(`Metinden vardiya çıkarılamadı (${report.totalLines} satır okundu).`);
+      setPdfError(`Metinden vardiya çıkarılamadı.`);
       return;
     }
-    const unmatched = applyParsed(report.shifts);
-    setUnmatchedNames(unmatched);
+    applyParsed(report.shifts);
     setShowPaste(false);
     setPasteText("");
   };
@@ -252,27 +248,8 @@ export function GenerateTab({
 
           {parseReport && parseReport.shifts.length > 0 && (
             <div className="mb-3 border border-emerald-300 bg-emerald-50 p-2 text-[11px] text-emerald-900">
-              <strong>{parseReport.matchedLines}</strong>/{parseReport.totalLines} satır
-              eşleşti, <strong>{parseReport.shifts.length}</strong> personel için vardiya
-              çıkarıldı.
-              {unmatchedNames.length > 0 && (
-                <div className="mt-1 text-amber-800">
-                  ⚠️ DB'de bulunamayan isimler:{" "}
-                  <span className="font-mono">{unmatchedNames.join(", ")}</span>
-                </div>
-              )}
-              {parseReport.skippedSamples.length > 0 && (
-                <details className="mt-1">
-                  <summary className="cursor-pointer text-stone-600">
-                    {parseReport.skippedSamples.length} atlanmış satır örneği
-                  </summary>
-                  <ul className="mt-1 pl-4 font-mono text-[10px] text-stone-500">
-                    {parseReport.skippedSamples.map((s, i) => (
-                      <li key={i}>{s}</li>
-                    ))}
-                  </ul>
-                </details>
-              )}
+              BASIC bölümünden <strong>{parseReport.shifts.length}</strong> personel için
+              vardiya çıkarıldı.
             </div>
           )}
 
