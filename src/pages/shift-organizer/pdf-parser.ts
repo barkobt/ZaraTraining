@@ -61,14 +61,37 @@ function cleanName(s: string): string {
     .replace(/^(pzt|sal|car|per|cum|cts|paz|pazartesi|salı|çarşamba|perşembe|cuma|cumartesi|pazar|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+/i, "");
 }
 
+// Orquest PDF'inde sıkça karşılaşılan, isim OLMAYAN satır başlangıçları.
+// İçinde geçerse satır elenir (case-insensitive substring).
+const REJECT_TOKENS = [
+  "TARIH", "TARİH", "TOPLAM", "TOPLAM:", "MAGAZA", "MAĞAZA", "SECTION", "TURN",
+  "TOTAL", "BREAK", "ZARA", "BASIC", "WOMAN", "WOMEN", "MAN", "MEN", "KIDS",
+  "KID", "TRF", "BABY", "ACCESSORIES", "ACCESORIES", "SHOES", "BEAUTY",
+  "DISTRIBUCION", "DISTRIBUCIÓN", "PERSONEL", "ÇALIŞAN", "SHIFT", "VARDIYA",
+  "PAUSA", "DESCANSO", "EMPLEADO", "REPORT",
+];
+
 function isLikelyName(s: string): boolean {
-  // En az 2 karakter, ilk harf alfabetik (Türkçe dahil), 50 karakterden kısa
+  // En az 2 karakter, ilk harf alfabetik (Türkçe dahil), 40 karakterden kısa
   const cleaned = cleanName(s);
-  if (cleaned.length < 2 || cleaned.length > 50) return false;
+  if (cleaned.length < 2 || cleaned.length > 40) return false;
   // İlk karakter harf olmalı
   if (!/^[a-zA-ZçğıöşüÇĞİÖŞÜ]/.test(cleaned)) return false;
   // Sadece rakamdan veya noktalamadan ibaret olamaz
   if (/^[\d\s\-.,:;]+$/.test(cleaned)) return false;
+  // Reject token içeriyorsa (başlık/footer/section) elenir
+  const upper = cleaned.toUpperCase();
+  if (REJECT_TOKENS.some((t) => upper.includes(t))) return false;
+  // 1-4 kelime arası olmalı (gerçek isimler)
+  const words = cleaned.split(/\s+/);
+  if (words.length < 1 || words.length > 4) return false;
+  // Her kelime ya capitalized ya all-caps olmalı (de/da/von gibi küçük edatlar hariç)
+  const SMALL_WORDS = new Set(["de", "da", "von", "van", "el", "al"]);
+  const looksLikeName = words.every((w) => {
+    if (SMALL_WORDS.has(w.toLowerCase())) return true;
+    return /^[A-ZÇĞİÖŞÜ][a-zçğıöşü.-]*$/.test(w) || /^[A-ZÇĞİÖŞÜ]+$/.test(w);
+  });
+  if (!looksLikeName) return false;
   return true;
 }
 
@@ -83,7 +106,7 @@ const PATTERNS: Array<{
     // "Name HH:MM-HH:MM ..." — satır başında isim + ilk saat aralığı. Sonrasında
     // break saati veya total saat olabilir, yoksayılır.
     name: "name + HH:MM-HH:MM (anchored start)",
-    re: /^([A-Za-zÇĞİÖŞÜçğıöşü.][\wÇĞİÖŞÜçğıöşü.\s-]{1,60}?)\s+(\d{1,2}[:.,]\d{1,2})\s*[-–—]\s*(\d{1,2}[:.,]\d{1,2})(?:\s|$)/,
+    re: /^([A-Za-zÇĞİÖŞÜçğıöşü.][\wÇĞİÖŞÜçğıöşü.\s-]{1,40}?)\s+(\d{1,2}[:.,]\d{1,2})\s*[-–—]\s*(\d{1,2}[:.,]\d{1,2})(?:\s|$)/,
     extract: (m) => {
       const sh = parseHour(m[2]);
       const eh = parseHour(m[3]);
@@ -189,6 +212,9 @@ function detectSection(line: string): string | null {
   return null;
 }
 
+// Güvenlik üst sınırı — BASIC bölümünde gerçek ortalama ≤20 personel.
+const MAX_MATCHES = 30;
+
 export function parseShiftsFromTextWithReport(text: string): ParseReport {
   const lines = text.split(/[\r\n]+/);
   const seen = new Map<string, ParsedShift>();
@@ -196,6 +222,7 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
   let matched = 0;
   let inBasic = false;
   let sawAnySection = false;
+  let basicBlockEnded = false; // İlk BASIC bloğu bittikten sonra ikinci BASIC görülürse iterasyonu kes.
 
   for (const raw of lines) {
     const line = raw.trim();
@@ -203,21 +230,27 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
 
     const section = detectSection(line);
     if (section) {
-      sawAnySection = true;
-      inBasic = section === "BASIC";
+      if (section === "BASIC") {
+        if (basicBlockEnded) break; // ikinci BASIC bloğu — iterasyonu durdur
+        sawAnySection = true;
+        inBasic = true;
+      } else {
+        sawAnySection = true;
+        if (inBasic) basicBlockEnded = true; // BASIC bloğundan çıktık
+        inBasic = false;
+      }
       continue;
     }
 
-    // BASIC dışındaysa veya hiç section görmediysek atla
+    // BASIC dışındaysa atla (header-less PDF fallback'i de ele alıyor)
     if (sawAnySection && !inBasic) continue;
-    // Section hiç görünmemişse (header-less PDF) eski davranış: tüm satırlar denenir
-    // — ama Orquest PDF'inde her zaman BASIC marker'ı olur, bu fallback.
 
     const p = tryParseLine(line);
     if (p) {
       const key = p.name.toLowerCase();
       seen.set(key, p);
       matched++;
+      if (seen.size >= MAX_MATCHES) break; // güvenlik üst sınırı
     } else if (line.match(/\d/) && skipped.length < 5) {
       skipped.push(line.slice(0, 80));
     }
@@ -241,7 +274,10 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
   const allLines: string[] = [];
 
-  for (let i = 1; i <= pdf.numPages; i++) {
+  // Sadece sayfa 1 — Orquest BASIC raporu ilk sayfaya sığar. Sonraki sayfalar
+  // WOMAN/MAN/KIDS bölümleri olur, BASIC parser'ı için gürültü.
+  const pagesToScan = Math.min(1, pdf.numPages);
+  for (let i = 1; i <= pagesToScan; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
     // y-koordinatına göre grupla, x'e göre sırala
