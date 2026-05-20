@@ -3,6 +3,7 @@ import { Loader2, Trash2, Eye, X, Archive as ArchiveIcon } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { ChartResult, type GenerateResult } from "./ChartResult";
 import { exportChartToExcel } from "./excel-export";
+import { exportChartToPdf } from "./pdf-export";
 import type { StaffRow } from "./constants";
 
 type ChartRow = {
@@ -134,6 +135,10 @@ export function ArchiveTab({ staff }: { staff: StaffRow[] }) {
             const result = chartToResult(open);
             exportChartToExcel(result, open.shiftDate);
           }}
+          onExportPdf={() => {
+            const result = chartToResult(open);
+            exportChartToPdf(result, open.shiftDate);
+          }}
         />
       )}
     </div>
@@ -162,11 +167,13 @@ function ChartDetailModal({
   staff,
   onClose,
   onExportExcel,
+  onExportPdf,
 }: {
   chart: ChartRow;
   staff: StaffRow[];
   onClose: () => void;
   onExportExcel: () => void;
+  onExportPdf: () => void;
 }) {
   const result = chartToResult(chart);
   return (
@@ -194,6 +201,7 @@ function ChartDetailModal({
             staff={staff}
             shiftDate={chart.shiftDate}
             onExportExcel={onExportExcel}
+            onExportPdf={onExportPdf}
           />
         </div>
       </div>

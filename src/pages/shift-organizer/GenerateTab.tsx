@@ -3,6 +3,7 @@ import { Loader2, Upload, FileText } from "lucide-react";
 import type { StaffRow } from "./constants";
 import { ChartResult, type GenerateResult } from "./ChartResult";
 import { exportChartToExcel } from "./excel-export";
+import { exportChartToPdf } from "./pdf-export";
 import {
   parseShiftsFromPdfWithReport,
   parseShiftsFromTextWithReport,
@@ -374,6 +375,7 @@ export function GenerateTab({
           staff={staff}
           shiftDate={shiftDate}
           onExportExcel={() => exportChartToExcel(generate.data!, shiftDate)}
+          onExportPdf={() => exportChartToPdf(generate.data!, shiftDate)}
         />
       )}
     </div>
