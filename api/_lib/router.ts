@@ -23,6 +23,7 @@ import {
   deleteChart,
   updateChartResponsibilities,
 } from "./queries/charts.js";
+import { getStore, updateStore, getSystemInfo } from "./queries/stores.js";
 import { solveShift, pingSolver } from "./solver-client.js";
 import { staffRowsToSolverInput } from "./shift-mapping.js";
 import { env } from "./lib/env.js";
@@ -386,6 +387,39 @@ export const appRouter = createRouter({
           input.responsibilities,
         );
         return { ok: true, responsibilities: result };
+      }),
+  }),
+
+  store: createRouter({
+    get: publicQuery
+      .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
+      .query(async ({ input }) => getStore(input?.storeId ?? DEFAULT_STORE_ID)),
+
+    update: publicQuery
+      .input(
+        z.object({
+          storeId: z.number().int().positive().optional(),
+          code: z.string().min(1).max(10).optional(),
+          name: z.string().min(1).max(100).optional(),
+          section: z.string().min(1).max(20).optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const { storeId, ...patch } = input;
+        return updateStore(storeId ?? DEFAULT_STORE_ID, patch);
+      }),
+  }),
+
+  system: createRouter({
+    info: publicQuery
+      .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
+      .query(async ({ input }) => {
+        const dbInfo = await getSystemInfo(input?.storeId ?? DEFAULT_STORE_ID);
+        return {
+          ...dbInfo,
+          solverUrl: process.env.SHIFT_SOLVER_URL ? "configured" : "missing",
+          authRequired: !!env.shiftOrganizerPassword,
+        };
       }),
   }),
 });
