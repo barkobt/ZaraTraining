@@ -22,8 +22,26 @@ type GenerateMutation = {
   mutate: (input: { shiftDate: string; hours: number[]; shifts: ShiftInput[] }) => void;
   isPending: boolean;
   data: GenerateResult | undefined;
-  error: { message: string } | null;
+  error: { message: string; data?: { zodError?: { fieldErrors?: Record<string, string[]> } | null } } | null;
 };
+
+/** TRPC ZodError'dan kullanıcı-dostu TR mesaj çıkartır. */
+function formatGenerateError(err: GenerateMutation["error"]): string {
+  if (!err) return "";
+  const zod = err.data?.zodError?.fieldErrors;
+  if (zod && Object.keys(zod).length > 0) {
+    const lines: string[] = [];
+    for (const [field, msgs] of Object.entries(zod)) {
+      if (Array.isArray(msgs) && msgs.length > 0) lines.push(`${field}: ${msgs[0]}`);
+    }
+    if (lines.length > 0) return lines.join(" · ");
+  }
+  // Native Safari/WebKit regex hatalarını absorbe et
+  if (/did not match the expected pattern/i.test(err.message)) {
+    return "Tarih veya alan formatı geçersiz. Tarihi tekrar seç ve dene.";
+  }
+  return err.message;
+}
 
 export function GenerateTab({
   staff,
@@ -144,6 +162,16 @@ export function GenerateTab({
   };
 
   const onSubmit = () => {
+    // Client-side pre-validation — kullanıcıya Zod regex hatası göstermemek için.
+    setPdfError(null);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(shiftDate)) {
+      setPdfError("Tarih boş veya geçersiz. Lütfen geçerli bir gün seç.");
+      return;
+    }
+    if (hours.length === 0) {
+      setPdfError("Açılış saati kapanıştan küçük olmalı.");
+      return;
+    }
     const shifts: ShiftInput[] = staff
       .filter((s) => shiftsState[s.id]?.included)
       .map((s) => ({
@@ -152,6 +180,16 @@ export function GenerateTab({
         end_hour: shiftsState[s.id].end,
         breaks: [],
       }));
+    if (shifts.length === 0) {
+      setPdfError("Çözüme dahil en az 1 personel olmalı.");
+      return;
+    }
+    // Personel başına geçersiz saat aralığı?
+    const bad = shifts.find((s) => s.start_hour >= s.end_hour);
+    if (bad) {
+      setPdfError(`${bad.short_name}: başlangıç saati bitişten küçük olmalı.`);
+      return;
+    }
     generate.mutate({ shiftDate, hours, shifts });
   };
 
@@ -341,7 +379,8 @@ export function GenerateTab({
 
         {generate.error && (
           <div className="mt-3 border border-red-400 bg-red-50 p-3 text-xs text-red-700">
-            {generate.error.message}
+            <strong>Çözüm başarısız:</strong>{" "}
+            {formatGenerateError(generate.error)}
           </div>
         )}
       </div>
