@@ -5,7 +5,7 @@ export const config = { runtime: "nodejs" };
 // Vercel `nodejs` runtime'ı NAMED HTTP method exports bekliyor.
 // `hono/vercel` adapter'ı eski (req,res)=>void imzasıyla uyumsuz olduğu için
 // app.fetch'i her HTTP method'a bağlıyoruz.
-const handler = (req: Request): Promise<Response> => app.fetch(req);
+const handler = async (req: Request): Promise<Response> => app.fetch(req);
 
 export const GET = handler;
 export const POST = handler;

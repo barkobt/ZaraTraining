@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Crown, Plus, Search, Loader2 } from "lucide-react";
 import { ROLES, STAR_LEVELS, TENURE_LEVELS, type Role, type StaffRow } from "./constants";
 
@@ -13,6 +13,26 @@ export function CompetencyTab(props: {
   const { loading, staff, onUpdateCompetency, onUpdateStaff, onDeleteStaff, onAddPerson } = props;
   const [searchTerm, setSearchTerm] = useState("");
   const [editingCell, setEditingCell] = useState<{ id: number; role: Role } | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // Outside-click → editing cell'i kapat
+  useEffect(() => {
+    if (!editingCell) return;
+    const onPointerDown = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setEditingCell(null);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setEditingCell(null);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [editingCell]);
 
   const filtered = useMemo(() => {
     if (!searchTerm) return staff;
@@ -162,7 +182,7 @@ export function CompetencyTab(props: {
                     return (
                       <td key={role} className="p-2 text-center relative">
                         {isEditing ? (
-                          <div className="absolute z-10 left-1/2 -translate-x-1/2 top-full mt-1 bg-white border-2 border-black flex flex-col shadow-xl">
+                          <div ref={dropdownRef} className="absolute z-10 left-1/2 -translate-x-1/2 top-full mt-1 bg-white border-2 border-black flex flex-col shadow-xl">
                             {STAR_LEVELS.map((s) => (
                               <button
                                 key={s.value}
