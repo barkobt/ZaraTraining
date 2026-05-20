@@ -64,7 +64,7 @@ const STAFF: SeedRow[] = [
     c: { Welcome: 0, Kabin: 0, "Kabin Welcomer": 0, Sprinter: 1, "Zone 2": 0, "Zone 3": 1, "Zone 4": 1, "Zone 5": 1 } },
   { name: "Guney Ugur Kanicioglu", short: "Guney", tenure: "NEW_3_6", isManager: false, note: "",
     c: { Welcome: 3, Kabin: 2, "Kabin Welcomer": 2, Sprinter: 1, "Zone 2": 3, "Zone 3": 2, "Zone 4": 2, "Zone 5": 1 } },
-  { name: "Kaan Gunduz", short: "KaanG", tenure: "NEW_3_6", isManager: false, note: "",
+  { name: "Kaan Gunduz", short: "Kaan", tenure: "NEW_3_6", isManager: false, note: "",
     c: { Welcome: 1, Kabin: 3, "Kabin Welcomer": 2, Sprinter: 1, "Zone 2": 1, "Zone 3": 2, "Zone 4": 2, "Zone 5": 2 } },
   { name: "Kayra Uzun", short: "Kayra", tenure: "NEW_3_6", isManager: false, note: "",
     c: { Welcome: 2, Kabin: 3, "Kabin Welcomer": 2, Sprinter: 1, "Zone 2": 2, "Zone 3": 2, "Zone 4": 2, "Zone 5": 2 } },

@@ -48,3 +48,23 @@ export const RESPONSIBILITY_ROLES = [
   "Liderlik",
 ] as const;
 export type ResponsibilityRole = (typeof RESPONSIBILITY_ROLES)[number];
+
+/**
+ * UI'da gösterilen "konuşma ismi". Önce fullName'in ilk parçası (gerçek ad)
+ * kullanılır — "KaanG" gibi takma kısaltmalardan kaçınılır. Çakışma varsa
+ * "İsim S." (soyad baş harfi) formatına düşülür.
+ *
+ * Neden: shortName tarihsel olarak çakışma çözümleyici (KaanG, AhmetK) gibi
+ * kötü değerler içeriyor. Gerçek ilk-isim hep daha temiz.
+ */
+export function staffLabel(s: StaffRow, all: StaffRow[]): string {
+  const parts = s.fullName.trim().split(/\s+/);
+  const first = parts[0] ?? s.shortName;
+  // Aynı ilk-isim başka biri var mı?
+  const dup = all.some((o) => o.id !== s.id && o.fullName.trim().split(/\s+/)[0] === first);
+  if (!dup) return first;
+  // Çakışma: ilk soyadın baş harfi eklenir
+  const last = parts[parts.length - 1];
+  if (last && last !== first) return `${first} ${last[0]}.`;
+  return s.shortName;
+}

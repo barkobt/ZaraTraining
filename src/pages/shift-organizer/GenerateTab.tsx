@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef } from "react";
 import { Loader2, Upload, FileText } from "lucide-react";
-import type { StaffRow } from "./constants";
+import { staffLabel, type StaffRow } from "./constants";
 import { ChartResult, type GenerateResult } from "./ChartResult";
 import { exportChartToExcel } from "./excel-export";
 import { exportChartToPdf } from "./pdf-export";
@@ -298,7 +298,7 @@ export function GenerateTab({
                     }
                     className="accent-black"
                   />
-                  <span className="text-xs flex-1">{p.shortName}</span>
+                  <span className="text-xs flex-1">{staffLabel(p, staff)}</span>
                   <input
                     type="number"
                     value={row.start}

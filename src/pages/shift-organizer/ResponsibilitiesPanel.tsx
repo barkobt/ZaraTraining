@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Loader2, UserCog } from "lucide-react";
 import { trpc } from "@/providers/trpc";
-import { RESPONSIBILITY_ROLES, type ResponsibilityRole, type StaffRow } from "./constants";
+import { RESPONSIBILITY_ROLES, staffLabel, type ResponsibilityRole, type StaffRow } from "./constants";
 
 export type Responsibilities = Partial<Record<ResponsibilityRole, string>>;
 
@@ -75,7 +75,7 @@ export function ResponsibilitiesPanel({
               <option value="">— (boş)</option>
               {staff.map((p) => (
                 <option key={p.id} value={p.shortName}>
-                  {p.shortName} · {p.fullName}
+                  {staffLabel(p, staff)} · {p.fullName}
                 </option>
               ))}
             </select>
