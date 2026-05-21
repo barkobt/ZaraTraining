@@ -25,20 +25,78 @@
     --ring: 35 38% 52%;
     --radius: 0.25rem;
 
-    /* Zara Modern Palette */
+    /* ── PAPER · cream "atelier" stack ─────────────────────── */
     --zara-bg: #F5F1EA;
     --zara-bg-alt: #EFEAE0;
     --zara-bg-warm: #FAF6EE;
+    --zara-bg-white: #FFFFFF;
+
+    /* ── INK · printed-press blacks ────────────────────────── */
     --zara-ink: #1A1614;
     --zara-ink-soft: #2D2420;
     --zara-ink-2: #3A322E;
+    --zara-ink-65: rgba(26, 22, 20, 0.65);
+    --zara-ink-50: rgba(26, 22, 20, 0.50);
+    --zara-ink-40: rgba(26, 22, 20, 0.40);
+    --zara-ink-30: rgba(26, 22, 20, 0.30);
+
+    /* ── LINES · barely-there hairlines ────────────────────── */
     --zara-line: rgba(26, 22, 20, 0.08);
     --zara-line-strong: rgba(26, 22, 20, 0.18);
+
+    /* ── METAL · gold + bronze + stone ─────────────────────── */
     --zara-gold: #B8935A;
     --zara-gold-soft: #D4B582;
     --zara-gold-tint: rgba(184, 147, 90, 0.08);
     --zara-bronze: #8B6F47;
     --zara-stone: #9B8F80;
+
+    /* ── SEMANTIC · the only non-warm colors ───────────────── */
+    --zara-emerald: #059669;          /* LIVE dot only, never bulk fill */
+    --zara-destructive: #D04A3B;
+
+    /* ── TYPE STACKS ───────────────────────────────────────── */
+    --ff-display: "Bodoni Moda", "Playfair Display", "Didot", serif;
+    --ff-editorial: "Instrument Serif", "Bodoni Moda", "Playfair Display", serif;
+    --ff-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --ff-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+
+    /* ── TYPE TOKENS · italic-roman split for displays ─────── */
+    --t-display-xl: clamp(64px, 8vw, 120px) / 0.92 var(--ff-editorial);
+    --t-display-lg: clamp(48px, 6vw, 88px) / 0.95 var(--ff-editorial);
+    --t-display-md: clamp(36px, 5vw, 64px) / 0.95 var(--ff-display);
+    --t-h1: 48px / 1.0 var(--ff-display);
+    --t-h2: 36px / 1.05 var(--ff-display);
+    --t-h3: 26px / 1.15 var(--ff-display);
+    --t-h4: 20px / 1.25 var(--ff-display);
+    --t-body-lg: 17px / 1.6 var(--ff-sans);
+    --t-body: 15px / 1.6 var(--ff-sans);
+    --t-body-sm: 13px / 1.55 var(--ff-sans);
+    --t-caption: 12px / 1.5 var(--ff-sans);
+    --t-mono-eyebrow: 10px / 1 var(--ff-mono);
+    --t-mono-meta: 11px / 1.4 var(--ff-mono);
+    --t-mono-code: 13px / 1.5 var(--ff-mono);
+
+    /* ── TRACKING · atelier prefers wide caps ──────────────── */
+    --track-mono: 0.30em;
+    --track-mono-sm: 0.25em;
+    --track-mono-xs: 0.20em;
+    --track-display: -0.02em;
+    --track-tight: -0.03em;
+
+    /* ── SHADOWS · cards "float" on paper, never glow ──────── */
+    --shadow-xs: 0 1px 2px 0 rgba(26, 22, 20, 0.05);
+    --shadow-card: 0 30px 80px -30px rgba(26, 22, 20, 0.25);
+    --shadow-cabin: 0 25px 60px -25px rgba(26, 22, 20, 0.55);
+    --shadow-gold-glow: 0 0 60px rgba(184, 147, 90, 0.20);
+
+    /* ── EASING & DURATION ─────────────────────────────────── */
+    --ease-atelier: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --ease-curtain: cubic-bezier(0.65, 0, 0.35, 1);
+    --dur-quick: 300ms;
+    --dur-soft: 500ms;
+    --dur-reveal: 900ms;
+    --dur-curtain: 1700ms;
   }
 
   body {
@@ -96,6 +154,60 @@
   .text-ink { color: var(--zara-ink); }
   .border-zara { border-color: var(--zara-line); }
   .border-zara-strong { border-color: var(--zara-line-strong); }
+
+  /* ── Display headlines · hero moments, italic-roman split ─ */
+  .display-xl { font: var(--t-display-xl); letter-spacing: var(--track-tight); color: var(--zara-ink); }
+  .display-lg { font: var(--t-display-lg); letter-spacing: var(--track-tight); color: var(--zara-ink); }
+  .display-md { font: var(--t-display-md); letter-spacing: var(--track-display); color: var(--zara-ink); }
+  /* The italic-roman idiom — wrap one syllable in <em class="ital"> */
+  .ital, em.ital { font-style: italic; font-weight: 300; }
+
+  /* ── Body text scale ─────────────────────────────────────── */
+  .body { font: var(--t-body); color: var(--zara-ink); }
+  .body-lg { font: var(--t-body-lg); color: var(--zara-ink-65); }
+  .body-sm { font: var(--t-body-sm); color: var(--zara-ink-65); }
+  .caption { font: var(--t-caption); color: var(--zara-ink-50); }
+
+  /* ── Eyebrow / chapter label · the most-used motif ───────── */
+  .eyebrow,
+  .mono-eyebrow {
+    font: var(--t-mono-eyebrow);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    color: var(--zara-ink-50);
+  }
+  .eyebrow--gold { color: var(--zara-gold); }
+  .mono-meta {
+    font: var(--t-mono-meta);
+    letter-spacing: var(--track-mono-sm);
+    text-transform: uppercase;
+    color: var(--zara-ink-40);
+  }
+  .mono-num { font: var(--t-mono-code); font-variant-numeric: tabular-nums; }
+
+  /* ── The italic "Atelye" wordmark ────────────────────────── */
+  .atelye-mark {
+    font-family: var(--ff-editorial);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--zara-ink);
+  }
+
+  /* ── Color utilities ─────────────────────────────────────── */
+  .fg-ink { color: var(--zara-ink); }
+  .fg-gold { color: var(--zara-gold); }
+  .fg-bronze { color: var(--zara-bronze); }
+  .fg-stone { color: var(--zara-stone); }
+  .fg-muted { color: var(--zara-ink-50); }
+  .bg-paper { background: var(--zara-bg); }
+  .bg-paper-alt { background: var(--zara-bg-alt); }
+  .bg-paper-warm { background: var(--zara-bg-warm); }
+  .bg-paper-white { background: var(--zara-bg-white); }
+
+  /* ── Hairline rules — used liberally between sections ────── */
+  .rule { height: 1px; background: var(--zara-line); }
+  .rule-strong { height: 1px; background: var(--zara-line-strong); }
 }
 
 /* === MOTION SYSTEM === */
