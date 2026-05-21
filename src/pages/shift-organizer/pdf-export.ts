@@ -106,51 +106,77 @@ export function exportChartToPdf(
   doc.setLineWidth(0.3);
   doc.line(margin, 22, pageWidth - margin, 22);
 
-  // ─── Chart Tablosu (DİKEY: rows=saat, cols=rol) ───
+  // ─── Chart Tablosu (chart1.xlsx referans formatı: rows=ROL, cols=SAAT) ───
+  // User spec: "format chart1 ile aynı olmalı". chart1.xlsx pivot'unda
+  // satırlar rol (KABİN, RUNNER/KABİN WELCOMER, SPRİNTER, WELCOMER/WELCOME,
+  // ZONE 2..5, MOLA), sütunlar saat (10:00-22:00).
   const hours = [...new Set(result.chart.map((c) => c.hour))].sort((a, b) => a - b);
   const roles = sortRoles([...new Set(result.chart.map((c) => c.role))]);
   const byKey = new Map<string, string>();
   for (const c of result.chart)
     byKey.set(`${c.hour}|${c.role}`, c.persons.map(asciify).join(" · "));
 
-  // Mola ve task'ları (varsa) ekstra sütun olarak ekle
+  // Mola, task ve aktif iş gücü hesaplaması — chart1 stilinde ek satır olarak
   const breaksByHour = new Map<number, string[]>();
   const tasksByHour = new Map<number, string[]>();
-  for (const s of shifts ?? []) {
-    for (const [bs, be] of s.breaks ?? []) {
-      for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
-        const arr = breaksByHour.get(h) ?? [];
-        if (!arr.includes(s.short_name)) arr.push(s.short_name);
-        breaksByHour.set(h, arr);
+  const activeByHour = new Map<number, number>();
+  if (shifts) {
+    for (const h of hours) {
+      let count = 0;
+      for (const s of shifts) {
+        if (h < s.start_hour || h >= s.end_hour) continue;
+        const onBreak = (s.breaks ?? []).some(([bs, be]) => bs <= h && be >= h + 1);
+        const onTask = (s.tasks ?? []).some(([th]) => th === h);
+        if (!onBreak && !onTask) count++;
       }
+      activeByHour.set(h, count);
     }
-    for (const [h, t] of s.tasks ?? []) {
-      const arr = tasksByHour.get(h) ?? [];
-      arr.push(`${s.short_name} (${t})`);
-      tasksByHour.set(h, arr);
+    for (const s of shifts) {
+      for (const [bs, be] of s.breaks ?? []) {
+        for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
+          const arr = breaksByHour.get(h) ?? [];
+          if (!arr.includes(s.short_name)) arr.push(s.short_name);
+          breaksByHour.set(h, arr);
+        }
+      }
+      for (const [h, t] of s.tasks ?? []) {
+        const arr = tasksByHour.get(h) ?? [];
+        arr.push(`${s.short_name} (${t})`);
+        tasksByHour.set(h, arr);
+      }
     }
   }
   const hasBreaks = breaksByHour.size > 0;
   const hasTasks = tasksByHour.size > 0;
+  const hasActive = activeByHour.size > 0;
 
-  const extraCols: string[] = [];
-  if (hasBreaks) extraCols.push("Mola");
-  if (hasTasks) extraCols.push("Task");
+  // chart1 formatı: ilk sütun = rol etiketi (uppercase asciify), sonraki
+  // sütunlar = saat hücreleri (10:00, 11:00, ..., 21:00).
+  const hourCols = hours.map((h) => `${String(h).padStart(2, "0")}:00`);
+  const head = [["Rol", ...hourCols]];
 
-  const head = [
-    ["Saat", ...roles.map((r) => asciify(roleLabel(r))), ...extraCols],
-  ];
-  const body = hours.map((h) => {
-    const row: string[] = [
-      `${String(h).padStart(2, "0")}:00`,
-      ...roles.map((r) => byKey.get(`${h}|${r}`) ?? "—"),
-    ];
-    if (hasBreaks)
-      row.push(asciify((breaksByHour.get(h) ?? []).join(" · ")) || "—");
-    if (hasTasks)
-      row.push(asciify((tasksByHour.get(h) ?? []).join(" · ")) || "—");
-    return row;
-  });
+  const body: string[][] = roles.map((r) => [
+    asciify(roleLabel(r)),
+    ...hours.map((h) => byKey.get(`${h}|${r}`) ?? "—"),
+  ]);
+  if (hasBreaks) {
+    body.push([
+      "Mola",
+      ...hours.map((h) => asciify((breaksByHour.get(h) ?? []).join(" · ")) || "—"),
+    ]);
+  }
+  if (hasTasks) {
+    body.push([
+      "Task (HR/TR/ISG)",
+      ...hours.map((h) => asciify((tasksByHour.get(h) ?? []).join(" · ")) || "—"),
+    ]);
+  }
+  if (hasActive) {
+    body.push([
+      asciify("Aktif İş Gücü"),
+      ...hours.map((h) => String(activeByHour.get(h) ?? 0)),
+    ]);
+  }
 
   // Sayı: chart için ~ 8 rol × 11 saat. Sığması için font 6.5, padding 1.
   autoTable(doc, {
@@ -177,10 +203,12 @@ export function exportChartToPdf(
       overflow: "linebreak",
     },
     columnStyles: {
+      // İlk sütun: rol etiketi (sol hizalı, koyu, daha geniş)
       0: {
         fontStyle: "bold",
         fillColor: [245, 245, 244],
-        cellWidth: 26,
+        textColor: [30, 30, 30],
+        cellWidth: 30,
         halign: "left",
       },
     },

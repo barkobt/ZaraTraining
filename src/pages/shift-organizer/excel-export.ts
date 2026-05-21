@@ -2,9 +2,12 @@ import * as XLSX from "xlsx";
 import type { GenerateResult, ShiftInputForChart } from "./ChartResult";
 
 /**
- * Solver Role enum NAME'lerini ekran-dostu Türkçe label'a çevirir.
- * XLSX UTF-8'i destekler (jsPDF'in aksine) — bu yüzden ASCII'ye çevirmeye
- * gerek yok, sadece label map'i uygulanır.
+ * chart1.xlsx referans formatı:
+ *   A1: "Günlük Chart — {tarih}"
+ *   Row 2: saat sütunları (10:00, 11:00, ..., 21:00)
+ *   Row 3+: rol satırları (KABİN, KABİN WELCOMER, SPRİNTER, WELCOME, ZONE 2..5)
+ *   Sonraki: MOLA, TASK, AKTİF İŞ GÜCÜ
+ * Roller uppercase Türkçe (XLSX UTF-8'i destekler — asciify gereksiz).
  */
 const ROLE_ORDER = [
   "KABİN",
@@ -17,14 +20,14 @@ const ROLE_ORDER = [
   "ZONE 5",
 ];
 const ROLE_LABELS: Record<string, string> = {
-  KABİN: "Kabin",
-  "KABİN WELCOMER": "Kabin Welcomer",
-  SPRINTER: "Sprinter",
-  WELCOME: "Welcome",
-  "ZONE 2": "Zone 2",
-  "ZONE 3": "Zone 3",
-  "ZONE 4": "Zone 4",
-  "ZONE 5": "Zone 5",
+  KABİN: "KABİN",
+  "KABİN WELCOMER": "KABİN WELCOMER",
+  SPRINTER: "SPRİNTER",
+  WELCOME: "WELCOME",
+  "ZONE 2": "ZONE 2",
+  "ZONE 3": "ZONE 3",
+  "ZONE 4": "ZONE 4",
+  "ZONE 5": "ZONE 5",
 };
 
 function roleLabel(r: string): string {
@@ -99,21 +102,24 @@ export function exportChartToExcel(
   const extraRows: (string | number)[][] = [];
   if (hasBreaks) {
     extraRows.push([
-      "Mola",
+      "MOLA",
       ...hours.map((h) => (breaksByHour.get(h) ?? []).join(" · ") || "—"),
     ]);
   }
   if (hasTasks) {
     extraRows.push([
-      "Task (HR/TR/ISG)",
+      "TASK (HR/TR/ISG)",
       ...hours.map((h) => (tasksByHour.get(h) ?? []).join(" · ") || "—"),
     ]);
   }
   if (hasActive) {
-    extraRows.push(["Aktif İş Gücü", ...hours.map((h) => activeByHour.get(h) ?? 0)]);
+    extraRows.push(["AKTİF İŞ GÜCÜ", ...hours.map((h) => activeByHour.get(h) ?? 0)]);
   }
 
-  const data = [header, ...roleRows, ...extraRows];
+  // chart1 stili: A1'de başlık, blank row, sonra pivot + ek satırlar
+  const titleRow: (string | number)[] = [`Günlük Chart — ${shiftDate}`];
+  for (let i = 0; i < hours.length; i++) titleRow.push("");
+  const data: (string | number)[][] = [titleRow, [], header, ...roleRows, ...extraRows];
 
   // Meta sheet
   const meta: (string | number)[][] = [
