@@ -15,6 +15,8 @@ export type SolverShiftInput = {
   start_hour: number;
   end_hour: number;
   breaks?: Array<[number, number]>;
+  /** Blocking tasklar: [(saat, 'HR'|'TR'|'ISG')]. Pembe tasklar buraya gelmez. */
+  tasks?: Array<[number, string]>;
 };
 
 export type SolverConfigInput = {
@@ -33,6 +35,8 @@ export type SolveRequest = {
   config?: SolverConfigInput;
   /** Settings → Yasaklar UI'ından gelen kullanıcı yasakları, örn ["ZONE_4","ZONE_5"]. */
   forbidden_pairs?: Array<[string, string]>;
+  /** Kişi-rol bias: { 'Fadime': { 'KABIN': -100, 'SPRINTER': 80 } } */
+  person_role_biases?: Record<string, Record<string, number>>;
 };
 
 export type SolveResponse = {

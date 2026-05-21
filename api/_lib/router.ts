@@ -43,6 +43,7 @@ const shiftInputSchema = z.object({
     .min(1, { message: "Bitiş saati 1-24 arası olmalı" })
     .max(24, { message: "Bitiş saati 1-24 arası olmalı" }),
   breaks: z.array(z.tuple([z.number(), z.number()])).optional(),
+  tasks: z.array(z.tuple([z.number().int(), z.string()])).optional(),
 });
 
 export const appRouter = createRouter({
@@ -343,6 +344,7 @@ export const appRouter = createRouter({
             start_hour: s.start_hour,
             end_hour: s.end_hour,
             breaks: s.breaks ?? [],
+            tasks: s.tasks ?? [],
           })),
           config: solverConfigPayload,
           forbidden_pairs: userForbidden.map(

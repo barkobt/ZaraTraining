@@ -1,13 +1,80 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import type { GenerateResult } from "./ChartResult";
+import type { GenerateResult, ShiftInputForChart } from "./ChartResult";
+
+/**
+ * Solver Role enum NAME'lerini ekran-dostu Türkçe label'a çevirir.
+ * (ChartResult.tsx ROLE_LABELS ile aynı; PDF/Excel export'unda raw enum
+ * "KABİN" gözükmesin diye burada da uygulanır — "KAB0N" font bug'ının kaynağı.)
+ */
+const ROLE_ORDER = [
+  "KABİN",
+  "KABİN WELCOMER",
+  "SPRINTER",
+  "WELCOME",
+  "ZONE 2",
+  "ZONE 3",
+  "ZONE 4",
+  "ZONE 5",
+];
+const ROLE_LABELS: Record<string, string> = {
+  KABİN: "Kabin",
+  "KABİN WELCOMER": "Kabin Welcomer",
+  SPRINTER: "Sprinter",
+  WELCOME: "Welcome",
+  "ZONE 2": "Zone 2",
+  "ZONE 3": "Zone 3",
+  "ZONE 4": "Zone 4",
+  "ZONE 5": "Zone 5",
+};
+
+/**
+ * jsPDF Helvetica/Times Türkçe karakter glyph'lerini (İ, ı, ş, ğ, ü, ö, ç)
+ * desteklemez — eksik karakter "0" veya kare olarak basılır ("KABİN"→"KAB0N" bug).
+ * Pragmatik çözüm: tüm metni ASCII Latin eşleniğine çevir. Görsel olarak
+ * "Şeyma"→"Seyma" gibi gözükür ama bozuk glyph yerine okunabilir.
+ */
+function asciify(s: string): string {
+  return s
+    .replace(/İ/g, "I")
+    .replace(/ı/g, "i")
+    .replace(/Ş/g, "S")
+    .replace(/ş/g, "s")
+    .replace(/Ç/g, "C")
+    .replace(/ç/g, "c")
+    .replace(/Ğ/g, "G")
+    .replace(/ğ/g, "g")
+    .replace(/Ü/g, "U")
+    .replace(/ü/g, "u")
+    .replace(/Ö/g, "O")
+    .replace(/ö/g, "o");
+}
+
+function roleLabel(r: string): string {
+  return ROLE_LABELS[r] ?? r;
+}
+
+function sortRoles(roles: string[]): string[] {
+  return [...roles].sort((a, b) => {
+    const ai = ROLE_ORDER.indexOf(a);
+    const bi = ROLE_ORDER.indexOf(b);
+    if (ai < 0 && bi < 0) return a.localeCompare(b);
+    if (ai < 0) return 1;
+    if (bi < 0) return -1;
+    return ai - bi;
+  });
+}
 
 /**
  * Chart sonucunu A4 landscape **tek sayfa** PDF olarak indir.
  * Boyutlandırma: autoTable parametreleri agresif sıkıştırılır, başlık + chart + sorumlular
  * + uyarılar tek sayfaya sığar.
  */
-export function exportChartToPdf(result: GenerateResult, shiftDate: string) {
+export function exportChartToPdf(
+  result: GenerateResult,
+  shiftDate: string,
+  shifts?: ShiftInputForChart[],
+) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();   // 297
   const pageHeight = doc.internal.pageSize.getHeight(); // 210
@@ -16,12 +83,12 @@ export function exportChartToPdf(result: GenerateResult, shiftDate: string) {
   // ─── Header (kompakt: 22mm) ───
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
-  doc.text("ZARA · ATELYE", margin, 12);
+  doc.text(asciify("ZARA · ATELYE"), margin, 12);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(120);
-  doc.text("Shift Organizer · Mağaza 3643", margin, 17);
+  doc.text(asciify("Shift Organizer · Mağaza 3643"), margin, 17);
 
   doc.setFontSize(8);
   doc.setTextColor(40);
@@ -41,15 +108,49 @@ export function exportChartToPdf(result: GenerateResult, shiftDate: string) {
 
   // ─── Chart Tablosu (DİKEY: rows=saat, cols=rol) ───
   const hours = [...new Set(result.chart.map((c) => c.hour))].sort((a, b) => a - b);
-  const roles = [...new Set(result.chart.map((c) => c.role))];
+  const roles = sortRoles([...new Set(result.chart.map((c) => c.role))]);
   const byKey = new Map<string, string>();
-  for (const c of result.chart) byKey.set(`${c.hour}|${c.role}`, c.persons.join(" · "));
+  for (const c of result.chart)
+    byKey.set(`${c.hour}|${c.role}`, c.persons.map(asciify).join(" · "));
 
-  const head = [["Saat", ...roles]];
-  const body = hours.map((h) => [
-    `${String(h).padStart(2, "0")}:00`,
-    ...roles.map((r) => byKey.get(`${h}|${r}`) ?? "—"),
-  ]);
+  // Mola ve task'ları (varsa) ekstra sütun olarak ekle
+  const breaksByHour = new Map<number, string[]>();
+  const tasksByHour = new Map<number, string[]>();
+  for (const s of shifts ?? []) {
+    for (const [bs, be] of s.breaks ?? []) {
+      for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
+        const arr = breaksByHour.get(h) ?? [];
+        if (!arr.includes(s.short_name)) arr.push(s.short_name);
+        breaksByHour.set(h, arr);
+      }
+    }
+    for (const [h, t] of s.tasks ?? []) {
+      const arr = tasksByHour.get(h) ?? [];
+      arr.push(`${s.short_name} (${t})`);
+      tasksByHour.set(h, arr);
+    }
+  }
+  const hasBreaks = breaksByHour.size > 0;
+  const hasTasks = tasksByHour.size > 0;
+
+  const extraCols: string[] = [];
+  if (hasBreaks) extraCols.push("Mola");
+  if (hasTasks) extraCols.push("Task");
+
+  const head = [
+    ["Saat", ...roles.map((r) => asciify(roleLabel(r))), ...extraCols],
+  ];
+  const body = hours.map((h) => {
+    const row: string[] = [
+      `${String(h).padStart(2, "0")}:00`,
+      ...roles.map((r) => byKey.get(`${h}|${r}`) ?? "—"),
+    ];
+    if (hasBreaks)
+      row.push(asciify((breaksByHour.get(h) ?? []).join(" · ")) || "—");
+    if (hasTasks)
+      row.push(asciify((tasksByHour.get(h) ?? []).join(" · ")) || "—");
+    return row;
+  });
 
   // Sayı: chart için ~ 8 rol × 11 saat. Sığması için font 6.5, padding 1.
   autoTable(doc, {
@@ -103,14 +204,14 @@ export function exportChartToPdf(result: GenerateResult, shiftDate: string) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(0);
-    doc.text("Günün Sorumluları", margin, afterY);
+    doc.text(asciify("Günün Sorumluları"), margin, afterY);
     afterY += 1;
 
     // Yatay 5 hücre — tek satırda
     autoTable(doc, {
       startY: afterY + 1,
-      head: [respEntries.map(([role]) => role)],
-      body: [respEntries.map(([, person]) => person ?? "—")],
+      head: [respEntries.map(([role]) => asciify(role))],
+      body: [respEntries.map(([, person]) => asciify(person ?? "—"))],
       theme: "plain",
       headStyles: {
         fontSize: 6.5,
@@ -139,7 +240,7 @@ export function exportChartToPdf(result: GenerateResult, shiftDate: string) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     doc.setTextColor(180, 90, 0);
-    doc.text("Uyarılar", margin, afterY);
+    doc.text(asciify("Uyarılar"), margin, afterY);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(6.5);
     doc.setTextColor(80);
@@ -148,13 +249,13 @@ export function exportChartToPdf(result: GenerateResult, shiftDate: string) {
     const shown = result.warnings.slice(0, max);
     for (const w of shown) {
       if (afterY > pageHeight - 10) break;
-      const lines = doc.splitTextToSize(`• ${w}`, pageWidth - margin * 2);
+      const lines = doc.splitTextToSize(asciify(`• ${w}`), pageWidth - margin * 2);
       doc.text(lines.slice(0, 1), margin, afterY);
       afterY += 3;
     }
     if (result.warnings.length > max) {
       doc.setTextColor(140);
-      doc.text(`+ ${result.warnings.length - max} uyarı daha`, margin, afterY);
+      doc.text(asciify(`+ ${result.warnings.length - max} uyarı daha`), margin, afterY);
     }
   }
 
@@ -162,7 +263,7 @@ export function exportChartToPdf(result: GenerateResult, shiftDate: string) {
   doc.setFontSize(6.5);
   doc.setTextColor(160);
   doc.text(
-    `ZARA · Atelye · ${shiftDate}`,
+    asciify(`ZARA · Atelye · ${shiftDate}`),
     pageWidth / 2,
     pageHeight - 4,
     { align: "center" },

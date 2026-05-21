@@ -66,6 +66,8 @@ export type ShiftInputForChart = {
   start_hour: number;
   end_hour: number;
   breaks: Array<[number, number]>;
+  /** Blocking task'lar: [(saat, 'HR'|'TR'|'ISG')]. Bu saatte chart'ta görünmez. */
+  tasks?: Array<[number, string]>;
 };
 
 export function ChartResult({
@@ -120,6 +122,45 @@ export function ChartResult({
   }, [shifts]);
 
   const hasBreaks = breaksByHour.size > 0;
+
+  /** Task kolonu: HR/TR/ISG gibi blocking task'lar. */
+  const tasksByHour = useMemo(() => {
+    const m = new Map<number, Array<{ name: string; type: string }>>();
+    if (!shifts) return m;
+    for (const s of shifts) {
+      for (const [hour, type] of s.tasks ?? []) {
+        const arr = m.get(hour) ?? [];
+        arr.push({ name: s.short_name, type });
+        m.set(hour, arr);
+      }
+    }
+    return m;
+  }, [shifts]);
+  const hasTasks = tasksByHour.size > 0;
+
+  /** Aktif İş Gücü: o saatte sahada + mola/task hariç. */
+  const activeWorkforceByHour = useMemo(() => {
+    const m = new Map<number, number>();
+    if (!shifts) return m;
+    for (const h of hours) {
+      let count = 0;
+      for (const s of shifts) {
+        if (h < s.start_hour || h >= s.end_hour) continue;
+        // Tam saat mola?
+        const onBreak = (s.breaks ?? []).some(
+          ([bs, be]) => bs <= h && be >= h + 1,
+        );
+        if (onBreak) continue;
+        // Blocking task?
+        const onTask = (s.tasks ?? []).some(([th]) => th === h);
+        if (onTask) continue;
+        count++;
+      }
+      m.set(h, count);
+    }
+    return m;
+  }, [shifts, hours]);
+  const showActiveRow = activeWorkforceByHour.size > 0;
 
   return (
     <div className="border border-stone-300">
@@ -192,6 +233,16 @@ export function ChartResult({
                     Mola
                   </th>
                 )}
+                {hasTasks && (
+                  <th className="sticky top-0 bg-white text-center p-2 text-[9px] tracking-[0.25em] uppercase text-rose-700 font-normal">
+                    Task
+                  </th>
+                )}
+                {showActiveRow && (
+                  <th className="sticky top-0 bg-white text-center p-2 text-[9px] tracking-[0.25em] uppercase text-stone-500 font-normal">
+                    Aktif
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -221,6 +272,24 @@ export function ChartResult({
                           {(breaksByHour.get(h) ?? []).join(" · ")}
                         </span>
                       )}
+                    </td>
+                  )}
+                  {hasTasks && (
+                    <td className="p-2 text-center bg-rose-50/50">
+                      {(tasksByHour.get(h) ?? []).length === 0 ? (
+                        <span className="text-stone-300">—</span>
+                      ) : (
+                        <span className="leading-tight text-rose-800">
+                          {(tasksByHour.get(h) ?? [])
+                            .map((t) => `${t.name} (${t.type})`)
+                            .join(" · ")}
+                        </span>
+                      )}
+                    </td>
+                  )}
+                  {showActiveRow && (
+                    <td className="p-2 text-center font-mono tabular-nums text-stone-600 bg-stone-50/40">
+                      {activeWorkforceByHour.get(h) ?? 0}
                     </td>
                   )}
                 </tr>

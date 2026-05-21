@@ -29,10 +29,21 @@ async function loadPdfjs() {
   return pdfjsLib;
 }
 
+/**
+ * Operasyonel task tipleri:
+ *   - HR/TR/ISG (BLOCKING): kişi o saatte chart'a atanamaz (aktif iş gücünden düşer)
+ *   - PEMBE (yumuşak): RUNNER LIDER, AKSIYON, IPOD vb. — solver kısıtlamaz, sadece bilgi
+ */
+export type BlockingTaskType = "HR" | "TR" | "ISG" | "OTHER";
+
 export type ParsedShift = {
   name: string;
   startHour: number;
   endHour: number;
+  /** Mola aralıkları (tam saat veya yarım). 11:00-12:00 → [[11, 12]] */
+  breaks: Array<[number, number]>;
+  /** Blocking task'lar (HR/TR/ISG). Bu saatlerde kişi chart'ta yer almaz. */
+  tasks: Array<{ hour: number; type: BlockingTaskType; label: string }>;
   source: string; // hangi satırdan çıkarıldı (debug için)
 };
 
@@ -93,6 +104,53 @@ function isLikelyName(s: string): boolean {
   });
   if (!looksLikeName) return false;
   return true;
+}
+
+// ─── Mola ve task çıkartma (parse edilmiş satır üzerinden) ───
+//
+// Orquest PDF'leri tipik olarak isim+saat aralığını verir; ek satırlarda veya
+// aynı satırın devamında mola/task notasyonu görülür:
+//   "b 13:00"  /  "B13" / "B 13:00-14:00"
+//   "mola 14:00" / "MOLA 14"
+//   "HR 18" / "HR 18:00" / "TR 15:00-16:00" / "ISG 17"
+//
+// Bu fonksiyon ham satır üzerinden mola+task çıkarır. Kolon-bazlı (hücre matrix)
+// Orquest formatı için ayrıca PDF metni y-grupladıktan sonra ilgili kişinin
+// satırı içinde tüm sembol-saat çiftleri taranır.
+function extractBreaksAndTasks(
+  rawLine: string,
+  startHour: number,
+  endHour: number,
+): { breaks: Array<[number, number]>; tasks: ParsedShift["tasks"] } {
+  const breaks: Array<[number, number]> = [];
+  const tasks: ParsedShift["tasks"] = [];
+
+  const BLOCKING_TASKS = new Set<BlockingTaskType>(["HR", "TR", "ISG"]);
+
+  // Mola: "b 13", "B13:00", "mola 14", "Mola 14:30-15:00", "Break 15"
+  const breakRe = /\b(?:b|mola|break)\b\s*[:.\s]*(\d{1,2})(?:[:.,](\d{1,2}))?(?:\s*[-–—]\s*(\d{1,2})(?:[:.,](\d{1,2}))?)?/gi;
+  let mb: RegExpExecArray | null;
+  while ((mb = breakRe.exec(rawLine))) {
+    const h1 = parseInt(mb[1], 10);
+    if (!Number.isFinite(h1) || h1 < 0 || h1 > 24) continue;
+    if (h1 < startHour || h1 >= endHour) continue;
+    const h2 = mb[3] ? parseInt(mb[3], 10) : h1 + 1;
+    if (h2 <= h1) continue;
+    breaks.push([h1, Math.min(h2, endHour)]);
+  }
+
+  // Task: "HR 18", "TR 15:00", "ISG 17"
+  const taskRe = /\b(HR|TR|ISG)\b\s*[:.\s]*(\d{1,2})(?:[:.,]\d{1,2})?/g;
+  let mt: RegExpExecArray | null;
+  while ((mt = taskRe.exec(rawLine))) {
+    const type = mt[1].toUpperCase() as BlockingTaskType;
+    if (!BLOCKING_TASKS.has(type)) continue;
+    const hour = parseInt(mt[2], 10);
+    if (!Number.isFinite(hour) || hour < startHour || hour >= endHour) continue;
+    tasks.push({ hour, type, label: mt[0].trim() });
+  }
+
+  return { breaks, tasks };
 }
 
 // ─── Regex pattern'leri (sıra önemli — en spesifik önce) ───
@@ -161,7 +219,8 @@ function tryParseLine(rawLine: string): ParsedShift | null {
     if (m) {
       const r = p.extract(m);
       if (r && isLikelyName(r.name)) {
-        return { ...r, source: rawLine };
+        const bt = extractBreaksAndTasks(rawLine, r.startHour, r.endHour);
+        return { ...r, breaks: bt.breaks, tasks: bt.tasks, source: rawLine };
       }
     }
   }
@@ -179,7 +238,8 @@ function tryParseLine(rawLine: string): ParsedShift | null {
       const candidate = before.length >= after.length ? before : after;
       const n = cleanName(candidate);
       if (isLikelyName(n)) {
-        return { name: n, startHour: sh, endHour: eh, source: rawLine };
+        const bt = extractBreaksAndTasks(rawLine, sh, eh);
+        return { name: n, startHour: sh, endHour: eh, breaks: bt.breaks, tasks: bt.tasks, source: rawLine };
       }
     }
   }

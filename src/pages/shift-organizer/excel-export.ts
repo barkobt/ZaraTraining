@@ -1,19 +1,119 @@
 import * as XLSX from "xlsx";
-import type { GenerateResult } from "./ChartResult";
+import type { GenerateResult, ShiftInputForChart } from "./ChartResult";
 
-export function exportChartToExcel(result: GenerateResult, shiftDate: string) {
+/**
+ * Solver Role enum NAME'lerini ekran-dostu Türkçe label'a çevirir.
+ * XLSX UTF-8'i destekler (jsPDF'in aksine) — bu yüzden ASCII'ye çevirmeye
+ * gerek yok, sadece label map'i uygulanır.
+ */
+const ROLE_ORDER = [
+  "KABİN",
+  "KABİN WELCOMER",
+  "SPRINTER",
+  "WELCOME",
+  "ZONE 2",
+  "ZONE 3",
+  "ZONE 4",
+  "ZONE 5",
+];
+const ROLE_LABELS: Record<string, string> = {
+  KABİN: "Kabin",
+  "KABİN WELCOMER": "Kabin Welcomer",
+  SPRINTER: "Sprinter",
+  WELCOME: "Welcome",
+  "ZONE 2": "Zone 2",
+  "ZONE 3": "Zone 3",
+  "ZONE 4": "Zone 4",
+  "ZONE 5": "Zone 5",
+};
+
+function roleLabel(r: string): string {
+  return ROLE_LABELS[r] ?? r;
+}
+
+function sortRoles(roles: string[]): string[] {
+  return [...roles].sort((a, b) => {
+    const ai = ROLE_ORDER.indexOf(a);
+    const bi = ROLE_ORDER.indexOf(b);
+    if (ai < 0 && bi < 0) return a.localeCompare(b);
+    if (ai < 0) return 1;
+    if (bi < 0) return -1;
+    return ai - bi;
+  });
+}
+
+export function exportChartToExcel(
+  result: GenerateResult,
+  shiftDate: string,
+  shifts?: ShiftInputForChart[],
+) {
   const hours = [...new Set(result.chart.map((c) => c.hour))].sort((a, b) => a - b);
-  const roles = [...new Set(result.chart.map((c) => c.role))];
+  const roles = sortRoles([...new Set(result.chart.map((c) => c.role))]);
 
   const byKey = new Map<string, string>();
   for (const c of result.chart) {
-    byKey.set(`${c.hour}|${c.role}`, c.persons.join("·"));
+    byKey.set(`${c.hour}|${c.role}`, c.persons.join(" · "));
   }
 
-  const header = ["Rol", ...hours.map((h) => `${String(h).padStart(2, "0")}:00`)];
-  const rows = roles.map((r) => [r, ...hours.map((h) => byKey.get(`${h}|${r}`) ?? "—")]);
+  // Saat → Mola / Task / Aktif iş gücü hesaplaması
+  const breaksByHour = new Map<number, string[]>();
+  const tasksByHour = new Map<number, string[]>();
+  const activeByHour = new Map<number, number>();
+  if (shifts) {
+    for (const h of hours) {
+      let count = 0;
+      for (const s of shifts) {
+        if (h < s.start_hour || h >= s.end_hour) continue;
+        const onBreak = (s.breaks ?? []).some(([bs, be]) => bs <= h && be >= h + 1);
+        const onTask = (s.tasks ?? []).some(([th]) => th === h);
+        if (!onBreak && !onTask) count++;
+      }
+      activeByHour.set(h, count);
+    }
+    for (const s of shifts) {
+      for (const [bs, be] of s.breaks ?? []) {
+        for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
+          const arr = breaksByHour.get(h) ?? [];
+          if (!arr.includes(s.short_name)) arr.push(s.short_name);
+          breaksByHour.set(h, arr);
+        }
+      }
+      for (const [h, t] of s.tasks ?? []) {
+        const arr = tasksByHour.get(h) ?? [];
+        arr.push(`${s.short_name} (${t})`);
+        tasksByHour.set(h, arr);
+      }
+    }
+  }
+  const hasBreaks = breaksByHour.size > 0;
+  const hasTasks = tasksByHour.size > 0;
+  const hasActive = activeByHour.size > 0;
 
-  const data = [header, ...rows];
+  // Pivot: satırlar = roller, sütunlar = saatler
+  const header = ["Rol", ...hours.map((h) => `${String(h).padStart(2, "0")}:00`)];
+  const roleRows = roles.map((r) => [
+    roleLabel(r),
+    ...hours.map((h) => byKey.get(`${h}|${r}`) ?? "—"),
+  ]);
+
+  const extraRows: (string | number)[][] = [];
+  if (hasBreaks) {
+    extraRows.push([
+      "Mola",
+      ...hours.map((h) => (breaksByHour.get(h) ?? []).join(" · ") || "—"),
+    ]);
+  }
+  if (hasTasks) {
+    extraRows.push([
+      "Task (HR/TR/ISG)",
+      ...hours.map((h) => (tasksByHour.get(h) ?? []).join(" · ") || "—"),
+    ]);
+  }
+  if (hasActive) {
+    extraRows.push(["Aktif İş Gücü", ...hours.map((h) => activeByHour.get(h) ?? 0)]);
+  }
+
+  const data = [header, ...roleRows, ...extraRows];
 
   // Meta sheet
   const meta: (string | number)[][] = [
@@ -25,7 +125,6 @@ export function exportChartToExcel(result: GenerateResult, shiftDate: string) {
     [],
   ];
 
-  // Sorumlular
   if (result.responsibilities && Object.keys(result.responsibilities).length > 0) {
     meta.push(["Günün Sorumluları"]);
     for (const [role, person] of Object.entries(result.responsibilities)) {
@@ -39,7 +138,7 @@ export function exportChartToExcel(result: GenerateResult, shiftDate: string) {
 
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);
-  ws["!cols"] = [{ wch: 12 }, ...hours.map(() => ({ wch: 14 }))];
+  ws["!cols"] = [{ wch: 18 }, ...hours.map(() => ({ wch: 14 }))];
   XLSX.utils.book_append_sheet(wb, ws, "Chart");
   const wsMeta = XLSX.utils.aoa_to_sheet(meta);
   XLSX.utils.book_append_sheet(wb, wsMeta, "Bilgi");

@@ -133,11 +133,11 @@ export function ArchiveTab({ staff }: { staff: StaffRow[] }) {
           onClose={() => setOpenId(null)}
           onExportExcel={() => {
             const result = chartToResult(open);
-            exportChartToExcel(result, open.shiftDate);
+            exportChartToExcel(result, open.shiftDate, shiftsFromArchive(open.shiftData));
           }}
           onExportPdf={() => {
             const result = chartToResult(open);
-            exportChartToPdf(result, open.shiftDate);
+            exportChartToPdf(result, open.shiftDate, shiftsFromArchive(open.shiftData));
           }}
         />
       )}
@@ -146,15 +146,16 @@ export function ArchiveTab({ staff }: { staff: StaffRow[] }) {
 }
 
 /** Arşivdeki chart'ın shiftData JSON'undan ChartResult.shifts formatına dönüş. */
-function shiftsFromArchive(data: unknown): Array<{ short_name: string; start_hour: number; end_hour: number; breaks: Array<[number, number]> }> {
+function shiftsFromArchive(data: unknown): Array<{ short_name: string; start_hour: number; end_hour: number; breaks: Array<[number, number]>; tasks: Array<[number, string]> }> {
   if (!data || typeof data !== "object") return [];
-  const obj = data as { shifts?: Array<{ short_name: string; start_hour: number; end_hour: number; breaks?: Array<[number, number]> }> };
+  const obj = data as { shifts?: Array<{ short_name: string; start_hour: number; end_hour: number; breaks?: Array<[number, number]>; tasks?: Array<[number, string]> }> };
   if (!Array.isArray(obj.shifts)) return [];
   return obj.shifts.map((s) => ({
     short_name: s.short_name,
     start_hour: s.start_hour,
     end_hour: s.end_hour,
     breaks: s.breaks ?? [],
+    tasks: s.tasks ?? [],
   }));
 }
 

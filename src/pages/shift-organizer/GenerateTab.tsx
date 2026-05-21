@@ -16,6 +16,8 @@ export type ShiftInput = {
   start_hour: number;
   end_hour: number;
   breaks: Array<[number, number]>;
+  /** Blocking task'lar: [(saat, 'HR'|'TR'|'ISG')]. Bu saatlerde kişi chart'ta görünmez. */
+  tasks: Array<[number, string]>;
 };
 
 type GenerateMutation = {
@@ -79,13 +81,31 @@ export function GenerateTab({
   // 7-10 arası operasyonel hazırlık (kabin açılışı vb.) — chart'a girmez.
   const [startHour, setStartHour] = useState(10);
   const [endHour, setEndHour] = useState(22);
-  const [shiftsState, setShiftsState] = useState<Record<number, { start: number; end: number; included: boolean }>>(
-    () => {
-      const m: Record<number, { start: number; end: number; included: boolean }> = {};
-      for (const s of staff) m[s.id] = { start: 10, end: 22, included: true };
-      return m;
-    },
-  );
+  const [shiftsState, setShiftsState] = useState<
+    Record<
+      number,
+      {
+        start: number;
+        end: number;
+        included: boolean;
+        breaks: Array<[number, number]>;
+        tasks: Array<[number, string]>;
+      }
+    >
+  >(() => {
+    const m: Record<
+      number,
+      {
+        start: number;
+        end: number;
+        included: boolean;
+        breaks: Array<[number, number]>;
+        tasks: Array<[number, string]>;
+      }
+    > = {};
+    for (const s of staff) m[s.id] = { start: 10, end: 22, included: true, breaks: [], tasks: [] };
+    return m;
+  });
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [parseReport, setParseReport] = useState<ParseReport | null>(null);
   const [pasteText, setPasteText] = useState("");
@@ -97,7 +117,8 @@ export function GenerateTab({
     setShiftsState((prev) => {
       const next = { ...prev };
       for (const s of staff) {
-        if (!next[s.id]) next[s.id] = { start: startHour, end: endHour, included: true };
+        if (!next[s.id])
+          next[s.id] = { start: startHour, end: endHour, included: true, breaks: [], tasks: [] };
       }
       return next;
     });
@@ -140,7 +161,13 @@ export function GenerateTab({
           unmatched.push(p.name);
           continue;
         }
-        next[target.id] = { start: p.startHour, end: p.endHour, included: true };
+        next[target.id] = {
+          start: p.startHour,
+          end: p.endHour,
+          included: true,
+          breaks: p.breaks ?? [],
+          tasks: (p.tasks ?? []).map((t) => [t.hour, t.type] as [number, string]),
+        };
       }
       return next;
     });
@@ -199,7 +226,8 @@ export function GenerateTab({
         short_name: s.shortName,
         start_hour: shiftsState[s.id].start,
         end_hour: shiftsState[s.id].end,
-        breaks: [],
+        breaks: shiftsState[s.id].breaks ?? [],
+        tasks: shiftsState[s.id].tasks ?? [],
       }));
     if (shifts.length === 0) {
       setPdfError("Çözüme dahil en az 1 personel olmalı.");
@@ -416,11 +444,40 @@ export function GenerateTab({
               short_name: s.shortName,
               start_hour: shiftsState[s.id].start,
               end_hour: shiftsState[s.id].end,
-              breaks: [],
+              breaks: shiftsState[s.id].breaks ?? [],
+              tasks: shiftsState[s.id].tasks ?? [],
             }))}
           shiftDate={shiftDate}
-          onExportExcel={() => exportChartToExcel(generate.data!, shiftDate)}
-          onExportPdf={() => exportChartToPdf(generate.data!, shiftDate)}
+          onExportExcel={() =>
+            exportChartToExcel(
+              generate.data!,
+              shiftDate,
+              staff
+                .filter((s) => shiftsState[s.id]?.included)
+                .map((s) => ({
+                  short_name: s.shortName,
+                  start_hour: shiftsState[s.id].start,
+                  end_hour: shiftsState[s.id].end,
+                  breaks: shiftsState[s.id].breaks ?? [],
+                  tasks: shiftsState[s.id].tasks ?? [],
+                })),
+            )
+          }
+          onExportPdf={() =>
+            exportChartToPdf(
+              generate.data!,
+              shiftDate,
+              staff
+                .filter((s) => shiftsState[s.id]?.included)
+                .map((s) => ({
+                  short_name: s.shortName,
+                  start_hour: shiftsState[s.id].start,
+                  end_hour: shiftsState[s.id].end,
+                  breaks: shiftsState[s.id].breaks ?? [],
+                  tasks: shiftsState[s.id].tasks ?? [],
+                })),
+            )
+          }
         />
       )}
     </div>
