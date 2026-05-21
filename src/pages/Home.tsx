@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProjectCard, type Project } from "@/components/ProjectCard";
 import { ZMark } from "@/components/ZMark";
 import { CornerVignette } from "@/components/CornerVignette";
@@ -46,16 +46,30 @@ const PROJECTS: Project[] = [
     index: 1,
   },
   {
+    id: "buenas-dias",
+    title: "Buenas Dias",
+    subtitle: "Issue 03 · Toplantı",
+    description:
+      "Günlük Buenas Dias toplantısı için form & hesaplayıcı. Şu an inşa halinde — yakında parçaya eklenecek.",
+    href: "#",
+    accent: "#7E6B5B",
+    image:
+      "https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+    available: false,
+    status: "İNŞA HALİNDE",
+    index: 2,
+  },
+  {
     id: "next",
     title: "Yakında",
-    subtitle: "Issue 03 · ?",
+    subtitle: "Issue 04 · ?",
     description:
       "Yeni bir fikir mi var? Atelye'ye eklensin — bu kart için hazır boşluk.",
     href: "#",
     accent: "#9CA3AF",
     available: false,
     status: "YAKINDA",
-    index: 2,
+    index: 3,
   },
 ];
 
@@ -68,6 +82,18 @@ export default function Home() {
   const heroY = useTransform(scrollYProgress, [0, 1], [0, -120]);
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.2]);
   const ornamentY = useTransform(scrollYProgress, [0, 1], [0, 200]);
+
+  // Project carousel — yatay scroll-snap container ref + scrollBy butonları.
+  // 4+ projede luxury+tech estetik için grid yerine kart-kart yatay akış.
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const scrollByCard = (dir: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    // Görünür ilk kartın genişliğini al; gap'i de kart adımına dahil et.
+    const card = el.querySelector<HTMLElement>("[data-carousel-card]");
+    const step = card ? card.offsetWidth + 32 : 420;
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen bg-zara text-ink overflow-x-hidden">
@@ -239,23 +265,76 @@ export default function Home() {
             </p>
           </motion.div>
 
-          {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {PROJECTS.map((p, i) => (
-              <motion.div
-                key={p.id}
-                initial={{ opacity: 0, y: 60 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{
-                  duration: 0.9,
-                  ease: [0.22, 0.61, 0.36, 1],
-                  delay: i * 0.15,
-                }}
-              >
-                <ProjectCard project={p} idx={i} />
-              </motion.div>
-            ))}
+          {/* ─── Horizontal carousel — luxury editorial, scroll-snap + ok kontrolleri ─── */}
+          <div className="relative">
+            {/* Edge fade — cream zemine yumuşak geçiş, "daha var" hissi */}
+            <div
+              className="pointer-events-none absolute inset-y-0 left-0 w-16 z-10 hidden md:block"
+              style={{
+                background: "linear-gradient(to right, var(--zara-bg) 0%, transparent 100%)",
+              }}
+            />
+            <div
+              className="pointer-events-none absolute inset-y-0 right-0 w-16 z-10 hidden md:block"
+              style={{
+                background: "linear-gradient(to left, var(--zara-bg) 0%, transparent 100%)",
+              }}
+            />
+
+            {/* Sağ ve sol scroll kontrolleri — sadece md+ */}
+            <button
+              onClick={() => scrollByCard(-1)}
+              className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-zara border items-center justify-center text-ink/70 hover:text-ink hover:border-ink/40 transition-colors"
+              style={{ borderColor: "var(--zara-line-strong)" }}
+              aria-label="Önceki kart"
+            >
+              <ChevronLeft size={18} strokeWidth={1.5} />
+            </button>
+            <button
+              onClick={() => scrollByCard(1)}
+              className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-zara border items-center justify-center text-ink/70 hover:text-ink hover:border-ink/40 transition-colors"
+              style={{ borderColor: "var(--zara-line-strong)" }}
+              aria-label="Sonraki kart"
+            >
+              <ChevronRight size={18} strokeWidth={1.5} />
+            </button>
+
+            {/* Scroller — flex + snap-x */}
+            <div
+              ref={scrollerRef}
+              className="scrollbar-hide flex gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory pb-6 -mx-4 px-4 md:mx-0 md:px-2 scroll-smooth"
+            >
+              {PROJECTS.map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  data-carousel-card
+                  initial={{ opacity: 0, y: 60 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{
+                    duration: 0.9,
+                    ease: [0.22, 0.61, 0.36, 1],
+                    delay: i * 0.12,
+                  }}
+                  className="snap-start shrink-0 w-[85%] sm:w-[400px] md:w-[380px] lg:w-[400px]"
+                >
+                  <ProjectCard project={p} idx={i} />
+                </motion.div>
+              ))}
+              {/* Sağ uçta nefes alma alanı — son kartın da yarısı kırpılmasın */}
+              <div className="shrink-0 w-2 md:w-6" aria-hidden />
+            </div>
+
+            {/* Mobile pagination — ince noktalar */}
+            <div className="flex md:hidden justify-center gap-1.5 mt-3">
+              {PROJECTS.map((p) => (
+                <span
+                  key={p.id}
+                  className="w-1.5 h-1.5 rounded-full bg-ink/25"
+                  aria-hidden
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>

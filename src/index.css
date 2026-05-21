@@ -258,6 +258,15 @@
     100% { transform: translateY(0%); }
   }
 
+  /* Scrollbar gizleme (yatay carousel için) */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Reduced motion respect */
   @media (prefers-reduced-motion: reduce) {
     * {
