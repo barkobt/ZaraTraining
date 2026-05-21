@@ -4,12 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1A1614" />
-    <link rel="icon" type="image/svg+xml" href="/zara-icon.svg" />
+    <!-- iOS Safari önce apple-touch-icon (PNG) okur -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/zara-icon-180.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/zara-icon-180.png" />
+    <!-- Klasik favicon — küçük boyutlar PNG (Safari gradient SVG'yi small render edemez) -->
     <link rel="icon" type="image/png" sizes="32x32" href="/zara-icon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="/zara-icon-64.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/zara-icon-192.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/zara-icon-180.png" />
-    <link rel="mask-icon" href="/zara-icon.svg" color="#1A1614" />
+    <!-- Vector — modern tarayıcılar yüksek-DPI için -->
+    <link rel="icon" type="image/svg+xml" href="/zara-icon.svg" />
+    <!-- Safari pinned-tab — monochrome SVG zorunlu -->
+    <link rel="mask-icon" href="/zara-icon-mask.svg" color="#1A1614" />
+    <!-- PWA -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>ZARA · Atelye</title>
     <meta name="description" content="ZARA Atelye — mağaza eğitim ve operasyon araçlarının atelyesi." />

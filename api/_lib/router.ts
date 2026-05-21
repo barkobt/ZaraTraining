@@ -31,9 +31,17 @@ import { env } from "./lib/env.js";
 const DEFAULT_STORE_ID = 1;
 
 const shiftInputSchema = z.object({
-  short_name: z.string().min(1, "Personel kısaltması boş olamaz"),
-  start_hour: z.number().int().min(0, "Başlangıç saati 0-23 arası olmalı").max(23, "Başlangıç saati 0-23 arası olmalı"),
-  end_hour: z.number().int().min(1, "Bitiş saati 1-24 arası olmalı").max(24, "Bitiş saati 1-24 arası olmalı"),
+  short_name: z.string().min(1, { message: "Personel kısaltması boş olamaz" }),
+  start_hour: z
+    .number()
+    .int()
+    .min(0, { message: "Başlangıç saati 0-23 arası olmalı" })
+    .max(23, { message: "Başlangıç saati 0-23 arası olmalı" }),
+  end_hour: z
+    .number()
+    .int()
+    .min(1, { message: "Bitiş saati 1-24 arası olmalı" })
+    .max(24, { message: "Bitiş saati 1-24 arası olmalı" }),
   breaks: z.array(z.tuple([z.number(), z.number()])).optional(),
 });
 
@@ -289,13 +297,15 @@ export const appRouter = createRouter({
           storeId: z.number().int().positive().optional(),
           shiftDate: z
             .string()
-            .regex(/^\d{4}-\d{2}-\d{2}$/, "Geçerli bir tarih seçin (YYYY-AA-GG)"),
+            .regex(/^\d{4}-\d{2}-\d{2}$/, {
+              message: "Geçerli bir tarih seçin (YYYY-AA-GG)",
+            }),
           hours: z
             .array(z.number().int().min(0).max(23))
-            .min(1, "Açılış kapanıştan küçük olmalı"),
+            .min(1, { message: "Açılış saati kapanıştan küçük olmalı" }),
           shifts: z
             .array(shiftInputSchema)
-            .min(1, "Çözüme dahil en az 1 personel olmalı"),
+            .min(1, { message: "Çözüme dahil en az 1 personel olmalı" }),
           timeLimitSeconds: z.number().int().min(1).max(120).optional(),
         }),
       )

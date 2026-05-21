@@ -22,7 +22,15 @@ type GenerateMutation = {
   mutate: (input: { shiftDate: string; hours: number[]; shifts: ShiftInput[] }) => void;
   isPending: boolean;
   data: GenerateResult | undefined;
-  error: { message: string; data?: { zodError?: { fieldErrors?: Record<string, string[]> } | null } } | null;
+  error: {
+    message: string;
+    data?: {
+      zodError?: {
+        fieldErrors?: Record<string, string[]>;
+        formErrors?: string[];
+      } | null;
+    };
+  } | null;
 };
 
 /** TRPC ZodError'dan kullanıcı-dostu TR mesaj çıkartır. */
@@ -36,9 +44,10 @@ function formatGenerateError(err: GenerateMutation["error"]): string {
     }
     if (lines.length > 0) return lines.join(" · ");
   }
-  // Native Safari/WebKit regex hatalarını absorbe et
-  if (/did not match the expected pattern/i.test(err.message)) {
-    return "Tarih veya alan formatı geçersiz. Tarihi tekrar seç ve dene.";
+  // formErrors da olabilir (top-level)
+  const formErrors = err.data?.zodError?.formErrors;
+  if (Array.isArray(formErrors) && formErrors.length > 0) {
+    return formErrors.join(" · ");
   }
   return err.message;
 }
