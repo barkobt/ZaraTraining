@@ -94,26 +94,28 @@ export function CompetencyTab(props: {
 
       <div className="bg-white border border-stone-300 overflow-x-auto">
         <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b-2 border-black">
-              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal">
+          {/* Sticky header — sayfa scroll edildikçe kolon başlıkları yukarıda kalır.
+              border-b yerine box-shadow inset; sticky'de border bazen kaybolur. */}
+          <thead className="sticky top-0 z-20 bg-white">
+            <tr className="bg-white" style={{ boxShadow: "inset 0 -2px 0 #000" }}>
+              <th className="sticky top-0 bg-white text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal">
                 Personel
               </th>
-              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-32">
+              <th className="sticky top-0 bg-white text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-32">
                 Süre
               </th>
               {ROLES.map((role) => (
                 <th
                   key={role}
-                  className="text-center p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal"
+                  className="sticky top-0 bg-white text-center p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal"
                 >
                   {role}
                 </th>
               ))}
-              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal">
+              <th className="sticky top-0 bg-white text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal">
                 Not
               </th>
-              <th className="w-12"></th>
+              <th className="sticky top-0 bg-white w-12"></th>
             </tr>
           </thead>
           <tbody>
