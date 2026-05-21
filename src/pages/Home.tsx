@@ -120,14 +120,14 @@ export default function Home() {
           style={{ y: heroY, opacity: heroOpacity }}
           className="relative z-10 max-w-4xl mx-auto text-center"
         >
-          {/* Büyük merkezi ZMark — ana ekran logosu */}
+          {/* Büyük merkezi şampanya gradient Z logosu — ana ekran logosu */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, ease: [0.22, 0.61, 0.36, 1] }}
-            className="flex justify-center mb-10"
+            initial={{ opacity: 0, scale: 0.82, filter: "blur(8px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            transition={{ duration: 1.4, ease: [0.22, 0.61, 0.36, 1] }}
+            className="flex justify-center mb-8"
           >
-            <ZMark size={86} className="text-ink/90" />
+            <ZMark size={160} className="drop-shadow-sm" />
           </motion.div>
 
           {/* Eyebrow ince mono */}
@@ -167,12 +167,34 @@ export default function Home() {
             <em className="font-instrument italic">her biri bağımsız, beraber bir bütün.</em>
           </motion.p>
 
+          {/* Manifest çizgisi — 3 sütun mono */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: "easeOut", delay: 0.85 }}
+            className="mt-14 grid grid-cols-3 gap-4 sm:gap-10 max-w-2xl mx-auto pt-6 border-t"
+            style={{ borderColor: "var(--zara-line-strong)" }}
+          >
+            <div className="flex flex-col items-center sm:items-start gap-1 sm:border-r sm:pr-6" style={{ borderColor: "var(--zara-line)" }}>
+              <span className="font-mono text-[9px] tracking-[0.28em] uppercase text-ink/40">№ 01</span>
+              <span className="font-instrument italic text-[15px] sm:text-base text-ink/85">Eğitim</span>
+            </div>
+            <div className="flex flex-col items-center gap-1 sm:border-r sm:pr-6" style={{ borderColor: "var(--zara-line)" }}>
+              <span className="font-mono text-[9px] tracking-[0.28em] uppercase text-ink/40">№ 02</span>
+              <span className="font-instrument italic text-[15px] sm:text-base text-ink/85">Operasyon</span>
+            </div>
+            <div className="flex flex-col items-center sm:items-end gap-1">
+              <span className="font-mono text-[9px] tracking-[0.28em] uppercase text-ink/40">№ 03</span>
+              <span className="font-instrument italic text-[15px] sm:text-base text-ink/45">Yakında</span>
+            </div>
+          </motion.div>
+
           {/* Scroll indicator */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1 }}
-            className="mt-20 flex flex-col items-center gap-3"
+            transition={{ duration: 1, delay: 1.1 }}
+            className="mt-14 flex flex-col items-center gap-3"
           >
             <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/40">
               Aşağı
