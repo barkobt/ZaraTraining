@@ -146,14 +146,27 @@ export default function Home() {
           style={{ y: heroY, opacity: heroOpacity }}
           className="relative z-10 max-w-4xl mx-auto text-center"
         >
-          {/* Büyük merkezi şampanya gradient Z logosu — ana ekran logosu */}
+          {/* Büyük merkezi ZT monogram + wordmark — ana ekran logosu */}
           <motion.div
             initial={{ opacity: 0, scale: 0.82, filter: "blur(8px)" }}
             animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             transition={{ duration: 1.4, ease: [0.22, 0.61, 0.36, 1] }}
-            className="flex justify-center mb-8"
+            className="flex flex-col items-center mb-8 gap-3"
           >
             <ZMark size={160} className="drop-shadow-sm" />
+            {/* ZARA Training wordmark — atelier-stili spaced caps */}
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.6, ease: "easeOut" }}
+              className="flex items-center gap-3"
+            >
+              <span className="w-6 h-px" style={{ background: "var(--zara-line-strong)" }} />
+              <span className="font-instrument tracking-[0.42em] uppercase text-[11px] sm:text-[12px] text-ink/70">
+                ZARA Training
+              </span>
+              <span className="w-6 h-px" style={{ background: "var(--zara-line-strong)" }} />
+            </motion.div>
           </motion.div>
 
           {/* Eyebrow ince mono */}
