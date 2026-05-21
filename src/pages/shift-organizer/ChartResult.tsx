@@ -14,15 +14,71 @@ export type GenerateResult = {
   responsibilities?: Responsibilities | null;
 };
 
+/**
+ * Operasyonel kolon sırası — user spec'i:
+ * Kabin → Kabin Welcomer → Sprinter → Welcome → Zone 2/3/4/5 → Mola.
+ * Solver "KABİN" gibi Türkçe büyük-harf döner; biz hem sırala hem label map'le
+ * gösteririz. (Önceden "KAB0N" gibi font render problemine düşülmüştü.)
+ */
+const ROLE_ORDER: string[] = [
+  "KABİN",
+  "KABİN WELCOMER",
+  "SPRINTER",
+  "WELCOME",
+  "ZONE 2",
+  "ZONE 3",
+  "ZONE 4",
+  "ZONE 5",
+];
+
+const ROLE_LABELS: Record<string, string> = {
+  "KABİN": "Kabin",
+  "KABİN WELCOMER": "Kabin Welcomer",
+  "SPRINTER": "Sprinter",
+  "WELCOME": "Welcome",
+  "ZONE 2": "Zone 2",
+  "ZONE 3": "Zone 3",
+  "ZONE 4": "Zone 4",
+  "ZONE 5": "Zone 5",
+};
+
+function roleLabel(r: string): string {
+  return ROLE_LABELS[r] ?? r;
+}
+
+function sortRoles(roles: string[]): string[] {
+  return [...roles].sort((a, b) => {
+    const ai = ROLE_ORDER.indexOf(a);
+    const bi = ROLE_ORDER.indexOf(b);
+    if (ai < 0 && bi < 0) return a.localeCompare(b);
+    if (ai < 0) return 1;
+    if (bi < 0) return -1;
+    return ai - bi;
+  });
+}
+
+/**
+ * GenerateTab veya ArchiveTab'tan gelen shift girdileri (mola hesabı için).
+ * Mola kolonu opsiyonel: yoksa gösterilmez.
+ */
+export type ShiftInputForChart = {
+  short_name: string;
+  start_hour: number;
+  end_hour: number;
+  breaks: Array<[number, number]>;
+};
+
 export function ChartResult({
   result,
   staff,
+  shifts,
   shiftDate: _shiftDate,
   onExportExcel,
   onExportPdf,
 }: {
   result: GenerateResult;
   staff?: StaffRow[];
+  shifts?: ShiftInputForChart[];
   shiftDate?: string;
   onExportExcel?: () => void;
   onExportPdf?: () => void;
@@ -39,11 +95,31 @@ export function ChartResult({
     return [...set].sort((a, b) => a - b);
   }, [result.chart]);
 
+  /** Sıralı roller — user spec'ine göre (Kabin önce, Zone'lar sonra). */
   const roles = useMemo(() => {
     const set = new Set<string>();
     for (const c of result.chart) set.add(c.role);
-    return [...set];
+    return sortRoles([...set]);
   }, [result.chart]);
+
+  /** Mola kolonu: shifts.breaks'ten her saat için molada olan kişiler. */
+  const breaksByHour = useMemo(() => {
+    const m = new Map<number, string[]>();
+    if (!shifts) return m;
+    for (const s of shifts) {
+      for (const [bStart, bEnd] of s.breaks ?? []) {
+        // Mola aralığı yarım saat hassasiyeti: bStart ≤ h < bEnd ise o saatte molada
+        for (let h = Math.floor(bStart); h < Math.ceil(bEnd); h++) {
+          const arr = m.get(h) ?? [];
+          if (!arr.includes(s.short_name)) arr.push(s.short_name);
+          m.set(h, arr);
+        }
+      }
+    }
+    return m;
+  }, [shifts]);
+
+  const hasBreaks = breaksByHour.size > 0;
 
   return (
     <div className="border border-stone-300">
@@ -98,19 +174,24 @@ export function ChartResult({
            Az roller, çok saatler senaryosunda daha okunaklı. */
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b-2 border-black">
-                <th className="text-left p-2 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-16">
+            <thead className="sticky top-0 z-10 bg-white">
+              <tr className="bg-white" style={{ boxShadow: "inset 0 -2px 0 #000" }}>
+                <th className="sticky top-0 bg-white text-left p-2 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-16">
                   Saat
                 </th>
                 {roles.map((r) => (
                   <th
                     key={r}
-                    className="text-center p-2 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal"
+                    className="sticky top-0 bg-white text-center p-2 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal"
                   >
-                    {r}
+                    {roleLabel(r)}
                   </th>
                 ))}
+                {hasBreaks && (
+                  <th className="sticky top-0 bg-white text-center p-2 text-[9px] tracking-[0.25em] uppercase text-amber-700 font-normal">
+                    Mola
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -131,6 +212,17 @@ export function ChartResult({
                       </td>
                     );
                   })}
+                  {hasBreaks && (
+                    <td className="p-2 text-center bg-amber-50/50">
+                      {(breaksByHour.get(h) ?? []).length === 0 ? (
+                        <span className="text-stone-300">—</span>
+                      ) : (
+                        <span className="leading-tight text-amber-800">
+                          {(breaksByHour.get(h) ?? []).join(" · ")}
+                        </span>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

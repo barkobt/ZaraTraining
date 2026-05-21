@@ -410,6 +410,14 @@ export function GenerateTab({
         <ChartResult
           result={generate.data}
           staff={staff}
+          shifts={staff
+            .filter((s) => shiftsState[s.id]?.included)
+            .map((s) => ({
+              short_name: s.shortName,
+              start_hour: shiftsState[s.id].start,
+              end_hour: shiftsState[s.id].end,
+              breaks: [],
+            }))}
           shiftDate={shiftDate}
           onExportExcel={() => exportChartToExcel(generate.data!, shiftDate)}
           onExportPdf={() => exportChartToPdf(generate.data!, shiftDate)}

@@ -326,8 +326,9 @@ export const appRouter = createRouter({
           competency_weight: cfg?.competencyWeight ?? 2.0,
           fairness_weight: cfg?.fairnessWeight ?? 0.3,
           max_consecutive_hours: cfg?.maxConsecutiveHours ?? 4,
-          // Vercel maxDuration=60s; solver hard limit + tRPC overhead < 50s
-          time_limit_seconds: input.timeLimitSeconds ?? 25,
+          // Vercel Hobby plan 10s sabit limit. Solver 5s + ~3s overhead = ~8s.
+          // Pro plan'a yükseltilirse bu 25s'ye çıkarılabilir (api/index.ts maxDuration).
+          time_limit_seconds: input.timeLimitSeconds ?? 5,
         };
 
         const solveReq = {

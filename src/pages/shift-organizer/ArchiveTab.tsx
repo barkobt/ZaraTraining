@@ -145,6 +145,19 @@ export function ArchiveTab({ staff }: { staff: StaffRow[] }) {
   );
 }
 
+/** Arşivdeki chart'ın shiftData JSON'undan ChartResult.shifts formatına dönüş. */
+function shiftsFromArchive(data: unknown): Array<{ short_name: string; start_hour: number; end_hour: number; breaks: Array<[number, number]> }> {
+  if (!data || typeof data !== "object") return [];
+  const obj = data as { shifts?: Array<{ short_name: string; start_hour: number; end_hour: number; breaks?: Array<[number, number]> }> };
+  if (!Array.isArray(obj.shifts)) return [];
+  return obj.shifts.map((s) => ({
+    short_name: s.short_name,
+    start_hour: s.start_hour,
+    end_hour: s.end_hour,
+    breaks: s.breaks ?? [],
+  }));
+}
+
 function chartToResult(c: ChartRow): GenerateResult {
   const chart =
     Array.isArray(c.chartData)
@@ -199,6 +212,7 @@ function ChartDetailModal({
           <ChartResult
             result={result}
             staff={staff}
+            shifts={shiftsFromArchive(chart.shiftData)}
             shiftDate={chart.shiftDate}
             onExportExcel={onExportExcel}
             onExportPdf={onExportPdf}

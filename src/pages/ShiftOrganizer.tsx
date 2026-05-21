@@ -31,6 +31,7 @@ function ShiftOrganizerInner({
 }) {
   const [tab, setTab] = useState<TabId>("competency");
   const [showAddPerson, setShowAddPerson] = useState(false);
+  const [editPerson, setEditPerson] = useState<StaffRow | null>(null);
 
   const utils = trpc.useUtils();
   const staffQuery = trpc.staff.list.useQuery();
@@ -123,6 +124,7 @@ function ShiftOrganizerInner({
             onUpdateStaff={(id, patch) => updateStaffMut.mutate({ id, ...patch })}
             onDeleteStaff={(id) => deleteStaffMut.mutate({ id })}
             onAddPerson={() => setShowAddPerson(true)}
+            onEditPerson={(p) => setEditPerson(p)}
           />
         )}
 
@@ -137,11 +139,32 @@ function ShiftOrganizerInner({
 
       {showAddPerson && (
         <AddPersonModal
+          mode="add"
           onClose={() => setShowAddPerson(false)}
-          onCreate={(data) => {
+          onSubmit={(data) => {
             createStaffMut.mutate(data, { onSuccess: () => setShowAddPerson(false) });
           }}
           pending={createStaffMut.isPending}
+        />
+      )}
+      {editPerson && (
+        <AddPersonModal
+          mode="edit"
+          initial={{
+            fullName: editPerson.fullName,
+            shortName: editPerson.shortName,
+            tenureLevel: editPerson.tenureLevel,
+            isManager: editPerson.isManager,
+            note: editPerson.note,
+          }}
+          onClose={() => setEditPerson(null)}
+          onSubmit={(data) => {
+            updateStaffMut.mutate(
+              { id: editPerson.id, ...data },
+              { onSuccess: () => setEditPerson(null) },
+            );
+          }}
+          pending={updateStaffMut.isPending}
         />
       )}
     </div>

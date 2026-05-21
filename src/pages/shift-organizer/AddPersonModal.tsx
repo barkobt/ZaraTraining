@@ -2,22 +2,32 @@ import { useState } from "react";
 import { Crown, X } from "lucide-react";
 import { TENURE_LEVELS } from "./constants";
 
+type PersonFormData = {
+  fullName: string;
+  shortName: string;
+  tenureLevel: string;
+  isManager: boolean;
+  note: string | null;
+};
+
+/**
+ * Personel ekleme VEYA düzenleme modalı.
+ * `initial` verilmişse "Düzenle" başlığıyla mevcut değerlerle açılır.
+ * `onSubmit` formdan gelen veriyi alır (create veya update).
+ */
 export function AddPersonModal(props: {
   onClose: () => void;
-  onCreate: (data: {
-    fullName: string;
-    shortName: string;
-    tenureLevel: string;
-    isManager: boolean;
-    note: string | null;
-  }) => void;
+  onSubmit: (data: PersonFormData) => void;
   pending: boolean;
+  initial?: PersonFormData;
+  mode?: "add" | "edit";
 }) {
-  const [name, setName] = useState("");
-  const [short, setShort] = useState("");
-  const [tenure, setTenure] = useState("NEW_0_1");
-  const [isManager, setIsManager] = useState(false);
-  const [note, setNote] = useState("");
+  const isEdit = props.mode === "edit";
+  const [name, setName] = useState(props.initial?.fullName ?? "");
+  const [short, setShort] = useState(props.initial?.shortName ?? "");
+  const [tenure, setTenure] = useState(props.initial?.tenureLevel ?? "NEW_0_1");
+  const [isManager, setIsManager] = useState(props.initial?.isManager ?? false);
+  const [note, setNote] = useState(props.initial?.note ?? "");
 
   const canSubmit = name.trim() && short.trim();
 
@@ -26,7 +36,7 @@ export function AddPersonModal(props: {
       <div className="bg-white border-2 border-black p-8 w-full max-w-md">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg" style={{ fontFamily: "Georgia, serif", fontStyle: "italic" }}>
-            Yeni Personel
+            {isEdit ? "Personeli Düzenle" : "Yeni Personel"}
           </h3>
           <button onClick={props.onClose} className="text-stone-400 hover:text-black">
             <X size={18} strokeWidth={1.5} />
@@ -73,7 +83,7 @@ export function AddPersonModal(props: {
             <button
               disabled={!canSubmit || props.pending}
               onClick={() =>
-                props.onCreate({
+                props.onSubmit({
                   fullName: name.trim(),
                   shortName: short.trim(),
                   tenureLevel: tenure,
@@ -83,7 +93,7 @@ export function AddPersonModal(props: {
               }
               className="flex-1 bg-black text-white py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-stone-800 disabled:bg-stone-300 disabled:cursor-not-allowed"
             >
-              {props.pending ? "Ekleniyor…" : "Ekle"}
+              {props.pending ? "Kaydediliyor…" : isEdit ? "Kaydet" : "Ekle"}
             </button>
           </div>
         </div>
