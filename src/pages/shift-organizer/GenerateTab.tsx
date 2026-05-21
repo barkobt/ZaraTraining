@@ -52,12 +52,14 @@ export function GenerateTab({
 }) {
   const today = new Date().toISOString().slice(0, 10);
   const [shiftDate, setShiftDate] = useState(today);
+  // Chart saatleri sabit: mağaza 10:00 açılır, 22:00 kapanır → chart 10-21 (11 slot).
+  // 7-10 arası operasyonel hazırlık (kabin açılışı vb.) — chart'a girmez.
   const [startHour, setStartHour] = useState(10);
-  const [endHour, setEndHour] = useState(21);
+  const [endHour, setEndHour] = useState(22);
   const [shiftsState, setShiftsState] = useState<Record<number, { start: number; end: number; included: boolean }>>(
     () => {
       const m: Record<number, { start: number; end: number; included: boolean }> = {};
-      for (const s of staff) m[s.id] = { start: 10, end: 21, included: true };
+      for (const s of staff) m[s.id] = { start: 10, end: 22, included: true };
       return m;
     },
   );
@@ -109,8 +111,6 @@ export function GenerateTab({
       for (const id of Object.keys(next)) {
         next[Number(id)].included = false;
       }
-      let minStart = 24;
-      let maxEnd = 0;
       for (const p of parsed) {
         const target = matchStaff(p.name);
         if (!target) {
@@ -118,13 +118,11 @@ export function GenerateTab({
           continue;
         }
         next[target.id] = { start: p.startHour, end: p.endHour, included: true };
-        minStart = Math.min(minStart, p.startHour);
-        maxEnd = Math.max(maxEnd, p.endHour);
       }
-      if (minStart < 24) setStartHour(minStart);
-      if (maxEnd > 0) setEndHour(maxEnd);
       return next;
     });
+    // NOT: Chart saatleri (startHour/endHour) sabit 10-22 — PDF'teki vardiya
+    // saatleri kişi bazında kalır ama chart aralığı kullanıcı kontrolünde.
     return unmatched;
   };
 

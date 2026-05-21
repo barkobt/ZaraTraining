@@ -39,14 +39,17 @@ export function exportChartToPdf(result: GenerateResult, shiftDate: string) {
   doc.setLineWidth(0.3);
   doc.line(margin, 22, pageWidth - margin, 22);
 
-  // ─── Chart Tablosu ───
+  // ─── Chart Tablosu (DİKEY: rows=saat, cols=rol) ───
   const hours = [...new Set(result.chart.map((c) => c.hour))].sort((a, b) => a - b);
   const roles = [...new Set(result.chart.map((c) => c.role))];
   const byKey = new Map<string, string>();
-  for (const c of result.chart) byKey.set(`${c.hour}|${c.role}`, c.persons.join("·"));
+  for (const c of result.chart) byKey.set(`${c.hour}|${c.role}`, c.persons.join(" · "));
 
-  const head = [["Rol", ...hours.map((h) => `${String(h).padStart(2, "0")}:00`)]];
-  const body = roles.map((r) => [r, ...hours.map((h) => byKey.get(`${h}|${r}`) ?? "—")]);
+  const head = [["Saat", ...roles]];
+  const body = hours.map((h) => [
+    `${String(h).padStart(2, "0")}:00`,
+    ...roles.map((r) => byKey.get(`${h}|${r}`) ?? "—"),
+  ]);
 
   // Sayı: chart için ~ 8 rol × 11 saat. Sığması için font 6.5, padding 1.
   autoTable(doc, {

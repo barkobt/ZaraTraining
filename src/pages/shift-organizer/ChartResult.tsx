@@ -94,35 +94,39 @@ export function ChartResult({
             : "Sonuç boş."}
         </div>
       ) : (
+        /* DİKEY layout: satırlar = saatler (çok), sütunlar = roller (az).
+           Az roller, çok saatler senaryosunda daha okunaklı. */
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b-2 border-black">
-                <th className="text-left p-2 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal">
-                  Rol
+                <th className="text-left p-2 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-16">
+                  Saat
                 </th>
-                {hours.map((h) => (
+                {roles.map((r) => (
                   <th
-                    key={h}
+                    key={r}
                     className="text-center p-2 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal"
                   >
-                    {String(h).padStart(2, "0")}:00
+                    {r}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {roles.map((r) => (
-                <tr key={r} className="border-b border-stone-200">
-                  <td className="p-2 text-[10px] tracking-wider uppercase">{r}</td>
-                  {hours.map((h) => {
+              {hours.map((h) => (
+                <tr key={h} className="border-b border-stone-200">
+                  <td className="p-2 text-[10px] font-mono tabular-nums text-stone-700 bg-stone-50">
+                    {String(h).padStart(2, "0")}:00
+                  </td>
+                  {roles.map((r) => {
                     const persons = cellsByHourRole.get(`${h}|${r}`) ?? [];
                     return (
-                      <td key={h} className="p-2 text-center">
+                      <td key={r} className="p-2 text-center">
                         {persons.length === 0 ? (
                           <span className="text-stone-300">—</span>
                         ) : (
-                          persons.join("·")
+                          <span className="leading-tight">{persons.join(" · ")}</span>
                         )}
                       </td>
                     );
