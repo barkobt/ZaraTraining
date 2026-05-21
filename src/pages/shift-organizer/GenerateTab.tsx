@@ -20,6 +20,23 @@ export type ShiftInput = {
   tasks: Array<[number, string]>;
 };
 
+/** Mola listesini compact UI metnine çevirir: [(12,13),(15,16)] → "12,15". */
+function breakStr(breaks: Array<[number, number]> | undefined): string {
+  if (!breaks || breaks.length === 0) return "";
+  return breaks.map(([s]) => String(s)).join(",");
+}
+
+/** Compact UI metnini mola listesine çevirir: "12, 15" → [(12,13),(15,16)]. */
+function parseBreakStr(s: string): Array<[number, number]> {
+  return s
+    .split(/[,\s;]+/)
+    .map((p) => p.trim())
+    .filter((p) => /^\d{1,2}(?::\d{1,2})?$/.test(p))
+    .map((p) => parseInt(p, 10))
+    .filter((h) => Number.isFinite(h) && h >= 0 && h < 24)
+    .map((h) => [h, h + 1] as [number, number]);
+}
+
 type GenerateMutation = {
   mutate: (input: { shiftDate: string; hours: number[]; shifts: ShiftInput[] }) => void;
   isPending: boolean;
@@ -111,6 +128,14 @@ export function GenerateTab({
   const [pasteText, setPasteText] = useState("");
   const [showPaste, setShowPaste] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Chart altına basılan opsiyonel günlük bilgiler — chart1.pdf paritesi.
+  const [altInfo, setAltInfo] = useState({
+    aksiyon: "",
+    cxQr: "",
+    ipod: "",
+    tempe: "",
+    istek: "",
+  });
 
   // Re-sync when staff loads/changes
   useMemo(() => {
@@ -411,16 +436,91 @@ export function GenerateTab({
                     disabled={!row.included}
                     className="w-10 text-xs border-b border-stone-300 outline-none focus:border-black text-right"
                   />
+                  {/* Mola saatleri — compact text input, "12,15" → [(12,13),(15,16)] */}
+                  <input
+                    type="text"
+                    value={breakStr(row.breaks)}
+                    placeholder="Mola"
+                    title="Mola saatleri, örn: 12,15"
+                    onChange={(e) => {
+                      const breaks = parseBreakStr(e.target.value);
+                      setShiftsState((prev) => ({
+                        ...prev,
+                        [p.id]: { ...row, breaks },
+                      }));
+                    }}
+                    disabled={!row.included}
+                    className="w-14 text-[10px] border-b border-stone-300 outline-none focus:border-amber-600 text-center font-mono tabular-nums placeholder:text-stone-300"
+                  />
                 </div>
               );
             })}
           </div>
         </div>
 
+        {/* ─── Günün Bilgileri (opsiyonel — PDF altına yazılır) ─── */}
+        <details className="mt-4 border border-stone-200 bg-stone-50 px-3 py-2">
+          <summary className="text-[10px] tracking-[0.2em] uppercase text-stone-600 cursor-pointer select-none">
+            Günün Bilgileri <span className="text-stone-400 normal-case tracking-normal">(opsiyonel · PDF altına eklenir)</span>
+          </summary>
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <label className="flex flex-col gap-1">
+              <span className="text-[9px] tracking-[0.2em] uppercase text-stone-500">Haftanın aksiyon familyaları</span>
+              <input
+                type="text"
+                placeholder="Pantolon, Bermuda, Elbise, Çanta, Ecobag"
+                value={altInfo.aksiyon}
+                onChange={(e) => setAltInfo((p) => ({ ...p, aksiyon: e.target.value }))}
+                className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent py-1"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[9px] tracking-[0.2em] uppercase text-stone-500">CX QR hedefi</span>
+              <input
+                type="text"
+                placeholder="45"
+                value={altInfo.cxQr}
+                onChange={(e) => setAltInfo((p) => ({ ...p, cxQr: e.target.value }))}
+                className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent py-1"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[9px] tracking-[0.2em] uppercase text-stone-500">IPOD Satışı sorumlusu</span>
+              <input
+                type="text"
+                placeholder="Meral"
+                value={altInfo.ipod}
+                onChange={(e) => setAltInfo((p) => ({ ...p, ipod: e.target.value }))}
+                className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent py-1"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[9px] tracking-[0.2em] uppercase text-stone-500">Tempe / ACC sorumlusu</span>
+              <input
+                type="text"
+                placeholder="Sevim"
+                value={altInfo.tempe}
+                onChange={(e) => setAltInfo((p) => ({ ...p, tempe: e.target.value }))}
+                className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent py-1"
+              />
+            </label>
+            <label className="flex flex-col gap-1 sm:col-span-2">
+              <span className="text-[9px] tracking-[0.2em] uppercase text-stone-500">İstek noktası sorumlusu</span>
+              <input
+                type="text"
+                placeholder="Selin"
+                value={altInfo.istek}
+                onChange={(e) => setAltInfo((p) => ({ ...p, istek: e.target.value }))}
+                className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent py-1"
+              />
+            </label>
+          </div>
+        </details>
+
         <button
           onClick={onSubmit}
           disabled={generate.isPending || includedCount === 0}
-          className="w-full bg-black text-white py-3 text-[10px] tracking-[0.2em] uppercase hover:bg-stone-800 disabled:bg-stone-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full mt-4 bg-black text-white py-3 text-[10px] tracking-[0.2em] uppercase hover:bg-stone-800 disabled:bg-stone-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {generate.isPending && <Loader2 className="animate-spin" size={14} />}
           {generate.isPending ? "Çözüm aranıyor…" : "Çöz"}
@@ -476,6 +576,7 @@ export function GenerateTab({
                   breaks: shiftsState[s.id].breaks ?? [],
                   tasks: shiftsState[s.id].tasks ?? [],
                 })),
+              altInfo,
             )
           }
         />

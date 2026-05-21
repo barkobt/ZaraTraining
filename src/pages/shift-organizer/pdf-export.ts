@@ -1,11 +1,24 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { GenerateResult, ShiftInputForChart } from "./ChartResult";
+import { ROBOTO_REGULAR_BASE64 } from "./fonts/roboto-regular-base64";
 
 /**
- * Solver Role enum NAME'lerini ekran-dostu Türkçe label'a çevirir.
- * (ChartResult.tsx ROLE_LABELS ile aynı; PDF/Excel export'unda raw enum
- * "KABİN" gözükmesin diye burada da uygulanır — "KAB0N" font bug'ının kaynağı.)
+ * Günün operasyonel bilgileri — chart1.pdf alt kısmında listelenen alanlar.
+ * Tümü opsiyonel; boş olanlar PDF'te gizlenir.
+ */
+export type ChartAltInfo = {
+  aksiyon?: string;       // "Pantolon, Bermuda, Elbise, Çanta, Ecobag"
+  cxQr?: string;          // "45"
+  ipod?: string;          // "Meral"
+  tempe?: string;         // "Sevim"
+  istek?: string;         // "Selin"
+};
+
+/**
+ * Solver Role enum → chart1.pdf etiket karşılığı (uppercase Türkçe).
+ * Sıra chart1 referansındaki gibi: KABİN, RUNNER (KABİN WELCOMER), SPRİNTER,
+ * WELCOMER (WELCOME), ZONE 2..5, MOLA.
  */
 const ROLE_ORDER = [
   "KABİN",
@@ -17,38 +30,17 @@ const ROLE_ORDER = [
   "ZONE 4",
   "ZONE 5",
 ];
-const ROLE_LABELS: Record<string, string> = {
-  KABİN: "Kabin",
-  "KABİN WELCOMER": "Kabin Welcomer",
-  SPRINTER: "Sprinter",
-  WELCOME: "Welcome",
-  "ZONE 2": "Zone 2",
-  "ZONE 3": "Zone 3",
-  "ZONE 4": "Zone 4",
-  "ZONE 5": "Zone 5",
-};
 
-/**
- * jsPDF Helvetica/Times Türkçe karakter glyph'lerini (İ, ı, ş, ğ, ü, ö, ç)
- * desteklemez — eksik karakter "0" veya kare olarak basılır ("KABİN"→"KAB0N" bug).
- * Pragmatik çözüm: tüm metni ASCII Latin eşleniğine çevir. Görsel olarak
- * "Şeyma"→"Seyma" gibi gözükür ama bozuk glyph yerine okunabilir.
- */
-function asciify(s: string): string {
-  return s
-    .replace(/İ/g, "I")
-    .replace(/ı/g, "i")
-    .replace(/Ş/g, "S")
-    .replace(/ş/g, "s")
-    .replace(/Ç/g, "C")
-    .replace(/ç/g, "c")
-    .replace(/Ğ/g, "G")
-    .replace(/ğ/g, "g")
-    .replace(/Ü/g, "U")
-    .replace(/ü/g, "u")
-    .replace(/Ö/g, "O")
-    .replace(/ö/g, "o");
-}
+const ROLE_LABELS: Record<string, string> = {
+  KABİN: "KABİN",
+  "KABİN WELCOMER": "RUNNER",   // chart1 terminolojisi
+  SPRINTER: "SPRİNTER",
+  WELCOME: "WELCOMER",          // chart1 terminolojisi
+  "ZONE 2": "ZONE 2",
+  "ZONE 3": "ZONE 3",
+  "ZONE 4": "ZONE 4",
+  "ZONE 5": "ZONE 5",
+};
 
 function roleLabel(r: string): string {
   return ROLE_LABELS[r] ?? r;
@@ -65,72 +57,66 @@ function sortRoles(roles: string[]): string[] {
   });
 }
 
+/** chart1 saat formatı: "10:00:00" (saniyeli) — referansa birebir. */
+function fmtHour(h: number): string {
+  return `${String(h).padStart(2, "0")}:00:00`;
+}
+
+/** chart1 tarih formatı: "21.04.2026" — TR locale gün.ay.yıl. */
+function fmtDate(iso: string): string {
+  // "2026-05-22" → "22.05.2026"
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return iso;
+  return `${m[3]}.${m[2]}.${m[1]}`;
+}
+
 /**
- * Chart sonucunu A4 landscape **tek sayfa** PDF olarak indir.
- * Boyutlandırma: autoTable parametreleri agresif sıkıştırılır, başlık + chart + sorumlular
- * + uyarılar tek sayfaya sığar.
+ * Chart sonucunu **chart1.pdf paritesinde** PDF olarak indir.
+ *
+ * Layout (Portrait A4):
+ *   - Üstte italik "Günlük Chart" başlık
+ *   - Tablo: 1 tarih hücresi + 12 saat hücresi × 9 rol satırı (8 rol + MOLA)
+ *   - Sarı header satırı + sarı sol sütun
+ *   - Ferah hücreler (~20mm yüksek), büyük font (~9pt)
+ *   - Boş hücreler tamamen boş (placeholder yok)
+ *   - Mola satırı tablo İÇİNDE — sarı sol etiket, hücrelerinde mola yapan kişiler
+ *   - Alt'ta opsiyonel info: aksiyon familyaları, CX QR, IPOD, Tempe, İstek noktası
  */
 export function exportChartToPdf(
   result: GenerateResult,
   shiftDate: string,
   shifts?: ShiftInputForChart[],
+  altInfo?: ChartAltInfo,
 ) {
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const pageWidth = doc.internal.pageSize.getWidth();   // 297
-  const pageHeight = doc.internal.pageSize.getHeight(); // 210
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();   // 210
+  const pageHeight = doc.internal.pageSize.getHeight(); // 297
   const margin = 10;
 
-  // ─── Header (kompakt: 22mm) ───
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text(asciify("ZARA · ATELYE"), margin, 12);
+  // ─── Roboto-Regular font embed (Türkçe karakter desteği) ───
+  doc.addFileToVFS("Roboto-Regular.ttf", ROBOTO_REGULAR_BASE64);
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "bold");  // bold alias regular'a
+  doc.setFont("Roboto", "normal");
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(120);
-  doc.text(asciify("Shift Organizer · Mağaza 3643"), margin, 17);
+  // ─── Başlık: italik "Günlük Chart" — chart1 referans ───
+  // Roboto-Italic embed etmiyoruz (bundle ekonomisi); başlık jsPDF italic emulation ile
+  doc.setFont("Roboto", "normal");
+  doc.setFontSize(16);
+  doc.setTextColor(0);
+  // İtalik karakterleri elle eğmek yerine düz Roboto bold + spaced caps yaklaşımı
+  // chart1 görsel olarak italik diyor ama "Günlük Chart" iki kelime; düz bold bırakıyoruz.
+  doc.text("Günlük Chart", pageWidth / 2, 14, { align: "center" });
 
-  doc.setFontSize(8);
-  doc.setTextColor(40);
-  const meta = [
-    `Tarih: ${shiftDate}`,
-    `Chart #${result.chartId ?? "-"}`,
-    `Durum: ${result.status}`,
-    result.qualityScore !== null ? `Skor: ${result.qualityScore.toFixed(1)}` : "",
-  ].filter(Boolean);
-  meta.forEach((m, i) => {
-    doc.text(m, pageWidth - margin, 11 + i * 4, { align: "right" });
-  });
-
-  doc.setDrawColor(0);
-  doc.setLineWidth(0.3);
-  doc.line(margin, 22, pageWidth - margin, 22);
-
-  // ─── Chart Tablosu (chart1.xlsx referans formatı: rows=ROL, cols=SAAT) ───
-  // User spec: "format chart1 ile aynı olmalı". chart1.xlsx pivot'unda
-  // satırlar rol (KABİN, RUNNER/KABİN WELCOMER, SPRİNTER, WELCOMER/WELCOME,
-  // ZONE 2..5, MOLA), sütunlar saat (10:00-22:00).
+  // ─── Tablo verisi ───
   const hours = [...new Set(result.chart.map((c) => c.hour))].sort((a, b) => a - b);
   const roles = sortRoles([...new Set(result.chart.map((c) => c.role))]);
-  const byKey = new Map<string, string>();
-  for (const c of result.chart)
-    byKey.set(`${c.hour}|${c.role}`, c.persons.map(asciify).join(" · "));
+  const byKey = new Map<string, string[]>();
+  for (const c of result.chart) byKey.set(`${c.hour}|${c.role}`, c.persons);
 
-  // Mola, task ve aktif iş gücü hesaplaması — chart1 stilinde ek satır olarak
+  // Mola hesapla — saat → ad listesi
   const breaksByHour = new Map<number, string[]>();
-  const tasksByHour = new Map<number, string[]>();
-  const activeByHour = new Map<number, number>();
   if (shifts) {
-    for (const h of hours) {
-      let count = 0;
-      for (const s of shifts) {
-        if (h < s.start_hour || h >= s.end_hour) continue;
-        const onBreak = (s.breaks ?? []).some(([bs, be]) => bs <= h && be >= h + 1);
-        const onTask = (s.tasks ?? []).some(([th]) => th === h);
-        if (!onBreak && !onTask) count++;
-      }
-      activeByHour.set(h, count);
-    }
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
         for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
@@ -139,163 +125,108 @@ export function exportChartToPdf(
           breaksByHour.set(h, arr);
         }
       }
-      for (const [h, t] of s.tasks ?? []) {
-        const arr = tasksByHour.get(h) ?? [];
-        arr.push(`${s.short_name} (${t})`);
-        tasksByHour.set(h, arr);
-      }
     }
   }
-  const hasBreaks = breaksByHour.size > 0;
-  const hasTasks = tasksByHour.size > 0;
-  const hasActive = activeByHour.size > 0;
 
-  // chart1 formatı: ilk sütun = rol etiketi (uppercase asciify), sonraki
-  // sütunlar = saat hücreleri (10:00, 11:00, ..., 21:00).
-  const hourCols = hours.map((h) => `${String(h).padStart(2, "0")}:00`);
-  const head = [["Rol", ...hourCols]];
+  // ─── Head: [tarih_hücresi, saat1, saat2, ...] (hepsi sarı) ───
+  const head = [
+    [fmtDate(shiftDate), ...hours.map(fmtHour)],
+  ];
 
-  const body: string[][] = roles.map((r) => [
-    asciify(roleLabel(r)),
-    ...hours.map((h) => byKey.get(`${h}|${r}`) ?? "—"),
+  // ─── Body: 8 rol satırı + MOLA satırı ───
+  const body: string[][] = [];
+  for (const r of roles) {
+    const row = [
+      roleLabel(r),
+      ...hours.map((h) => (byKey.get(`${h}|${r}`) ?? []).join("\n")),
+    ];
+    body.push(row);
+  }
+  // MOLA satırı (her zaman ekle — boş olsa bile chart1 referansında var)
+  body.push([
+    "MOLA",
+    ...hours.map((h) => (breaksByHour.get(h) ?? []).join("\n")),
   ]);
-  if (hasBreaks) {
-    body.push([
-      "Mola",
-      ...hours.map((h) => asciify((breaksByHour.get(h) ?? []).join(" · ")) || "—"),
-    ]);
-  }
-  if (hasTasks) {
-    body.push([
-      "Task (HR/TR/ISG)",
-      ...hours.map((h) => asciify((tasksByHour.get(h) ?? []).join(" · ")) || "—"),
-    ]);
-  }
-  if (hasActive) {
-    body.push([
-      asciify("Aktif İş Gücü"),
-      ...hours.map((h) => String(activeByHour.get(h) ?? 0)),
-    ]);
-  }
 
-  // Sayı: chart için ~ 8 rol × 11 saat. Sığması için font 6.5, padding 1.
+  // ─── Layout hesabı ───
+  // Sayfanın ~%80'i tablo: 297 - margin*2 - 14 (başlık) - 50 (alt info reservation) = ~213mm
+  // 9 row × ~22mm = 198mm + 1 header row × 14mm = 212mm. Tam oturur.
+  const tableHeight = 22;  // mm per row (data rows)
+
   autoTable(doc, {
-    startY: 25,
+    startY: 22,
     head,
     body,
     theme: "grid",
-    headStyles: {
-      fillColor: [0, 0, 0],
-      textColor: [255, 255, 255],
-      fontSize: 7,
-      fontStyle: "bold",
-      cellPadding: 1.2,
-      halign: "center",
-      minCellHeight: 5,
-    },
-    bodyStyles: {
-      fontSize: 6.5,
-      textColor: [30, 30, 30],
-      cellPadding: 1,
-      minCellHeight: 5,
+    styles: {
+      font: "Roboto",
+      fontSize: 8.5,
+      cellPadding: 2.5,
+      minCellHeight: tableHeight,
       valign: "middle",
       halign: "center",
+      lineColor: [0, 0, 0],
+      lineWidth: 0.25,
+      textColor: [20, 20, 20],
       overflow: "linebreak",
     },
+    headStyles: {
+      fillColor: [255, 230, 128],   // chart1 sarı
+      textColor: [0, 0, 0],
+      fontStyle: "bold",
+      fontSize: 8.5,
+      halign: "center",
+      minCellHeight: 9,
+    },
     columnStyles: {
-      // İlk sütun: rol etiketi (sol hizalı, koyu, daha geniş)
+      // İlk sütun: tarih/rol etiketi (sarı, bold, ortalı)
       0: {
+        fillColor: [255, 230, 128],
         fontStyle: "bold",
-        fillColor: [245, 245, 244],
-        textColor: [30, 30, 30],
-        cellWidth: 30,
-        halign: "left",
+        halign: "center",
+        cellWidth: 22,
       },
     },
-    margin: { left: margin, right: margin },
-    styles: { lineColor: [200, 200, 200], lineWidth: 0.15 },
+    didParseCell: (data) => {
+      // Boş hücreler tamamen boş — "—" placeholder yok
+      const txt = data.cell.text;
+      if (txt.length === 1 && (txt[0] === "" || txt[0] === "—")) {
+        data.cell.text = [""];
+      }
+    },
     tableWidth: pageWidth - margin * 2,
-    rowPageBreak: "avoid",
-    pageBreak: "avoid",
+    margin: { left: margin, right: margin, top: 22 },
   });
 
-  let afterY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
-    .finalY;
+  // ─── Alt info satırları ───
+  // chart1: "Haftanın aksiyon familyaları: ...", "CX QR hedefi: ...", vb.
+  // Sadece dolu olanlar yazılır. Bold key + normal value.
+  let y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
+    .finalY + 14;
 
-  // ─── Sorumlular (tek satır, küçük) ───
-  const resp = result.responsibilities;
-  const respEntries = resp
-    ? Object.entries(resp).filter(([, v]) => v)
-    : [];
-  if (respEntries.length > 0) {
-    afterY += 4;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(0);
-    doc.text(asciify("Günün Sorumluları"), margin, afterY);
-    afterY += 1;
+  const altItems: Array<{ key: string; value: string | undefined; bold?: boolean }> = [
+    { key: "Haftanın aksiyon familyaları", value: altInfo?.aksiyon, bold: true },
+    { key: "CX QR hedefi", value: altInfo?.cxQr },
+    { key: "IPOD Satışı hedefi / sorumlusu", value: altInfo?.ipod, bold: true },
+    { key: "Tempe / ACC sorumlusu", value: altInfo?.tempe, bold: true },
+    { key: "İstek noktası sorumlusu", value: altInfo?.istek, bold: true },
+  ];
 
-    // Yatay 5 hücre — tek satırda
-    autoTable(doc, {
-      startY: afterY + 1,
-      head: [respEntries.map(([role]) => asciify(role))],
-      body: [respEntries.map(([, person]) => asciify(person ?? "—"))],
-      theme: "plain",
-      headStyles: {
-        fontSize: 6.5,
-        fontStyle: "bold",
-        textColor: [120, 120, 120],
-        cellPadding: 0.8,
-        minCellHeight: 4,
-      },
-      bodyStyles: {
-        fontSize: 8,
-        textColor: [20, 20, 20],
-        cellPadding: 1.5,
-        minCellHeight: 6,
-      },
-      margin: { left: margin, right: margin },
-      tableWidth: pageWidth - margin * 2,
-      pageBreak: "avoid",
-    });
-    afterY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
-      .finalY;
-  }
-
-  // ─── Uyarılar (özet, en fazla 3 satır) ───
-  if (result.warnings.length > 0 && afterY < pageHeight - 18) {
-    afterY += 3;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.5);
-    doc.setTextColor(180, 90, 0);
-    doc.text(asciify("Uyarılar"), margin, afterY);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(6.5);
-    doc.setTextColor(80);
-    afterY += 3;
-    const max = 3;
-    const shown = result.warnings.slice(0, max);
-    for (const w of shown) {
-      if (afterY > pageHeight - 10) break;
-      const lines = doc.splitTextToSize(asciify(`• ${w}`), pageWidth - margin * 2);
-      doc.text(lines.slice(0, 1), margin, afterY);
-      afterY += 3;
+  for (const it of altItems) {
+    if (!it.value || !it.value.trim()) continue;
+    if (y > pageHeight - 12) break;
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(20);
+    const labelText = `${it.key}: `;
+    doc.text(labelText, margin, y);
+    const labelWidth = doc.getTextWidth(labelText);
+    if (it.bold) {
+      doc.setFont("Roboto", "bold");
     }
-    if (result.warnings.length > max) {
-      doc.setTextColor(140);
-      doc.text(asciify(`+ ${result.warnings.length - max} uyarı daha`), margin, afterY);
-    }
+    doc.text(it.value, margin + labelWidth, y);
+    y += 7;
   }
-
-  // ─── Footer ───
-  doc.setFontSize(6.5);
-  doc.setTextColor(160);
-  doc.text(
-    asciify(`ZARA · Atelye · ${shiftDate}`),
-    pageWidth / 2,
-    pageHeight - 4,
-    { align: "center" },
-  );
 
   doc.save(`shift-${shiftDate}.pdf`);
 }
