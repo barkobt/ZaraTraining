@@ -153,7 +153,14 @@ export default function Home() {
             transition={{ duration: 1.4, ease: [0.22, 0.61, 0.36, 1] }}
             className="flex flex-col items-center mb-8 gap-3"
           >
-            <ZMark size={180} variant="gold" className="drop-shadow-md" />
+            <ZMark
+              size={180}
+              variant="gold"
+              className="select-none"
+              style={{
+                filter: "drop-shadow(0 18px 30px rgba(184, 147, 90, 0.18))",
+              }}
+            />
             {/* ZARA Training wordmark — atelier-stili spaced caps */}
             <motion.div
               initial={{ opacity: 0, y: 6 }}
@@ -369,6 +376,8 @@ export default function Home() {
             <Link to="/admin" className="hover:text-ink transition-colors">Admin</Link>
             <span>·</span>
             <Link to="/show" className="hover:text-ink transition-colors">Show</Link>
+            <span className="hidden sm:inline">·</span>
+            <span className="hidden sm:inline tracking-[0.3em]">İstanbul · MMXXVI</span>
           </div>
         </div>
       </footer>

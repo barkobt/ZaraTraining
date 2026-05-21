@@ -1,24 +1,34 @@
+import type { CSSProperties } from "react";
+
 /**
- * ZMark — ZT monogram. İki varyant:
- *   - variant="bw"  (default): siyah-beyaz tab/favicon tarzı (header, footer, küçük)
- *   - variant="gold": altın ZT (Hero ana ekran logosu, büyük)
- *
- * BW boyuta göre yakın favicon PNG variant'ını seçer (sharper rendering).
- * Gold tek bir 1024px transparent PNG.
+ * ZMark — ZT monogram. Üç varyant (design system spec):
+ *   - "icon" (default): zt-icon.png — siyah çerçeveli, embossed beyaz kağıt
+ *     üzerinde ZT. Favicon / tab / mini avatar. Boyuta göre yakın PNG seçilir.
+ *   - "ink":  zt-mark-ink.png  — çıplak siyah ZT glyph (transparent BG).
+ *     Açık zemin üzerinde "type" gibi okunur — printed material, dark-on-light.
+ *   - "gold": zt-mark-gold.png — iki-ton altın ZT (transparent BG). Hero'da
+ *     merkez nesne. Atelye "leaf-gold" hissi için drop-shadow ile sun.
  */
 export function ZMark({
   size = 48,
-  variant = "bw",
+  variant = "icon",
   className = "",
+  style,
 }: {
   size?: number;
-  variant?: "bw" | "gold";
+  variant?: "icon" | "ink" | "gold";
   className?: string;
+  style?: CSSProperties;
 }) {
-  const src =
-    variant === "gold"
-      ? "/zara-logo-gold.png"
-      : size <= 32
+  let src: string;
+  if (variant === "gold") {
+    src = "/zt-mark-gold.png";
+  } else if (variant === "ink") {
+    src = "/zt-mark-ink.png";
+  } else {
+    // icon — favicon-style framed; boyuta göre PNG variant
+    src =
+      size <= 32
         ? "/zara-icon-32.png"
         : size <= 64
           ? "/zara-icon-64.png"
@@ -27,15 +37,16 @@ export function ZMark({
             : size <= 192
               ? "/zara-icon-192.png"
               : "/zara-icon-512.png";
+  }
   return (
     <img
       src={src}
-      alt="ZARA Training"
+      alt="ZARA Atelye"
       width={size}
       height={size}
       className={className}
       draggable={false}
-      style={{ display: "block", userSelect: "none" }}
+      style={{ display: "block", userSelect: "none", ...style }}
     />
   );
 }
