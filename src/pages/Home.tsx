@@ -153,7 +153,7 @@ export default function Home() {
             transition={{ duration: 1.4, ease: [0.22, 0.61, 0.36, 1] }}
             className="flex flex-col items-center mb-8 gap-3"
           >
-            <ZMark size={160} className="drop-shadow-sm" />
+            <ZMark size={180} variant="gold" className="drop-shadow-md" />
             {/* ZARA Training wordmark — atelier-stili spaced caps */}
             <motion.div
               initial={{ opacity: 0, y: 6 }}

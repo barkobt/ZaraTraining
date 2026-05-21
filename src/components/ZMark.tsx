@@ -1,22 +1,36 @@
 /**
- * ZMark — yeni ZT monogram (altın + krem ZT logo).
- * /public/zara-icon-*.png varyantlarından boyuta göre en yakını seçilir
- * (sharp rendering için).
+ * ZMark — ZT monogram. İki varyant:
+ *   - variant="bw"  (default): siyah-beyaz tab/favicon tarzı (header, footer, küçük)
+ *   - variant="gold": altın ZT (Hero ana ekran logosu, büyük)
+ *
+ * BW boyuta göre yakın favicon PNG variant'ını seçer (sharper rendering).
+ * Gold tek bir 1024px transparent PNG.
  */
-export function ZMark({ size = 48, className = "" }: { size?: number; className?: string }) {
-  // Yüksek-DPI ekranlarda netlik için boyuta göre en yakın PNG variant'ı seç.
-  // Asset boyutları: 32 / 64 / 180 / 192 / 512.
-  const pick = (() => {
-    if (size <= 32) return "/zara-icon-32.png";
-    if (size <= 64) return "/zara-icon-64.png";
-    if (size <= 180) return "/zara-icon-180.png";
-    if (size <= 192) return "/zara-icon-192.png";
-    return "/zara-icon-512.png";
-  })();
+export function ZMark({
+  size = 48,
+  variant = "bw",
+  className = "",
+}: {
+  size?: number;
+  variant?: "bw" | "gold";
+  className?: string;
+}) {
+  const src =
+    variant === "gold"
+      ? "/zara-logo-gold.png"
+      : size <= 32
+        ? "/zara-icon-32.png"
+        : size <= 64
+          ? "/zara-icon-64.png"
+          : size <= 180
+            ? "/zara-icon-180.png"
+            : size <= 192
+              ? "/zara-icon-192.png"
+              : "/zara-icon-512.png";
   return (
     <img
-      src={pick}
-      alt="ZARA Atelye"
+      src={src}
+      alt="ZARA Training"
       width={size}
       height={size}
       className={className}
