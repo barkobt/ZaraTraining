@@ -71,14 +71,14 @@ export const solverConfig = pgTable("solver_config", {
   storeId: integer("store_id")
     .primaryKey()
     .references(() => stores.id),
-  competencyWeight: real("competency_weight").notNull().default(3.0),
-  fairnessWeight: real("fairness_weight").notNull().default(0.5),
-  managerMorningPenalty: integer("manager_morning_penalty").notNull().default(500),
-  managerNormalPenalty: integer("manager_normal_penalty").notNull().default(5000),
-  dualPenalty: integer("dual_penalty").notNull().default(800),
-  sprinterDualPenalty: integer("sprinter_dual_penalty").notNull().default(3000),
-  buddyViolationPenalty: integer("buddy_violation_penalty").notNull().default(2000),
-  maxConsecutiveHours: integer("max_consecutive_hours").notNull().default(2),
+  competencyWeight: real("competency_weight").notNull().default(2.0),
+  fairnessWeight: real("fairness_weight").notNull().default(0.3),
+  managerMorningPenalty: integer("manager_morning_penalty").notNull().default(50),
+  managerNormalPenalty: integer("manager_normal_penalty").notNull().default(500),
+  dualPenalty: integer("dual_penalty").notNull().default(100),
+  sprinterDualPenalty: integer("sprinter_dual_penalty").notNull().default(300),
+  buddyViolationPenalty: integer("buddy_violation_penalty").notNull().default(200),
+  maxConsecutiveHours: integer("max_consecutive_hours").notNull().default(4),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

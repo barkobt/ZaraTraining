@@ -114,10 +114,35 @@ async function seed() {
   if (!store) throw new Error("Store seed failed");
   console.log(`  store id=${store.id} (${store.code})`);
 
+  // Esnek default'lar — az personelli günlerde de FEASIBLE çıksın diye.
+  // maxConsecutiveHours önceki 2 saatti, agresifti. 4 + düşük penalty'ler ile
+  // solver'a manevra alanı bırakıyoruz.
   await db
     .insert(solverConfig)
-    .values({ storeId: store.id })
-    .onConflictDoNothing();
+    .values({
+      storeId: store.id,
+      competencyWeight: 2.0,
+      fairnessWeight: 0.3,
+      managerMorningPenalty: 50,
+      managerNormalPenalty: 500,
+      dualPenalty: 100,
+      sprinterDualPenalty: 300,
+      buddyViolationPenalty: 200,
+      maxConsecutiveHours: 4,
+    })
+    .onConflictDoUpdate({
+      target: solverConfig.storeId,
+      set: {
+        competencyWeight: 2.0,
+        fairnessWeight: 0.3,
+        managerMorningPenalty: 50,
+        managerNormalPenalty: 500,
+        dualPenalty: 100,
+        sprinterDualPenalty: 300,
+        buddyViolationPenalty: 200,
+        maxConsecutiveHours: 4,
+      },
+    });
 
   // Mevcut staff + cascade competencies sil (charts JSON ile bağlı değil, güvenli)
   const deleted = await db.delete(staff).where(eq(staff.storeId, store.id)).returning();
