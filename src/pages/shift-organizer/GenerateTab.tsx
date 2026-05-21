@@ -44,12 +44,26 @@ function formatGenerateError(err: GenerateMutation["error"]): string {
     }
     if (lines.length > 0) return lines.join(" · ");
   }
-  // formErrors da olabilir (top-level)
   const formErrors = err.data?.zodError?.formErrors;
   if (Array.isArray(formErrors) && formErrors.length > 0) {
     return formErrors.join(" · ");
   }
-  return err.message;
+  // Safari WebKit JSON.parse plaintext (Vercel timeout response) →
+  // "The string did not match the expected pattern." der.
+  // Chrome'da JSON.parse hatası → "Unexpected token..." der.
+  // Bu pattern'i tespit edip kullanıcıya zaman aşımı mesajı veriyoruz.
+  const m = err.message ?? "";
+  if (
+    /did not match the expected pattern/i.test(m) ||
+    /Unexpected token .* is not valid JSON/i.test(m) ||
+    /FUNCTION_INVOCATION_TIMEOUT/i.test(m)
+  ) {
+    return "Çözüm zaman aşımına uğradı (60s+). Daha az personel ile dene veya tekrar dene.";
+  }
+  if (/Failed to fetch|NetworkError|aborted/i.test(m)) {
+    return "Ağ hatası: bağlantı koptu. Sayfayı yenile ve tekrar dene.";
+  }
+  return m;
 }
 
 export function GenerateTab({
