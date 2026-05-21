@@ -323,13 +323,16 @@ export const appRouter = createRouter({
 
         const solverStaff = staffRowsToSolverInput(staffRows);
         const solverConfigPayload = {
-          competency_weight: cfg?.competencyWeight ?? 2.0,
+          // Yetkinlik 2.0 → 4.0: yetkin kişiler doğru role daha güçlü yerleşsin.
+          competency_weight: cfg?.competencyWeight ?? 4.0,
           fairness_weight: cfg?.fairnessWeight ?? 0.3,
           max_consecutive_hours: cfg?.maxConsecutiveHours ?? 4,
           // Vercel Hobby plan 10s sabit limit. Solver 5s + ~3s overhead = ~8s.
-          // Pro plan'a yükseltilirse bu 25s'ye çıkarılabilir (api/index.ts maxDuration).
           time_limit_seconds: input.timeLimitSeconds ?? 5,
         };
+
+        // DB'deki Settings → Yasaklar UI'ından gelen rol çiftleri solver'a iletilir.
+        const userForbidden = await listForbiddenPairs(storeId);
 
         const solveReq = {
           shift_date: input.shiftDate,
@@ -342,6 +345,9 @@ export const appRouter = createRouter({
             breaks: s.breaks ?? [],
           })),
           config: solverConfigPayload,
+          forbidden_pairs: userForbidden.map(
+            (p) => [p.roleA, p.roleB] as [string, string],
+          ),
         };
 
         const solveRes = await solveShift(solveReq);

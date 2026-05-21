@@ -80,25 +80,34 @@ export function ForbiddenPairsSettings() {
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {(pairsQuery.data ?? []).map((p) => (
-              <div
-                key={`${p.roleA}-${p.roleB}`}
-                className="flex items-center gap-2 border border-stone-300 px-3 py-1.5 text-xs"
-              >
-                <span>{p.roleA}</span>
-                <span className="text-stone-400 font-mono">+</span>
-                <span>{p.roleB}</span>
-                <button
-                  onClick={() =>
-                    removeMut.mutate({ roleA: p.roleA, roleB: p.roleB })
-                  }
-                  className="text-stone-400 hover:text-red-600 ml-1"
-                  title="Sil"
+            {/* Alfabetik sıralı: önce roleA, eşitlikte roleB. Aynı rolün
+                tüm yasakları yan yana durur (ör. Zone 5 grubu). User feedback:
+                "en son eklenen en sona gelmesin yani, adının yanına gitsin". */}
+            {[...(pairsQuery.data ?? [])]
+              .sort((a, b) =>
+                a.roleA === b.roleA
+                  ? a.roleB.localeCompare(b.roleB, "tr")
+                  : a.roleA.localeCompare(b.roleA, "tr"),
+              )
+              .map((p) => (
+                <div
+                  key={`${p.roleA}-${p.roleB}`}
+                  className="flex items-center gap-2 border border-stone-300 px-3 py-1.5 text-xs"
                 >
-                  <X size={12} strokeWidth={1.5} />
-                </button>
-              </div>
-            ))}
+                  <span>{p.roleA}</span>
+                  <span className="text-stone-400 font-mono">+</span>
+                  <span>{p.roleB}</span>
+                  <button
+                    onClick={() =>
+                      removeMut.mutate({ roleA: p.roleA, roleB: p.roleB })
+                    }
+                    className="text-stone-400 hover:text-red-600 ml-1"
+                    title="Sil"
+                  >
+                    <X size={12} strokeWidth={1.5} />
+                  </button>
+                </div>
+              ))}
           </div>
         )}
       </section>

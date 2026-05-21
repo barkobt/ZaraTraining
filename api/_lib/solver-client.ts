@@ -31,6 +31,8 @@ export type SolveRequest = {
   staff: SolverStaffInput[];
   shifts: SolverShiftInput[];
   config?: SolverConfigInput;
+  /** Settings → Yasaklar UI'ından gelen kullanıcı yasakları, örn ["ZONE_4","ZONE_5"]. */
+  forbidden_pairs?: Array<[string, string]>;
 };
 
 export type SolveResponse = {

@@ -180,25 +180,35 @@ export function CompetencyTab(props: {
             />
           </div>
 
-          {/* Sort */}
-          <div className="flex items-center gap-1 border border-stone-300 px-2 py-1 text-[10px] tracking-[0.15em] uppercase">
+          {/* Sort — net yön etiketi ile */}
+          <div className="flex items-center gap-2 border border-stone-300 px-3 py-1.5 text-[10px] tracking-[0.15em] uppercase">
             <ArrowUpDown size={11} strokeWidth={1.5} className="text-stone-400" />
+            <span className="text-stone-500">Sırala:</span>
             <select
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value as SortKey)}
-              className="bg-transparent outline-none cursor-pointer text-[10px]"
+              className="bg-transparent outline-none cursor-pointer text-[10px] tracking-[0.15em] uppercase"
             >
               <option value="name">Ad</option>
-              <option value="competency">Yetkinlik (toplam yıldız)</option>
+              <option value="competency">Yetkinlik</option>
               <option value="tenure">Süre</option>
               <option value="manager">Yönetici</option>
             </select>
             <button
               onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
-              className="text-stone-500 hover:text-black px-1"
-              title={sortDir === "asc" ? "Artan" : "Azalan"}
+              className="flex items-center gap-1 text-stone-700 hover:text-black px-2 border-l border-stone-300 ml-1 pl-2"
+              title="Sıralama yönü"
             >
-              {sortDir === "asc" ? "↑" : "↓"}
+              <span className="text-base">{sortDir === "asc" ? "↑" : "↓"}</span>
+              <span className="text-[9px]">
+                {sortDir === "asc"
+                  ? sortKey === "name" || sortKey === "tenure"
+                    ? "A → Z"
+                    : "Azdan Çoka"
+                  : sortKey === "name" || sortKey === "tenure"
+                    ? "Z → A"
+                    : "Çoktan Aza"}
+              </span>
             </button>
           </div>
 
@@ -276,32 +286,31 @@ export function CompetencyTab(props: {
         )}
       </div>
 
-      {/* Tablo — sticky header için tablo container'ına max-h + overflow-y veriyoruz */}
-      <div
-        className="bg-white border border-stone-300 overflow-auto"
-        style={{ maxHeight: "calc(100vh - 320px)" }}
-      >
+      {/* Tablo — sticky thead sayfa scroll'una göre kalır (max-h container yok).
+          User feedback: "tamamını sabitlemek görsel olarak biraz daha kötü". */}
+      <div className="bg-white border border-stone-300 overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 z-20 bg-white">
-            <tr className="bg-white" style={{ boxShadow: "inset 0 -2px 0 #000" }}>
-              <th className="bg-white text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal">
+          <thead className="sticky top-0 z-20">
+            <tr style={{ background: "white", boxShadow: "inset 0 -2px 0 #000" }}>
+              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal" style={{ background: "white" }}>
                 Personel
               </th>
-              <th className="bg-white text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-32">
+              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-32" style={{ background: "white" }}>
                 Süre
               </th>
               {ROLES.map((role) => (
                 <th
                   key={role}
-                  className="bg-white text-center p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal"
+                  className="text-center p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal"
+                  style={{ background: "white" }}
                 >
                   {role}
                 </th>
               ))}
-              <th className="bg-white text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal">
+              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal" style={{ background: "white" }}>
                 Not
               </th>
-              <th className="bg-white w-20"></th>
+              <th className="w-20" style={{ background: "white" }}></th>
             </tr>
           </thead>
           <tbody>

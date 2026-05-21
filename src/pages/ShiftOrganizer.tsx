@@ -37,17 +37,59 @@ function ShiftOrganizerInner({
   const staffQuery = trpc.staff.list.useQuery();
   const staff = (staffQuery.data ?? []) as StaffRow[];
 
+  // Optimistic update pattern: UI'da değişiklik anında görünür, sonra background
+  // request tamamlanınca cache invalidate. Hata olursa onError ile rollback.
   const updateCompetency = trpc.competency.update.useMutation({
-    onSuccess: () => utils.staff.list.invalidate(),
+    onMutate: async ({ staffId, role, level }) => {
+      await utils.staff.list.cancel();
+      const prev = utils.staff.list.getData();
+      utils.staff.list.setData(undefined, (old) => {
+        if (!old) return old;
+        return old.map((s) =>
+          s.id === staffId
+            ? { ...s, competencies: { ...s.competencies, [role]: level } }
+            : s,
+        );
+      });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) utils.staff.list.setData(undefined, ctx.prev);
+    },
+    onSettled: () => utils.staff.list.invalidate(),
   });
   const createStaffMut = trpc.staff.create.useMutation({
     onSuccess: () => utils.staff.list.invalidate(),
   });
   const updateStaffMut = trpc.staff.update.useMutation({
-    onSuccess: () => utils.staff.list.invalidate(),
+    onMutate: async (vars) => {
+      await utils.staff.list.cancel();
+      const prev = utils.staff.list.getData();
+      utils.staff.list.setData(undefined, (old) => {
+        if (!old) return old;
+        return old.map((s) => (s.id === vars.id ? { ...s, ...vars } : s));
+      });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) utils.staff.list.setData(undefined, ctx.prev);
+    },
+    onSettled: () => utils.staff.list.invalidate(),
   });
   const deleteStaffMut = trpc.staff.delete.useMutation({
-    onSuccess: () => utils.staff.list.invalidate(),
+    onMutate: async ({ id }) => {
+      await utils.staff.list.cancel();
+      const prev = utils.staff.list.getData();
+      utils.staff.list.setData(undefined, (old) => {
+        if (!old) return old;
+        return old.filter((s) => s.id !== id);
+      });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) utils.staff.list.setData(undefined, ctx.prev);
+    },
+    onSettled: () => utils.staff.list.invalidate(),
   });
   const generateChart = trpc.chart.generate.useMutation();
 
