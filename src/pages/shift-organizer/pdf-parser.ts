@@ -108,15 +108,18 @@ function isLikelyName(s: string): boolean {
 
 // ─── Mola ve task çıkartma (parse edilmiş satır üzerinden) ───
 //
-// Orquest PDF'leri tipik olarak isim+saat aralığını verir; ek satırlarda veya
-// aynı satırın devamında mola/task notasyonu görülür:
-//   "b 13:00"  /  "B13" / "B 13:00-14:00"
-//   "mola 14:00" / "MOLA 14"
-//   "HR 18" / "HR 18:00" / "TR 15:00-16:00" / "ISG 17"
+// Orquest PDF formatları çok çeşitli; aynı satırda mola gösterimi:
+//   "Ada 10:00-19:00 b 13:00"          (B + saat)
+//   "Ada 10:00-19:00 13:00 b"           (saat + B)
+//   "Ada 10:00-19:00 B 13:00-14:00"     (B + aralık)
+//   "Ada 10:00-19:00 13:00-14:00 B"     (aralık + B)
+//   "Ada 10:00-19:00 B13"               (bitişik)
+//   "Ada 10:00-19:00 13B"               (bitişik, ters)
+//   "Ada 10:00-19:00 MOLA 13:00"        (Türkçe keyword)
+//   "Ada 10:00-19:00 13:00 MOLA"        (Türkçe keyword, ters)
 //
-// Bu fonksiyon ham satır üzerinden mola+task çıkarır. Kolon-bazlı (hücre matrix)
-// Orquest formatı için ayrıca PDF metni y-grupladıktan sonra ilgili kişinin
-// satırı içinde tüm sembol-saat çiftleri taranır.
+// HR/TR/ISG task notasyonu:
+//   "HR 18", "HR 18:00", "TR 15:00-16:00", "ISG 17", "18 HR", "18:00 HR"
 function extractBreaksAndTasks(
   rawLine: string,
   startHour: number,
@@ -127,16 +130,50 @@ function extractBreaksAndTasks(
 
   const BLOCKING_TASKS = new Set<BlockingTaskType>(["HR", "TR", "ISG"]);
 
-  // Mola: "b 13", "B13:00", "mola 14", "Mola 14:30-15:00", "Break 15"
-  const breakRe = /\b(?:b|mola|break)\b\s*[:.\s]*(\d{1,2})(?:[:.,](\d{1,2}))?(?:\s*[-–—]\s*(\d{1,2})(?:[:.,](\d{1,2}))?)?/gi;
-  let mb: RegExpExecArray | null;
-  while ((mb = breakRe.exec(rawLine))) {
-    const h1 = parseInt(mb[1], 10);
-    if (!Number.isFinite(h1) || h1 < 0 || h1 > 24) continue;
-    if (h1 < startHour || h1 >= endHour) continue;
-    const h2 = mb[3] ? parseInt(mb[3], 10) : h1 + 1;
-    if (h2 <= h1) continue;
-    breaks.push([h1, Math.min(h2, endHour)]);
+  const inRange = (h: number) =>
+    Number.isFinite(h) && h >= startHour && h < endHour;
+
+  const pushBreak = (h1: number, h2?: number) => {
+    if (!inRange(h1)) return;
+    const e = Number.isFinite(h2) && (h2 as number) > h1 ? Math.min(h2!, endHour) : h1 + 1;
+    // dedupe
+    if (!breaks.some(([s]) => s === h1)) breaks.push([h1, e]);
+  };
+
+  // Parser 1 — "B"/"MOLA"/"BREAK" keyword + saat (HH veya HH:MM, opsiyonel aralık)
+  // Yakaladığı: "b 13", "B13:00", "mola 14", "Mola 14:30-15:00", "Break 15"
+  {
+    const re = /\b(?:b|bb|mola|break)\s*[:.\s]*(\d{1,2})(?:[:.,]\d{1,2})?(?:\s*[-–—]\s*(\d{1,2})(?:[:.,]\d{1,2})?)?/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(rawLine))) {
+      const h1 = parseInt(m[1], 10);
+      const h2 = m[2] ? parseInt(m[2], 10) : NaN;
+      pushBreak(h1, h2);
+    }
+  }
+
+  // Parser 2 — saat + "B"/"MOLA"/"BREAK" (ters sıralama)
+  // Yakaladığı: "13 b", "13:00 B", "13:00-14:00 B", "14 Mola", "13B"
+  {
+    const re = /(\d{1,2})(?:[:.,]\d{1,2})?(?:\s*[-–—]\s*(\d{1,2})(?:[:.,]\d{1,2})?)?\s*\b(?:b|bb|mola|break)\b/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(rawLine))) {
+      const h1 = parseInt(m[1], 10);
+      const h2 = m[2] ? parseInt(m[2], 10) : NaN;
+      pushBreak(h1, h2);
+    }
+  }
+
+  // Parser 3 — bitişik "B13" / "B13:30" / "13B" (no space)
+  {
+    const re = /(?:^|[\s\t])(?:[Bb])(\d{1,2})(?:[:.,]\d{1,2})?(?=[\s\t]|$)/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(rawLine))) pushBreak(parseInt(m[1], 10));
+  }
+  {
+    const re = /(?:^|[\s\t])(\d{1,2})(?:[:.,]\d{1,2})?[Bb](?=[\s\t]|$)/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(rawLine))) pushBreak(parseInt(m[1], 10));
   }
 
   // Task: "HR 18", "TR 15:00", "ISG 17"
@@ -148,6 +185,17 @@ function extractBreaksAndTasks(
     const hour = parseInt(mt[2], 10);
     if (!Number.isFinite(hour) || hour < startHour || hour >= endHour) continue;
     tasks.push({ hour, type, label: mt[0].trim() });
+  }
+  // Tersine: "18 HR", "18:00 ISG"
+  const taskReRev = /\b(\d{1,2})(?:[:.,]\d{1,2})?\s+(HR|TR|ISG)\b/g;
+  while ((mt = taskReRev.exec(rawLine))) {
+    const type = mt[2].toUpperCase() as BlockingTaskType;
+    if (!BLOCKING_TASKS.has(type)) continue;
+    const hour = parseInt(mt[1], 10);
+    if (!Number.isFinite(hour) || hour < startHour || hour >= endHour) continue;
+    if (!tasks.some((t) => t.hour === hour && t.type === type)) {
+      tasks.push({ hour, type, label: mt[0].trim() });
+    }
   }
 
   return { breaks, tasks };
@@ -284,7 +332,8 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
   let sawAnySection = false;
   let basicBlockEnded = false; // İlk BASIC bloğu bittikten sonra ikinci BASIC görülürse iterasyonu kes.
 
-  for (const raw of lines) {
+  for (let idx = 0; idx < lines.length; idx++) {
+    const raw = lines[idx];
     const line = raw.trim();
     if (!line || line.length < 4) continue;
 
@@ -307,6 +356,27 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
 
     const p = tryParseLine(line);
     if (p) {
+      // Orquest PDF'lerinde mola/task notasyonu bazen aynı satırda değil,
+      // KİŞİ SATIRININ ARDINDAKİ 1-2 ALT SATIRDA olur. Bu satırları da tara
+      // ve bulunan ek mola/task'ları p'ye merge et.
+      const followLines = lines
+        .slice(idx + 1, idx + 4)
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0)
+        // Sonraki bir isimli satıra rastladıysak dur (yeni kişiye geçtik)
+        .filter((l) => !tryParseLine(l));
+      if (followLines.length > 0) {
+        const combined = followLines.join(" ");
+        const extra = extractBreaksAndTasksLoose(combined, p.startHour, p.endHour);
+        for (const b of extra.breaks) {
+          if (!p.breaks.some(([s]) => s === b[0])) p.breaks.push(b);
+        }
+        for (const t of extra.tasks) {
+          if (!p.tasks.some((x) => x.hour === t.hour && x.type === t.type)) {
+            p.tasks.push(t);
+          }
+        }
+      }
       const key = p.name.toLowerCase();
       seen.set(key, p);
       matched++;
@@ -322,6 +392,19 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
     matchedLines: matched,
     skippedSamples: skipped,
   };
+}
+
+/**
+ * `extractBreaksAndTasks`'in sadece mola/task çıkartan, kişi adı geçmeyen
+ * "loose" versiyonu — kişi satırının altındaki satırlarda mola/task arama
+ * için kullanılır. Saat aralığı [startHour, endHour) ile sınırlı.
+ */
+function extractBreaksAndTasksLoose(
+  rawLine: string,
+  startHour: number,
+  endHour: number,
+): { breaks: Array<[number, number]>; tasks: ParsedShift["tasks"] } {
+  return extractBreaksAndTasks(rawLine, startHour, endHour);
 }
 
 export async function parseShiftsFromPdf(file: File): Promise<ParsedShift[]> {

@@ -16,9 +16,10 @@ export type ChartAltInfo = {
 };
 
 /**
- * Solver Role enum → chart1.pdf etiket karşılığı (uppercase Türkçe).
- * Sıra chart1 referansındaki gibi: KABİN, RUNNER (KABİN WELCOMER), SPRİNTER,
- * WELCOMER (WELCOME), ZONE 2..5, MOLA.
+ * Sistemin rol etiketleri — user spec (2026-05-22): "runnerı kaldırdık".
+ * Yeni sıra: KABİN → KABİN WELCOMER → SPRINTER → WELCOME → ZONE 2-5 → MOLA.
+ * chart1.pdf'teki "RUNNER/WELCOMER" terminolojisi DEĞİL — bizim rol adlarımız
+ * uppercase Türkçe yazılır, kelime değişimi yok.
  */
 const ROLE_ORDER = [
   "KABİN",
@@ -33,9 +34,9 @@ const ROLE_ORDER = [
 
 const ROLE_LABELS: Record<string, string> = {
   KABİN: "KABİN",
-  "KABİN WELCOMER": "RUNNER",   // chart1 terminolojisi
-  SPRINTER: "SPRİNTER",
-  WELCOME: "WELCOMER",          // chart1 terminolojisi
+  "KABİN WELCOMER": "KABİN WELCOMER",
+  SPRINTER: "SPRİNTER",          // Türkçe glyph — Roboto destekler
+  WELCOME: "WELCOME",
   "ZONE 2": "ZONE 2",
   "ZONE 3": "ZONE 3",
   "ZONE 4": "ZONE 4",
@@ -151,6 +152,8 @@ export function exportChartToPdf(
   // ─── Layout hesabı ───
   // Sayfanın ~%80'i tablo: 297 - margin*2 - 14 (başlık) - 50 (alt info reservation) = ~213mm
   // 9 row × ~22mm = 198mm + 1 header row × 14mm = 212mm. Tam oturur.
+  // Saat sütun genişliği: (210 - 20 margin - 22 rol) / 12 saat ≈ 14mm.
+  // 7pt fontla 14mm hücreye ~14-16 karakter sığar (Kaan Ovezoglu, Sevilay OK).
   const tableHeight = 22;  // mm per row (data rows)
 
   autoTable(doc, {
@@ -160,8 +163,8 @@ export function exportChartToPdf(
     theme: "grid",
     styles: {
       font: "Roboto",
-      fontSize: 8.5,
-      cellPadding: 2.5,
+      fontSize: 7,                // ↓ 8.5 → 7 (isim sığması için)
+      cellPadding: 1.5,           // ↓ 2.5 → 1.5
       minCellHeight: tableHeight,
       valign: "middle",
       halign: "center",
@@ -174,17 +177,19 @@ export function exportChartToPdf(
       fillColor: [255, 230, 128],   // chart1 sarı
       textColor: [0, 0, 0],
       fontStyle: "bold",
-      fontSize: 8.5,
+      fontSize: 7.5,
       halign: "center",
       minCellHeight: 9,
+      cellPadding: 1.5,
     },
     columnStyles: {
-      // İlk sütun: tarih/rol etiketi (sarı, bold, ortalı)
+      // İlk sütun: tarih/rol etiketi (sarı, bold, ortalı, biraz daha geniş)
       0: {
         fillColor: [255, 230, 128],
         fontStyle: "bold",
         halign: "center",
-        cellWidth: 22,
+        cellWidth: 26,            // ↑ 22 → 26 (KABİN WELCOMER tek satıra sığsın)
+        fontSize: 8,
       },
     },
     didParseCell: (data) => {
