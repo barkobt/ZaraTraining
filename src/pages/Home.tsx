@@ -124,7 +124,9 @@ export default function Home() {
       >
         {/* Atelier video — en arka katman. Atelier estetiği: grayscale, düşük
             opaklık, paper tonlu mask. ZT monogram önde "altın yaprak" gibi
-            video üstünde durur. Mobil ve reduced-motion'da poster kalır. */}
+            video üstünde durur. preload="auto" + poster YOK: sayfa direkt
+            video ile render olsun, yüklenmeden gri-ZT poster gösterilmesin.
+            Yüklenmedikçe cream paper (section bg) kalır — flicker yok. */}
         <motion.video
           aria-hidden
           autoPlay
@@ -132,16 +134,14 @@ export default function Home() {
           loop
           playsInline
           preload="auto"
-          poster="/zt-mark-gold.png"
           initial={{ opacity: 0, scale: 1.08 }}
-          animate={{ opacity: 1, scale: 1 }}
+          animate={{ opacity: 0.42, scale: 1 }}
           transition={{ duration: 2.4, ease: [0.22, 0.61, 0.36, 1] }}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none motion-reduce:hidden"
           style={{
             // Atelier paper'a sığdırılmış film hissi: grayscale + düşük opaklık
             // (sistem spec'i: imagery always 0.25–0.55 opacity, grayscale).
             filter: "grayscale(0.85) contrast(1.05) brightness(0.95)",
-            opacity: 0.42,
             zIndex: 0,
           }}
         >
