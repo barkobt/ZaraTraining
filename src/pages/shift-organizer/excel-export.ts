@@ -55,7 +55,19 @@ export function exportChartToExcel(
 
   const byKey = new Map<string, string>();
   for (const c of result.chart) {
-    byKey.set(`${c.hour}|${c.role}`, c.persons.join(" · "));
+    const labeled = c.persons.map((name) => {
+      const shift = shifts?.find((s) => s.short_name === name);
+      if (shift) {
+        for (const [bs, be] of shift.breaks ?? []) {
+          const dur = be - bs;
+          if (dur <= 0.5 + 1e-6 && Math.floor(bs) === c.hour) {
+            return `${name} 1/2`;
+          }
+        }
+      }
+      return name;
+    });
+    byKey.set(`${c.hour}|${c.role}`, labeled.join(" · "));
   }
 
   // Saat → Mola / Task / Aktif iş gücü hesaplaması
@@ -75,9 +87,12 @@ export function exportChartToExcel(
     }
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
+        const dur = be - bs;
+        const isHalf = dur <= 0.5 + 1e-6;
         for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
           const arr = breaksByHour.get(h) ?? [];
-          if (!arr.includes(s.short_name)) arr.push(s.short_name);
+          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
+          if (!arr.includes(label)) arr.push(label);
           breaksByHour.set(h, arr);
         }
       }

@@ -57,11 +57,14 @@ export type ParseReport = {
 // ─── Yardımcılar ───
 
 function parseHour(s: string): number | null {
-  // "10:00", "10.00", "10", "1000" → 10
+  // "10:00", "10.00", "10", "1000" → 10  (13:30 → 13.5)
   const m = s.trim().match(/^(\d{1,2})(?:[:.,](\d{1,2}))?$/);
   if (!m) return null;
   const h = parseInt(m[1], 10);
-  return Number.isFinite(h) && h >= 0 && h <= 24 ? h : null;
+  const min = m[2] ? parseInt(m[2], 10) : 0;
+  if (!Number.isFinite(h) || h < 0 || h > 24) return null;
+  if (!Number.isFinite(min) || min < 0 || min > 59) return null;
+  return h + min / 60;
 }
 
 function cleanName(s: string): string {
@@ -135,19 +138,25 @@ function extractBreaksAndTasks(
 
   const pushBreak = (h1: number, h2?: number) => {
     if (!inRange(h1)) return;
-    const e = Number.isFinite(h2) && (h2 as number) > h1 ? Math.min(h2!, endHour) : h1 + 1;
-    // dedupe
-    if (!breaks.some(([s]) => s === h1)) breaks.push([h1, e]);
+    let e: number;
+    if (Number.isFinite(h2) && (h2 as number) > h1) {
+      e = Math.min(h2!, endHour);
+    } else {
+      // Yarım saat başlangıç (13.5) → 0.5 saat mola; tam saat (13) → 1 saat
+      e = Math.min(h1 + (h1 % 1 === 0.5 ? 0.5 : 1.0), endHour);
+    }
+    // dedupe (float karşılaştırma)
+    if (!breaks.some(([s]) => Math.abs(s - h1) < 0.01)) breaks.push([h1, e]);
   };
 
   // Parser 1 — "B"/"MOLA"/"BREAK" keyword + saat (HH veya HH:MM, opsiyonel aralık)
   // Yakaladığı: "b 13", "B13:00", "mola 14", "Mola 14:30-15:00", "Break 15"
   {
-    const re = /\b(?:b|bb|mola|break)\s*[:.\s]*(\d{1,2})(?:[:.,]\d{1,2})?(?:\s*[-–—]\s*(\d{1,2})(?:[:.,]\d{1,2})?)?/gi;
+    const re = /\b(?:b|bb|mola|break)\s*[:.\s]*(\d{1,2})(?:[:.,](\d{1,2}))?(?:\s*[-–—]\s*(\d{1,2})(?:[:.,](\d{1,2}))?)?/gi;
     let m: RegExpExecArray | null;
     while ((m = re.exec(rawLine))) {
-      const h1 = parseInt(m[1], 10);
-      const h2 = m[2] ? parseInt(m[2], 10) : NaN;
+      const h1 = parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) / 60 : 0);
+      const h2 = m[3] ? parseInt(m[3], 10) + (m[4] ? parseInt(m[4], 10) / 60 : 0) : NaN;
       pushBreak(h1, h2);
     }
   }
@@ -155,25 +164,31 @@ function extractBreaksAndTasks(
   // Parser 2 — saat + "B"/"MOLA"/"BREAK" (ters sıralama)
   // Yakaladığı: "13 b", "13:00 B", "13:00-14:00 B", "14 Mola", "13B"
   {
-    const re = /(\d{1,2})(?:[:.,]\d{1,2})?(?:\s*[-–—]\s*(\d{1,2})(?:[:.,]\d{1,2})?)?\s*\b(?:b|bb|mola|break)\b/gi;
+    const re = /(\d{1,2})(?:[:.,](\d{1,2}))?(?:\s*[-–—]\s*(\d{1,2})(?:[:.,](\d{1,2}))?)?\s*\b(?:b|bb|mola|break)\b/gi;
     let m: RegExpExecArray | null;
     while ((m = re.exec(rawLine))) {
-      const h1 = parseInt(m[1], 10);
-      const h2 = m[2] ? parseInt(m[2], 10) : NaN;
+      const h1 = parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) / 60 : 0);
+      const h2 = m[3] ? parseInt(m[3], 10) + (m[4] ? parseInt(m[4], 10) / 60 : 0) : NaN;
       pushBreak(h1, h2);
     }
   }
 
   // Parser 3 — bitişik "B13" / "B13:30" / "13B" (no space)
   {
-    const re = /(?:^|[\s\t])(?:[Bb])(\d{1,2})(?:[:.,]\d{1,2})?(?=[\s\t]|$)/g;
+    const re = /(?:^|[\s\t])(?:[Bb])(\d{1,2})(?:[:.,](\d{1,2}))?(?=[\s\t]|$)/g;
     let m: RegExpExecArray | null;
-    while ((m = re.exec(rawLine))) pushBreak(parseInt(m[1], 10));
+    while ((m = re.exec(rawLine))) {
+      const h = parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) / 60 : 0);
+      pushBreak(h);
+    }
   }
   {
-    const re = /(?:^|[\s\t])(\d{1,2})(?:[:.,]\d{1,2})?[Bb](?=[\s\t]|$)/g;
+    const re = /(?:^|[\s\t])(\d{1,2})(?:[:.,](\d{1,2}))?[Bb](?=[\s\t]|$)/g;
     let m: RegExpExecArray | null;
-    while ((m = re.exec(rawLine))) pushBreak(parseInt(m[1], 10));
+    while ((m = re.exec(rawLine))) {
+      const h = parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) / 60 : 0);
+      pushBreak(h);
+    }
   }
 
   // Task: "HR 18", "TR 15:00", "ISG 17"
