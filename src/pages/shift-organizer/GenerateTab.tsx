@@ -31,10 +31,36 @@ function parseBreakStr(s: string): Array<[number, number]> {
   return s
     .split(/[,\s;]+/)
     .map((p) => p.trim())
-    .filter((p) => /^\d{1,2}(?::\d{1,2})?$/.test(p))
-    .map((p) => parseInt(p, 10))
+    .filter((p) => /^\d{1,2}(?:[.:]\d{1,2})?$/.test(p))
+    .map((p) => {
+      // "10.5" yarım saat, "11" tam saat. Float parse.
+      const n = parseFloat(p.replace(":", "."));
+      return n;
+    })
     .filter((h) => Number.isFinite(h) && h >= 0 && h < 24)
-    .map((h) => [h, h + 1] as [number, number]);
+    .map((h) => {
+      // Yarım saat: 0.5 dur; Tam saat: 1.0 dur
+      const dur = h % 1 === 0.5 ? 0.5 : 1.0;
+      return [h, h + dur] as [number, number];
+    });
+}
+
+/** Task listesini compact UI metnine çevirir: [(18,'HR')] → "18:HR". */
+function taskStr(tasks: Array<[number, string]>): string {
+  return tasks.map(([h, t]) => `${h}:${t}`).join(",");
+}
+
+/** Compact UI metnini task listesine çevirir: "18:HR, 17:TR" → [(18,'HR'),(17,'TR')]. */
+function parseTaskStr(s: string): Array<[number, string]> {
+  return s
+    .split(/[,;]+/)
+    .map((p) => p.trim().match(/^(\d{1,2})\s*[:.\s]?\s*(HR|TR|ISG)$/i))
+    .filter((m): m is RegExpMatchArray => m !== null)
+    .map((m) => {
+      const h = parseInt(m[1], 10);
+      return [h, m[2].toUpperCase()] as [number, string];
+    })
+    .filter(([h]) => h >= 0 && h < 24);
 }
 
 type GenerateMutation = {
@@ -436,12 +462,12 @@ export function GenerateTab({
                     disabled={!row.included}
                     className="w-10 text-xs border-b border-stone-300 outline-none focus:border-black text-right"
                   />
-                  {/* Mola saatleri — compact text input, "12,15" → [(12,13),(15,16)] */}
+                  {/* Mola saatleri — compact text input, "12,15" veya "10.5,13.5" */}
                   <input
                     type="text"
                     value={breakStr(row.breaks)}
                     placeholder="Mola"
-                    title="Mola saatleri, örn: 12,15"
+                    title="Mola saatleri, örn: 12,15 (tam) veya 10.5,13.5 (yarım)"
                     onChange={(e) => {
                       const breaks = parseBreakStr(e.target.value);
                       setShiftsState((prev) => ({
@@ -451,6 +477,22 @@ export function GenerateTab({
                     }}
                     disabled={!row.included}
                     className="w-14 text-[10px] border-b border-stone-300 outline-none focus:border-amber-600 text-center font-mono tabular-nums placeholder:text-stone-300"
+                  />
+                  {/* Task saatleri — HR/TR/ISG, "18:HR,17:TR" */}
+                  <input
+                    type="text"
+                    value={taskStr(row.tasks)}
+                    placeholder="Task"
+                    title="HR/TR/ISG task, örn: 18:HR,17:TR (bu saatte chart'a atanmaz)"
+                    onChange={(e) => {
+                      const tasks = parseTaskStr(e.target.value);
+                      setShiftsState((prev) => ({
+                        ...prev,
+                        [p.id]: { ...row, tasks },
+                      }));
+                    }}
+                    disabled={!row.included}
+                    className="w-16 text-[10px] border-b border-stone-300 outline-none focus:border-rose-600 text-center font-mono placeholder:text-stone-300"
                   />
                 </div>
               );

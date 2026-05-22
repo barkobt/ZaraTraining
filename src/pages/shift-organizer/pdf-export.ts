@@ -115,14 +115,35 @@ export function exportChartToPdf(
   const byKey = new Map<string, string[]>();
   for (const c of result.chart) byKey.set(`${c.hour}|${c.role}`, c.persons);
 
-  // Mola hesapla — saat → ad listesi
+  // Yarım mola tespiti (≤30dk) — saat → set(name)
+  // ChartResult ile aynı mantık: yarım molada olan kişi hem MOLA satırında
+  // hem normal rol hücrelerinde "X 1/2" suffix'iyle gösterilir.
+  const halfBreakSetByHour = new Map<number, Set<string>>();
+  if (shifts) {
+    for (const s of shifts) {
+      for (const [bs, be] of s.breaks ?? []) {
+        if (be - bs <= 0.5 + 1e-6) {
+          const h = Math.floor(bs);
+          const set = halfBreakSetByHour.get(h) ?? new Set<string>();
+          set.add(s.short_name);
+          halfBreakSetByHour.set(h, set);
+        }
+      }
+    }
+  }
+  const labelName = (name: string, hour: number): string =>
+    halfBreakSetByHour.get(hour)?.has(name) ? `${name} 1/2` : name;
+
+  // Mola hesapla — saat → ad listesi (yarım mola "1/2" suffix'iyle)
   const breaksByHour = new Map<number, string[]>();
   if (shifts) {
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
+        const isHalf = be - bs <= 0.5 + 1e-6;
         for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
           const arr = breaksByHour.get(h) ?? [];
-          if (!arr.includes(s.short_name)) arr.push(s.short_name);
+          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
+          if (!arr.includes(label)) arr.push(label);
           breaksByHour.set(h, arr);
         }
       }
@@ -139,7 +160,11 @@ export function exportChartToPdf(
   for (const r of roles) {
     const row = [
       roleLabel(r),
-      ...hours.map((h) => (byKey.get(`${h}|${r}`) ?? []).join("\n")),
+      ...hours.map((h) =>
+        (byKey.get(`${h}|${r}`) ?? [])
+          .map((p) => labelName(p, h))
+          .join("\n"),
+      ),
     ];
     body.push(row);
   }
@@ -208,6 +233,42 @@ export function exportChartToPdf(
   // Sadece dolu olanlar yazılır. Bold key + normal value.
   let y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
     .finalY + 14;
+
+  // Günün Sorumluları (Liderlik, CX, Runner Lider, iPod, Aksiyon) — Chart UI'sında
+  // ResponsibilitiesPanel ile seçilir, DB'de charts.responsibilities jsonb'sine
+  // persist olur. PDF altında ayrı bir bölüm olarak listelenir.
+  const resp = (result.responsibilities ?? {}) as Record<string, string | null | undefined>;
+  const respItems: Array<{ key: string; value: string | undefined }> = [
+    { key: "Liderlik", value: resp["Liderlik"] ?? undefined },
+    { key: "CX Sorumlusu", value: resp["CX Sorumlusu"] ?? undefined },
+    { key: "Runner Lider", value: resp["Runner Lider"] ?? undefined },
+    { key: "iPod Sorumlusu", value: resp["iPod Sorumlusu"] ?? undefined },
+    { key: "Aksiyon Sorumlusu", value: resp["Aksiyon Sorumlusu"] ?? undefined },
+  ];
+  const hasResp = respItems.some((it) => it.value && it.value.trim());
+
+  if (hasResp) {
+    // Başlık: "Günün Sorumluları"
+    doc.setFont("Roboto", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(20);
+    doc.text("Günün Sorumluları", margin, y);
+    y += 6;
+    for (const it of respItems) {
+      if (!it.value || !it.value.trim()) continue;
+      if (y > pageHeight - 12) break;
+      doc.setFont("Roboto", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(20);
+      const labelText = `${it.key}: `;
+      doc.text(labelText, margin, y);
+      const labelWidth = doc.getTextWidth(labelText);
+      doc.setFont("Roboto", "bold");
+      doc.text(it.value, margin + labelWidth, y);
+      y += 7;
+    }
+    y += 4; // alt info bölümünden önce bir nefes alanı
+  }
 
   const altItems: Array<{ key: string; value: string | undefined; bold?: boolean }> = [
     { key: "Haftanın aksiyon familyaları", value: altInfo?.aksiyon, bold: true },

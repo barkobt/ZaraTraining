@@ -510,38 +510,211 @@ export async function parseShiftsFromPdf(file: File): Promise<ParsedShift[]> {
   return (await parseShiftsFromPdfWithReport(file)).shifts;
 }
 
+/**
+ * STRUCTURED PARSER — y-epsilon grouping + x-coord sütun farkındalığı.
+ *
+ * Sorun (2026-05-22 user raporu): Eski Math.round(transform[5]) y-coord'u
+ * tam sayıya yuvarlıyordu → yakın baseline'lar (örn 600.5 ve 599.7 ikisi de
+ * 600) aynı satıra düşüyordu → komşu kişinin break'i mevcut satıra karışıyordu
+ * (Saliha "10, 10.5" — 10.5 aslında Gamze'nin molası). Ayrıca x-coord
+ * körlüğü yüzünden Hours sütunundaki "5h 30min" gibi değerler break
+ * sütunundakilerle karışabiliyordu.
+ *
+ * Yeni yaklaşım:
+ *   1. Y-coord float kalır; ardışık item'lar fark <3 ise aynı satır
+ *   2. Header satırını bul: "Name | Shift | Break | Hours"
+ *   3. Header'dan her sütunun x-aralığını ölç
+ *   4. Her satır için item'ları x-aralığına göre sütunlara ayır
+ *   5. SADECE break sütununun text'inden HH:MM-HH:MM aralıkları çıkar
+ *      → komşu satır/sütun karışması imkansız
+ *   6. Multi-line break (Fadime/Kıymet 2 molalı): isimsiz devam satırlarında
+ *      sadece break sütununda text varsa son kişinin break'lerine eklenir.
+ */
 export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseReport> {
   const pdfjsLib = await loadPdfjs();
   const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-  const allLines: string[] = [];
 
-  // Sadece sayfa 1 — Orquest BASIC raporu ilk sayfaya sığar. Sonraki sayfalar
-  // WOMAN/MAN/KIDS bölümleri olur, BASIC parser'ı için gürültü.
-  const pagesToScan = Math.min(1, pdf.numPages);
-  for (let i = 1; i <= pagesToScan; i++) {
+  type Item = { y: number; x: number; str: string };
+
+  const shifts: ParsedShift[] = [];
+  let inBasic = false;
+  let sawBasic = false;
+
+  // Orquest PDF'i çok sayfalı (BASIC/CABALLERO/KASA/MÜDÜR/NIÑO/OPERASYON/WOMAN).
+  // Sadece BASIC bölümünü tarayacağız. Tüm sayfaları gez ama BASIC dışındaysa atla.
+  for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    // y-koordinatına göre grupla, x'e göre sırala
-    const items = (content.items as Array<{ str: string; transform: number[] }>)
-      .map((it) => ({ y: Math.round(it.transform[5]), x: it.transform[4], str: it.str }))
-      .filter((it) => it.str.trim());
-    const byY = new Map<number, typeof items>();
+    const items: Item[] = (content.items as Array<{ str: string; transform: number[] }>)
+      .map((it) => ({ y: it.transform[5], x: it.transform[4], str: it.str }))
+      .filter((it) => it.str.trim().length > 0);
+
+    if (items.length === 0) continue;
+
+    // 1) Y-coord epsilon grouping (fark <3 → aynı satır)
+    items.sort((a, b) => b.y - a.y); // yukarıdan aşağı
+    const rows: Item[][] = [];
+    let currentRow: Item[] = [];
+    let rowY = Number.POSITIVE_INFINITY;
     for (const it of items) {
-      const arr = byY.get(it.y) ?? [];
-      arr.push(it);
-      byY.set(it.y, arr);
+      if (currentRow.length === 0 || Math.abs(it.y - rowY) < 3) {
+        currentRow.push(it);
+        if (currentRow.length === 1) rowY = it.y;
+      } else {
+        rows.push(currentRow);
+        currentRow = [it];
+        rowY = it.y;
+      }
     }
-    const ys = [...byY.keys()].sort((a, b) => b - a); // yukarıdan aşağı
-    for (const y of ys) {
-      const row = byY
-        .get(y)!
+    if (currentRow.length) rows.push(currentRow);
+
+    // 2) Header satırı: "Name", "Shift", "Break", "Hours" başlıklarını içerir.
+    //    Sayfa 1'de ilk header'ı bul; sonraki sayfalarda da aynı x-koordinatlar
+    //    olduğu için ilk sayfadaki header'ı yeniden kullanmak da mümkün, ama
+    //    safety için her sayfada arıyoruz.
+    const headerRow = rows.find((r) => {
+      const lower = r.map((it) => it.str.trim().toLowerCase());
+      return (
+        lower.includes("name") &&
+        lower.includes("shift") &&
+        lower.includes("break") &&
+        lower.includes("hours")
+      );
+    });
+    if (!headerRow) {
+      // Bu sayfada tablo header yok → atla
+      continue;
+    }
+
+    // 3) Sütun x-aralıkları
+    const findCol = (label: string) =>
+      headerRow.find((it) => it.str.trim().toLowerCase() === label);
+    const nameH = findCol("name")!;
+    const shiftH = findCol("shift")!;
+    const breakH = findCol("break")!;
+    const hoursH = findCol("hours")!;
+    // Her sütun: [x_start, x_end). Header item'ının x-pozisyonu sütunun sol
+    // kenarına yakın; sağ kenarı bir sonraki header'ın x'ine kadar uzanır.
+    // Header'lar x sırasına göre yeniden sıralanır.
+    const headerByX = [nameH, shiftH, breakH, hoursH].sort((a, b) => a.x - b.x);
+    const cols = {
+      name: [headerByX[0].x - 5, headerByX[1].x - 5],
+      shift: [headerByX[1].x - 5, headerByX[2].x - 5],
+      break: [headerByX[2].x - 5, headerByX[3].x - 5],
+      hours: [headerByX[3].x - 5, headerByX[3].x + 40],
+    };
+
+    const inCol = (it: Item, col: [number, number]) =>
+      it.x >= col[0] && it.x < col[1];
+
+    // 4) Her data satırını sütunlara göre işle
+    // Bölüm header satırlarını ("BASIC", "CABALLERO", "KASA", "MÜDUR", "NIÑO",
+    // "OPERASYON", "WOMAN") tespit edip BASIC içi/dışı durumu takip et.
+    const SECTION_KEYWORDS = new Set([
+      "BASIC", "CABALLERO", "KASA", "MÜDUR", "MÜDÜR", "NIÑO", "NINO",
+      "OPERASYON", "WOMAN", "WOMEN", "MAN", "MEN", "KIDS",
+    ]);
+
+    let lastPerson: ParsedShift | null = null;
+
+    for (const row of rows) {
+      if (row === headerRow) continue;
+      // Section header check
+      const rowStr = row.map((it) => it.str.trim()).join(" ").trim().toUpperCase();
+      const firstTok = rowStr.split(/\s+/)[0];
+      if (SECTION_KEYWORDS.has(firstTok)) {
+        if (firstTok === "BASIC") {
+          inBasic = true;
+          sawBasic = true;
+        } else {
+          inBasic = false;
+        }
+        lastPerson = null; // section değişiminde "lastPerson" track'ini sıfırla
+        continue;
+      }
+      if (!inBasic && sawBasic) continue;
+      // BASIC görmediğimiz sayfalarda da deneyebiliriz; ama tipik olarak ilk
+      // sayfada BASIC header vardır.
+      if (!inBasic && !sawBasic) {
+        // Henüz BASIC başlamamış (sayfa üstü/header) → atla
+        continue;
+      }
+
+      const nameItems = row.filter((it) => inCol(it, cols.name as [number, number]));
+      const shiftItems = row.filter((it) => inCol(it, cols.shift as [number, number]));
+      const breakItems = row.filter((it) => inCol(it, cols.break as [number, number]));
+
+      const nameStr = nameItems
         .sort((a, b) => a.x - b.x)
         .map((it) => it.str)
-        .join(" ");
-      allLines.push(row);
+        .join(" ")
+        .trim();
+      const shiftStr = shiftItems
+        .sort((a, b) => a.x - b.x)
+        .map((it) => it.str)
+        .join(" ")
+        .trim();
+      const breakStr = breakItems
+        .sort((a, b) => a.x - b.x)
+        .map((it) => it.str)
+        .join(" ")
+        .trim();
+
+      // 5) Kişi satırı: name sütununda gerçek isim var
+      if (nameStr && isLikelyName(nameStr)) {
+        const shiftRanges = extractAllHourRanges(shiftStr);
+        if (shiftRanges.length === 0) {
+          // shift sütunu "-" veya "Free" → atla, ama "lastPerson"'ı sıfırla
+          lastPerson = null;
+          continue;
+        }
+        const shift = shiftRanges[0];
+        // SADECE break sütunundan break çıkar — komşu sütun karışması yok
+        const breaks: Array<[number, number]> = extractAllHourRanges(breakStr)
+          .filter((r) => r.startFloat >= shift.start && r.endFloat <= shift.end)
+          .map((r) => [r.startFloat, r.endFloat] as [number, number]);
+
+        const newPerson: ParsedShift = {
+          name: cleanName(nameStr),
+          startHour: shift.start,
+          endHour: shift.end,
+          breaks,
+          tasks: [],
+          source: `${nameStr} | ${shiftStr} | ${breakStr}`,
+        };
+        shifts.push(newPerson);
+        lastPerson = newPerson;
+        if (shifts.length >= MAX_MATCHES) break;
+      } else if (lastPerson && breakItems.length > 0 && nameItems.length === 0) {
+        // 6) Multi-line break devam satırı: name sütunu boş, sadece break sütunda
+        //     yeni HH:MM-HH:MM aralığı var → son kişinin break'lerine ekle
+        const extraBreaks = extractAllHourRanges(breakStr)
+          .filter((r) =>
+            r.startFloat >= lastPerson!.startHour &&
+            r.endFloat <= lastPerson!.endHour
+          )
+          .map((r) => [r.startFloat, r.endFloat] as [number, number]);
+        for (const b of extraBreaks) {
+          if (!lastPerson.breaks.some(([s]) => Math.abs(s - b[0]) < 0.01)) {
+            lastPerson.breaks.push(b);
+          }
+        }
+      }
     }
+
+    if (shifts.length >= MAX_MATCHES) break;
   }
 
-  return parseShiftsFromTextWithReport(allLines.join("\n"));
+  // Aynı kişi birden çok sayfada görünürse (BASIC tek sayfada olduğundan
+  // gerçekte olmaz ama defansif): dedupe.
+  const seen = new Map<string, ParsedShift>();
+  for (const s of shifts) seen.set(s.name.toLowerCase(), s);
+
+  return {
+    shifts: Array.from(seen.values()),
+    totalLines: shifts.length,
+    matchedLines: shifts.length,
+    skippedSamples: [],
+  };
 }

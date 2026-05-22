@@ -104,16 +104,46 @@ export function ChartResult({
     return sortRoles([...set]);
   }, [result.chart]);
 
-  /** Mola kolonu: shifts.breaks'ten her saat için molada olan kişiler. */
+  /**
+   * Yarım mola (≤30dk) tespiti — kişi adı + saat eşleşmesi.
+   * Map<hour, Set<short_name>> — o saatte kişinin yarım molası var mı?
+   * Chart'ta hem MOLA satırında hem normal rol hücrelerinde "X 1/2" suffix
+   * için kullanılır (user kuralı 2026-05-22: paslaşma vurgusu).
+   */
+  const halfBreakNamesByHour = useMemo(() => {
+    const m = new Map<number, Set<string>>();
+    if (!shifts) return m;
+    for (const s of shifts) {
+      for (const [bStart, bEnd] of s.breaks ?? []) {
+        const dur = bEnd - bStart;
+        if (dur <= 0.5 + 1e-6) {
+          const h = Math.floor(bStart);
+          const set = m.get(h) ?? new Set<string>();
+          set.add(s.short_name);
+          m.set(h, set);
+        }
+      }
+    }
+    return m;
+  }, [shifts]);
+
+  /** İsmi o saate göre "1/2" suffix'iyle göstersin yarım molada ise. */
+  const displayName = (name: string, hour: number): string =>
+    halfBreakNamesByHour.get(hour)?.has(name) ? `${name} 1/2` : name;
+
+  /** Mola kolonu: shifts.breaks'ten her saat için molada olan kişiler.
+   *  Yarım molada ise "X 1/2" suffix'iyle. */
   const breaksByHour = useMemo(() => {
     const m = new Map<number, string[]>();
     if (!shifts) return m;
     for (const s of shifts) {
       for (const [bStart, bEnd] of s.breaks ?? []) {
-        // Mola aralığı yarım saat hassasiyeti: bStart ≤ h < bEnd ise o saatte molada
+        const dur = bEnd - bStart;
+        const isHalf = dur <= 0.5 + 1e-6;
         for (let h = Math.floor(bStart); h < Math.ceil(bEnd); h++) {
           const arr = m.get(h) ?? [];
-          if (!arr.includes(s.short_name)) arr.push(s.short_name);
+          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
+          if (!arr.includes(label)) arr.push(label);
           m.set(h, arr);
         }
       }
@@ -253,12 +283,15 @@ export function ChartResult({
                   </td>
                   {roles.map((r) => {
                     const persons = cellsByHourRole.get(`${h}|${r}`) ?? [];
+                    // Yarım molalı kişi normal rolde de görünüyorsa "X 1/2"
+                    // (paslaşma vurgusu — iki yarım molalı kişi aynı zone'u tutar).
+                    const labeled = persons.map((p) => displayName(p, h));
                     return (
                       <td key={r} className="p-2 text-center">
-                        {persons.length === 0 ? (
+                        {labeled.length === 0 ? (
                           <span className="text-stone-300">—</span>
                         ) : (
-                          <span className="leading-tight">{persons.join(" · ")}</span>
+                          <span className="leading-tight">{labeled.join(" · ")}</span>
                         )}
                       </td>
                     );
