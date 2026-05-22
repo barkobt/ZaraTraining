@@ -6,7 +6,7 @@ import type { GenerateResult, ShiftInputForChart } from "./ChartResult";
  *   A1: "Günlük Chart — {tarih}"
  *   Row 2: saat sütunları (10:00, 11:00, ..., 21:00)
  *   Row 3+: rol satırları (KABİN, KABİN WELCOMER, SPRİNTER, WELCOME, ZONE 2..5)
- *   Sonraki: MOLA, TASK, AKTİF İŞ GÜCÜ, Günün Sorumluları
+ *   Sonraki: MOLA, TASK, AKTİF İŞ GÜCÜ
  * Roller uppercase Türkçe (XLSX UTF-8'i destekler — asciify gereksiz).
  */
 const ROLE_ORDER = [
@@ -53,27 +53,10 @@ export function exportChartToExcel(
   const hours = [...new Set(result.chart.map((c) => c.hour))].sort((a, b) => a - b);
   const roles = sortRoles([...new Set(result.chart.map((c) => c.role))]);
 
-  const byKey = new Map<string, string[]>();
+  const byKey = new Map<string, string>();
   for (const c of result.chart) {
-    byKey.set(`${c.hour}|${c.role}`, c.persons);
+    byKey.set(`${c.hour}|${c.role}`, c.persons.join(" · "));
   }
-
-  // ── Yarım mola tespiti (≤30dk) — saat → set(name) ──
-  const halfBreakSetByHour = new Map<number, Set<string>>();
-  if (shifts) {
-    for (const s of shifts) {
-      for (const [bs, be] of s.breaks ?? []) {
-        if (be - bs <= 0.5 + 1e-6) {
-          const h = Math.floor(bs);
-          const set = halfBreakSetByHour.get(h) ?? new Set<string>();
-          set.add(s.short_name);
-          halfBreakSetByHour.set(h, set);
-        }
-      }
-    }
-  }
-  const displayName = (name: string, hour: number): string =>
-    halfBreakSetByHour.get(hour)?.has(name) ? `${name} 1/2` : name;
 
   // Saat → Mola / Task / Aktif iş gücü hesaplaması
   const breaksByHour = new Map<number, string[]>();
@@ -84,25 +67,17 @@ export function exportChartToExcel(
       let count = 0;
       for (const s of shifts) {
         if (h < s.start_hour || h >= s.end_hour) continue;
-        const fullBreak = (s.breaks ?? []).some(([bs, be]) => bs <= h && be >= h + 1);
+        const onBreak = (s.breaks ?? []).some(([bs, be]) => bs <= h && be >= h + 1);
         const onTask = (s.tasks ?? []).some(([th]) => th === h);
-        if (fullBreak || onTask) continue;
-        // Yarım mola 0.5 olarak say
-        const halfBreak = (s.breaks ?? []).some(([bs, be]) => {
-          const dur = be - bs;
-          return dur <= 0.5 + 1e-6 && Math.floor(bs) === h;
-        });
-        count += halfBreak ? 0.5 : 1;
+        if (!onBreak && !onTask) count++;
       }
       activeByHour.set(h, count);
     }
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
-        const isHalf = be - bs <= 0.5 + 1e-6;
         for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
           const arr = breaksByHour.get(h) ?? [];
-          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
-          if (!arr.includes(label)) arr.push(label);
+          if (!arr.includes(s.short_name)) arr.push(s.short_name);
           breaksByHour.set(h, arr);
         }
       }
@@ -117,15 +92,11 @@ export function exportChartToExcel(
   const hasTasks = tasksByHour.size > 0;
   const hasActive = activeByHour.size > 0;
 
-  // Pivot: satırlar = roller, sütunlar = saatler (1/2 suffix ile)
+  // Pivot: satırlar = roller, sütunlar = saatler
   const header = ["Rol", ...hours.map((h) => `${String(h).padStart(2, "0")}:00`)];
   const roleRows = roles.map((r) => [
     roleLabel(r),
-    ...hours.map((h) =>
-      (byKey.get(`${h}|${r}`) ?? [])
-        .map((p) => displayName(p, h))
-        .join(" · ") || "—",
-    ),
+    ...hours.map((h) => byKey.get(`${h}|${r}`) ?? "—"),
   ]);
 
   const extraRows: (string | number)[][] = [];
@@ -150,24 +121,6 @@ export function exportChartToExcel(
   for (let i = 0; i < hours.length; i++) titleRow.push("");
   const data: (string | number)[][] = [titleRow, [], header, ...roleRows, ...extraRows];
 
-  // ── Günün Sorumluları (Chart sheet'ine ekle) ──
-  const resp = (result.responsibilities ?? {}) as Record<string, string | null | undefined>;
-  const respItems = [
-    { key: "Liderlik", value: resp["Liderlik"] },
-    { key: "CX Sorumlusu", value: resp["CX Sorumlusu"] },
-    { key: "Runner Lider", value: resp["Runner Lider"] },
-    { key: "iPod Sorumlusu", value: resp["iPod Sorumlusu"] },
-    { key: "Aksiyon Sorumlusu", value: resp["Aksiyon Sorumlusu"] },
-  ].filter((it) => it.value && it.value.trim());
-
-  if (respItems.length > 0) {
-    data.push([]); // boş satır
-    data.push(["Günün Sorumluları"]);
-    for (const it of respItems) {
-      data.push([`  ${it.key}`, it.value!]);
-    }
-  }
-
   // Meta sheet
   const meta: (string | number)[][] = [
     ["Tarih", shiftDate],
@@ -177,6 +130,14 @@ export function exportChartToExcel(
     ["Chart ID", result.chartId ?? "-"],
     [],
   ];
+
+  if (result.responsibilities && Object.keys(result.responsibilities).length > 0) {
+    meta.push(["Günün Sorumluları"]);
+    for (const [role, person] of Object.entries(result.responsibilities)) {
+      if (person) meta.push([role, person]);
+    }
+    meta.push([]);
+  }
 
   meta.push(["Uyarılar"]);
   for (const w of result.warnings) meta.push([w]);

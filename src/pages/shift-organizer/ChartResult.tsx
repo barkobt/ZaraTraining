@@ -57,11 +57,6 @@ function sortRoles(roles: string[]): string[] {
   });
 }
 
-/** Hard roller — bu hücreler boş kalmamalı. Boşsa kırmızı uyarı. */
-const HARD_ROLES = new Set([
-  "KABİN", "KABİN WELCOMER", "WELCOME", "ZONE 3", "ZONE 4", "ZONE 5",
-]);
-
 /**
  * GenerateTab veya ArchiveTab'tan gelen shift girdileri (mola hesabı için).
  * Mola kolonu opsiyonel: yoksa gösterilmez.
@@ -173,8 +168,7 @@ export function ChartResult({
   }, [shifts]);
   const hasTasks = tasksByHour.size > 0;
 
-  /** Aktif İş Gücü: o saatte sahada + mola/task hariç.
-   *  Yarım molada olan kişi 0.5 olarak sayılır (tam dışlanmaz). */
+  /** Aktif İş Gücü: o saatte sahada + mola/task hariç. */
   const activeWorkforceByHour = useMemo(() => {
     const m = new Map<number, number>();
     if (!shifts) return m;
@@ -183,21 +177,14 @@ export function ChartResult({
       for (const s of shifts) {
         if (h < s.start_hour || h >= s.end_hour) continue;
         // Tam saat mola?
-        const fullBreak = (s.breaks ?? []).some(
+        const onBreak = (s.breaks ?? []).some(
           ([bs, be]) => bs <= h && be >= h + 1,
         );
-        if (fullBreak) continue;
+        if (onBreak) continue;
         // Blocking task?
         const onTask = (s.tasks ?? []).some(([th]) => th === h);
         if (onTask) continue;
-        // Yarım mola? (0.5 saat eksik)
-        const halfBreak = (s.breaks ?? []).some(
-          ([bs, be]) => {
-            const dur = be - bs;
-            return dur <= 0.5 + 1e-6 && Math.floor(bs) === h;
-          },
-        );
-        count += halfBreak ? 0.5 : 1;
+        count++;
       }
       m.set(h, count);
     }
@@ -240,7 +227,7 @@ export function ChartResult({
                 onClick={onExportExcel}
                 className="border border-black px-3 py-1 text-[10px] tracking-[0.2em] uppercase flex items-center gap-1 hover:bg-stone-100"
               >
-                <Download size={11} strokeWidth={1.5} /> Numbers / Excel
+                <Download size={11} strokeWidth={1.5} /> Excel
               </button>
             )}
           </div>
@@ -299,20 +286,10 @@ export function ChartResult({
                     // Yarım molalı kişi normal rolde de görünüyorsa "X 1/2"
                     // (paslaşma vurgusu — iki yarım molalı kişi aynı zone'u tutar).
                     const labeled = persons.map((p) => displayName(p, h));
-                    const isEmpty = labeled.length === 0;
-                    const isHardEmpty = isEmpty && HARD_ROLES.has(r);
                     return (
-                      <td
-                        key={r}
-                        className={`p-2 text-center ${isHardEmpty ? "bg-red-50" : ""}`}
-                        style={isHardEmpty ? { border: "1px solid #ef4444" } : undefined}
-                      >
-                        {isEmpty ? (
-                          isHardEmpty ? (
-                            <span className="text-red-400 text-[9px]">BOŞ</span>
-                          ) : (
-                            <span className="text-stone-300">—</span>
-                          )
+                      <td key={r} className="p-2 text-center">
+                        {labeled.length === 0 ? (
+                          <span className="text-stone-300">—</span>
                         ) : (
                           <span className="leading-tight">{labeled.join(" · ")}</span>
                         )}

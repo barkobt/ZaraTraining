@@ -3,7 +3,6 @@ import { Loader2, Upload, FileText } from "lucide-react";
 import { staffLabel, type StaffRow } from "./constants";
 import { ChartResult, type GenerateResult } from "./ChartResult";
 import { exportChartToExcel } from "./excel-export";
-import { exportChartToNumbers } from "./numbers-export";
 import { exportChartToPdf } from "./pdf-export";
 import {
   parseShiftsFromPdfWithReport,
@@ -21,14 +20,30 @@ export type ShiftInput = {
   tasks: Array<[number, string]>;
 };
 
-/** Mola aralığını kullanıcı-dostu metin formatına çevirir: 13.5→"13:30", 12→"12:00". */
-function breakLabel(start: number): string {
-  const h = Math.floor(start);
-  const m = Math.round((start % 1) * 60);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+/** Mola listesini compact UI metnine çevirir: [(12,13),(15,16)] → "12,15". */
+function breakStr(breaks: Array<[number, number]> | undefined): string {
+  if (!breaks || breaks.length === 0) return "";
+  return breaks.map(([s]) => String(s)).join(",");
 }
 
-
+/** Compact UI metnini mola listesine çevirir: "12, 15" → [(12,13),(15,16)]. */
+function parseBreakStr(s: string): Array<[number, number]> {
+  return s
+    .split(/[,\s;]+/)
+    .map((p) => p.trim())
+    .filter((p) => /^\d{1,2}(?:[.:]\d{1,2})?$/.test(p))
+    .map((p) => {
+      // "10.5" yarım saat, "11" tam saat. Float parse.
+      const n = parseFloat(p.replace(":", "."));
+      return n;
+    })
+    .filter((h) => Number.isFinite(h) && h >= 0 && h < 24)
+    .map((h) => {
+      // Yarım saat: 0.5 dur; Tam saat: 1.0 dur
+      const dur = h % 1 === 0.5 ? 0.5 : 1.0;
+      return [h, h + dur] as [number, number];
+    });
+}
 
 /** Task listesini compact UI metnine çevirir: [(18,'HR')] → "18:HR". */
 function taskStr(tasks: Array<[number, string]>): string {
@@ -216,38 +231,12 @@ export function GenerateTab({
     setPdfError(null);
     setParseReport(null);
     try {
-      let report = await parseShiftsFromPdfWithReport(file);
+      const report = await parseShiftsFromPdfWithReport(file);
       // BASIC dışındaki / eşleşmeyen satırların raporunu kullanıcıya göstermiyoruz
       setParseReport({ ...report, skippedSamples: [] });
-
-      // Fallback: structured parser 0 sonuç verirse, PDF'in tüm text'ini çıkar
-      // ve text parser'a ver.
-      if (report.shifts.length === 0) {
-        console.warn("[pdf-parser] Structured parse returned 0 shifts, trying text fallback…");
-        const pdfjsLib = await import("pdfjs-dist");
-        const buf = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-        const lines: string[] = [];
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          const text = (content.items as Array<{ str: string }>)
-            .map((it) => it.str)
-            .join(" ");
-          lines.push(text);
-        }
-        const rawText = lines.join("\n");
-        const textReport = parseShiftsFromTextWithReport(rawText);
-        if (textReport.shifts.length > 0) {
-          report = textReport;
-          setParseReport({ ...report, skippedSamples: [] });
-          setPdfError("PDF yapısal olarak okunamadı (BASIC header bulunamadı). Metin bazlı fallback kullanıldı.");
-        }
-      }
-
       if (report.shifts.length === 0) {
         setPdfError(
-          `PDF okundu ama vardiya bulunamadı. Metin yapıştırmayı dene.`,
+          `PDF okundu ama BASIC bölümünde vardiya bulunamadı. Metin yapıştırmayı dene.`,
         );
         return;
       }
@@ -473,69 +462,22 @@ export function GenerateTab({
                     disabled={!row.included}
                     className="w-10 text-xs border-b border-stone-300 outline-none focus:border-black text-right"
                   />
-                  {/* Mola saatleri — saat+dakika dropdown + chip UI */}
-                  {row.included && (
-                    <div className="flex items-center gap-1 flex-wrap">
-                      {(row.breaks ?? []).map(([bs]) => (
-                        <span
-                          key={bs}
-                          className="inline-flex items-center gap-0.5 bg-amber-100 text-amber-800 px-1.5 py-0.5 text-[9px] font-mono tabular-nums"
-                        >
-                          {breakLabel(bs)}
-                          <button
-                            onClick={() => {
-                              const next = (row.breaks ?? []).filter(([s]) => Math.abs(s - bs) > 0.01);
-                              setShiftsState((prev) => ({ ...prev, [p.id]: { ...row, breaks: next } }));
-                            }}
-                            className="text-amber-600 hover:text-red-600 ml-0.5 leading-none"
-                            title="Molayı sil"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                      <span className="inline-flex items-center gap-0.5">
-                        <select
-                          className="w-11 text-[9px] border border-stone-200 bg-white outline-none py-0.5 text-center font-mono"
-                          defaultValue="13"
-                          id={`brk-h-${p.id}`}
-                        >
-                          {Array.from({ length: row.end - row.start }, (_, i) => row.start + i).map((h) => (
-                            <option key={h} value={h}>{String(h).padStart(2, "0")}</option>
-                          ))}
-                        </select>
-                        <select
-                          className="w-9 text-[9px] border border-stone-200 bg-white outline-none py-0.5 text-center font-mono"
-                          defaultValue="0"
-                          id={`brk-m-${p.id}`}
-                        >
-                          <option value="0">00</option>
-                          <option value="30">30</option>
-                        </select>
-                        <button
-                          onClick={() => {
-                            const hEl = document.getElementById(`brk-h-${p.id}`) as HTMLSelectElement | null;
-                            const mEl = document.getElementById(`brk-m-${p.id}`) as HTMLSelectElement | null;
-                            if (!hEl || !mEl) return;
-                            const h = parseInt(hEl.value, 10);
-                            const m = parseInt(mEl.value, 10);
-                            const start = h + m / 60;
-                            const dur = m === 30 ? 0.5 : 1;
-                            const exists = (row.breaks ?? []).some(([s]) => Math.abs(s - start) < 0.01);
-                            if (exists) return;
-                            const next = [...(row.breaks ?? []), [start, start + dur] as [number, number]].sort(
-                              (a, b) => a[0] - b[0],
-                            );
-                            setShiftsState((prev) => ({ ...prev, [p.id]: { ...row, breaks: next } }));
-                          }}
-                          className="bg-amber-600 text-white px-1 py-0.5 text-[8px] hover:bg-amber-700"
-                          title="Mola ekle"
-                        >
-                          +
-                        </button>
-                      </span>
-                    </div>
-                  )}
+                  {/* Mola saatleri — compact text input, "12,15" veya "10.5,13.5" */}
+                  <input
+                    type="text"
+                    value={breakStr(row.breaks)}
+                    placeholder="Mola"
+                    title="Mola saatleri, örn: 12,15 (tam) veya 10.5,13.5 (yarım)"
+                    onChange={(e) => {
+                      const breaks = parseBreakStr(e.target.value);
+                      setShiftsState((prev) => ({
+                        ...prev,
+                        [p.id]: { ...row, breaks },
+                      }));
+                    }}
+                    disabled={!row.included}
+                    className="w-14 text-[10px] border-b border-stone-300 outline-none focus:border-amber-600 text-center font-mono tabular-nums placeholder:text-stone-300"
+                  />
                   {/* Task saatleri — HR/TR/ISG, "18:HR,17:TR" */}
                   <input
                     type="text"
@@ -649,7 +591,7 @@ export function GenerateTab({
             }))}
           shiftDate={shiftDate}
           onExportExcel={() =>
-            exportChartToNumbers(
+            exportChartToExcel(
               generate.data!,
               shiftDate,
               staff
@@ -661,7 +603,6 @@ export function GenerateTab({
                   breaks: shiftsState[s.id].breaks ?? [],
                   tasks: shiftsState[s.id].tasks ?? [],
                 })),
-              altInfo,
             )
           }
           onExportPdf={() =>

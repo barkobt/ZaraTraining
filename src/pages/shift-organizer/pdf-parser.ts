@@ -57,14 +57,11 @@ export type ParseReport = {
 // ─── Yardımcılar ───
 
 function parseHour(s: string): number | null {
-  // "10:00"→10, "10.00"→10, "10"→10, "13:30"→13.5, "10.30"→10.5
+  // "10:00", "10.00", "10", "1000" → 10
   const m = s.trim().match(/^(\d{1,2})(?:[:.,](\d{1,2}))?$/);
   if (!m) return null;
   const h = parseInt(m[1], 10);
-  const min = m[2] ? parseInt(m[2], 10) : 0;
-  if (!Number.isFinite(h) || h < 0 || h > 24) return null;
-  if (min > 59) return null;
-  return h + min / 60;
+  return Number.isFinite(h) && h >= 0 && h <= 24 ? h : null;
 }
 
 function cleanName(s: string): string {
@@ -123,15 +120,6 @@ function isLikelyName(s: string): boolean {
 //
 // HR/TR/ISG task notasyonu:
 //   "HR 18", "HR 18:00", "TR 15:00-16:00", "ISG 17", "18 HR", "18:00 HR"
-function parseHourFloat(s: string): number {
-  // "13" → 13, "13:30" → 13.5, "14:00" → 14
-  const m = s.trim().match(/^(\d{1,2})(?:[:.,](\d{1,2}))?$/);
-  if (!m) return NaN;
-  const h = parseInt(m[1], 10);
-  const min = m[2] ? parseInt(m[2], 10) : 0;
-  return h + min / 60;
-}
-
 function extractBreaksAndTasks(
   rawLine: string,
   startHour: number,
@@ -147,23 +135,19 @@ function extractBreaksAndTasks(
 
   const pushBreak = (h1: number, h2?: number) => {
     if (!inRange(h1)) return;
-    // Yarım saat mola: 13.5 → dur=0.5, Tam saat: 13 → dur=1
-    const dur = Number.isFinite(h2) && (h2 as number) > h1
-      ? Math.min(h2! - h1, endHour - h1)
-      : (h1 % 1 >= 0.4 ? 0.5 : 1);
-    const e = h1 + dur;
-    // dedupe — aynı başlangıç saati varsa ekleme
-    if (!breaks.some(([s]) => Math.abs(s - h1) < 0.01)) breaks.push([h1, e]);
+    const e = Number.isFinite(h2) && (h2 as number) > h1 ? Math.min(h2!, endHour) : h1 + 1;
+    // dedupe
+    if (!breaks.some(([s]) => s === h1)) breaks.push([h1, e]);
   };
 
   // Parser 1 — "B"/"MOLA"/"BREAK" keyword + saat (HH veya HH:MM, opsiyonel aralık)
   // Yakaladığı: "b 13", "B13:00", "mola 14", "Mola 14:30-15:00", "Break 15"
   {
-    const re = /\b(?:b|bb|mola|break)\s*[:.\s]*(\d{1,2}(?:[:.,]\d{1,2})?)(?:\s*[-–—]\s*(\d{1,2}(?:[:.,]\d{1,2})?))?/gi;
+    const re = /\b(?:b|bb|mola|break)\s*[:.\s]*(\d{1,2})(?:[:.,]\d{1,2})?(?:\s*[-–—]\s*(\d{1,2})(?:[:.,]\d{1,2})?)?/gi;
     let m: RegExpExecArray | null;
     while ((m = re.exec(rawLine))) {
-      const h1 = parseHourFloat(m[1]);
-      const h2 = m[2] ? parseHourFloat(m[2]) : NaN;
+      const h1 = parseInt(m[1], 10);
+      const h2 = m[2] ? parseInt(m[2], 10) : NaN;
       pushBreak(h1, h2);
     }
   }
@@ -171,25 +155,25 @@ function extractBreaksAndTasks(
   // Parser 2 — saat + "B"/"MOLA"/"BREAK" (ters sıralama)
   // Yakaladığı: "13 b", "13:00 B", "13:00-14:00 B", "14 Mola", "13B"
   {
-    const re = /(\d{1,2}(?:[:.,]\d{1,2})?)(?:\s*[-–—]\s*(\d{1,2}(?:[:.,]\d{1,2})?))?\s*\b(?:b|bb|mola|break)\b/gi;
+    const re = /(\d{1,2})(?:[:.,]\d{1,2})?(?:\s*[-–—]\s*(\d{1,2})(?:[:.,]\d{1,2})?)?\s*\b(?:b|bb|mola|break)\b/gi;
     let m: RegExpExecArray | null;
     while ((m = re.exec(rawLine))) {
-      const h1 = parseHourFloat(m[1]);
-      const h2 = m[2] ? parseHourFloat(m[2]) : NaN;
+      const h1 = parseInt(m[1], 10);
+      const h2 = m[2] ? parseInt(m[2], 10) : NaN;
       pushBreak(h1, h2);
     }
   }
 
   // Parser 3 — bitişik "B13" / "B13:30" / "13B" (no space)
   {
-    const re = /(?:^|[\s\t])(?:[Bb])(\d{1,2}(?:[:.,]\d{1,2})?)(?=[\s\t]|$)/g;
+    const re = /(?:^|[\s\t])(?:[Bb])(\d{1,2})(?:[:.,]\d{1,2})?(?=[\s\t]|$)/g;
     let m: RegExpExecArray | null;
-    while ((m = re.exec(rawLine))) pushBreak(parseHourFloat(m[1]));
+    while ((m = re.exec(rawLine))) pushBreak(parseInt(m[1], 10));
   }
   {
-    const re = /(?:^|[\s\t])(\d{1,2}(?:[:.,]\d{1,2})?)[Bb](?=[\s\t]|$)/g;
+    const re = /(?:^|[\s\t])(\d{1,2})(?:[:.,]\d{1,2})?[Bb](?=[\s\t]|$)/g;
     let m: RegExpExecArray | null;
-    while ((m = re.exec(rawLine))) pushBreak(parseHourFloat(m[1]));
+    while ((m = re.exec(rawLine))) pushBreak(parseInt(m[1], 10));
   }
 
   // Task: "HR 18", "TR 15:00", "ISG 17"
@@ -585,25 +569,17 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     }
     if (currentRow.length) rows.push(currentRow);
 
-    // 2) Header satırı: tablo başlıklarını içerir.
-    //    İngilizce: "Name", "Shift", "Break", "Hours"
-    //    Türkçe:    "Ad", "Vardiya", "Mola", "Saat"
-    //    Her iki dilde de aranır.
-    const NAME_ALIASES = ["name", "ad", "isim", "personel", "çalışan"];
-    const SHIFT_ALIASES = ["shift", "vardiya", "mesai"];
-    const BREAK_ALIASES = ["break", "mola", "ara"];
-    const HOURS_ALIASES = ["hours", "hrs", "saat", "süre"];
-
-    const findAlias = (lower: string[], aliases: string[]) =>
-      aliases.some((a) => lower.includes(a));
-
+    // 2) Header satırı: "Name", "Shift", "Break", "Hours" başlıklarını içerir.
+    //    Sayfa 1'de ilk header'ı bul; sonraki sayfalarda da aynı x-koordinatlar
+    //    olduğu için ilk sayfadaki header'ı yeniden kullanmak da mümkün, ama
+    //    safety için her sayfada arıyoruz.
     const headerRow = rows.find((r) => {
       const lower = r.map((it) => it.str.trim().toLowerCase());
       return (
-        findAlias(lower, NAME_ALIASES) &&
-        findAlias(lower, SHIFT_ALIASES) &&
-        findAlias(lower, BREAK_ALIASES) &&
-        findAlias(lower, HOURS_ALIASES)
+        lower.includes("name") &&
+        lower.includes("shift") &&
+        lower.includes("break") &&
+        lower.includes("hours")
       );
     });
     if (!headerRow) {
@@ -612,12 +588,12 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     }
 
     // 3) Sütun x-aralıkları
-    const findCol = (aliases: string[]) =>
-      headerRow.find((it) => aliases.includes(it.str.trim().toLowerCase()));
-    const nameH = findCol(NAME_ALIASES)!;
-    const shiftH = findCol(SHIFT_ALIASES)!;
-    const breakH = findCol(BREAK_ALIASES)!;
-    const hoursH = findCol(HOURS_ALIASES)!;
+    const findCol = (label: string) =>
+      headerRow.find((it) => it.str.trim().toLowerCase() === label);
+    const nameH = findCol("name")!;
+    const shiftH = findCol("shift")!;
+    const breakH = findCol("break")!;
+    const hoursH = findCol("hours")!;
     // Her sütun: [x_start, x_end). Header item'ının x-pozisyonu sütunun sol
     // kenarına yakın; sağ kenarı bir sonraki header'ın x'ine kadar uzanır.
     // Header'lar x sırasına göre yeniden sıralanır.
@@ -657,10 +633,13 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
         lastPerson = null; // section değişiminde "lastPerson" track'ini sıfırla
         continue;
       }
-      // BASIC görüldü ve şu an başka bir section'dayız → atla
-      if (sawBasic && !inBasic) continue;
-      // BASIC hiç görülmediyse → TÜM satırları parse et (fallback)
-      // Bu sayede "BASIC" keyword'ü olmayan PDF'ler de çalışır.
+      if (!inBasic && sawBasic) continue;
+      // BASIC görmediğimiz sayfalarda da deneyebiliriz; ama tipik olarak ilk
+      // sayfada BASIC header vardır.
+      if (!inBasic && !sawBasic) {
+        // Henüz BASIC başlamamış (sayfa üstü/header) → atla
+        continue;
+      }
 
       const nameItems = row.filter((it) => inCol(it, cols.name as [number, number]));
       const shiftItems = row.filter((it) => inCol(it, cols.shift as [number, number]));
@@ -732,27 +711,8 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
   const seen = new Map<string, ParsedShift>();
   for (const s of shifts) seen.set(s.name.toLowerCase(), s);
 
-  const finalShifts = Array.from(seen.values());
-
-  // Dev-only debug log — production'da console.debug sessizdir.
-  if (typeof console !== "undefined" && console.debug) {
-    console.debug(
-      "[pdf-parser] Structured parse result:",
-      finalShifts.map((s) => ({
-        name: s.name,
-        shift: `${s.startHour}:00–${s.endHour}:00`,
-        breaks: s.breaks.map(([bs, be]) => {
-          const fmtH = (f: number) => `${Math.floor(f)}:${String(Math.round((f % 1) * 60)).padStart(2, "0")}`;
-          return `${fmtH(bs)}–${fmtH(be)}`;
-        }),
-        tasks: s.tasks,
-        source: s.source,
-      })),
-    );
-  }
-
   return {
-    shifts: finalShifts,
+    shifts: Array.from(seen.values()),
     totalLines: shifts.length,
     matchedLines: shifts.length,
     skippedSamples: [],
