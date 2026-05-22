@@ -257,11 +257,92 @@ const PATTERNS: Array<{
   },
 ];
 
+/**
+ * Bir satırdaki TÜM `HH:MM-HH:MM` aralıklarını sırayla çıkar.
+ *
+ * Orquest PDF'inde her isim satırının yapısı:
+ *   "İsim Soyadı  HH:MM-HH:MM  HH:MM-HH:MM  ...  Nh"
+ *                  └─shift─┘    └─break(s)─┘
+ *
+ * İlk aralık = shift, sonraki aralıklar = mola (1 veya 2 mola olabilir).
+ * Aralık `<hours>h` veya satır sonuna kadar taranır.
+ *
+ * Yarım saat mola: 11:00-11:30 → float aralık (11.0, 11.5).
+ */
+type HourRange = { start: number; end: number; startFloat: number; endFloat: number };
+
+function extractAllHourRanges(line: string): HourRange[] {
+  const ranges: HourRange[] = [];
+  // HH:MM-HH:MM (HH 1-2 digit, MM 2 digit; ayraç: - – —)
+  const re = /(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(line))) {
+    const sh = parseInt(m[1], 10);
+    const sm = parseInt(m[2], 10);
+    const eh = parseInt(m[3], 10);
+    const em = parseInt(m[4], 10);
+    if (sh < 0 || sh > 24 || eh < 0 || eh > 24) continue;
+    if (sm > 59 || em > 59) continue;
+    const startF = sh + sm / 60;
+    const endF = eh + em / 60;
+    if (endF <= startF) continue;
+    ranges.push({
+      start: sh,
+      end: eh,
+      startFloat: startF,
+      endFloat: endF,
+    });
+  }
+  return ranges;
+}
+
 function tryParseLine(rawLine: string): ParsedShift | null {
   // Pre-process: tek satıra, tab/multi-space → tek boşluk, gün adı önekini at
   const line = cleanName(rawLine);
   if (line.length < 4) return null;
 
+  // ── ORQUEST STRUCTURED PATTERN ──
+  // Satırda en az 1 HH:MM-HH:MM aralığı + isim önek ara.
+  // 2+ aralık varsa: 1.si shift, geri kalan break(s).
+  const ranges = extractAllHourRanges(line);
+  if (ranges.length >= 1) {
+    // İlk aralığın konumu — öncesindeki kısım isim adayı
+    const firstRangeText = `${String(ranges[0].start).padStart(2, "0")}:${String(Math.round((ranges[0].startFloat % 1) * 60)).padStart(2, "0")}`;
+    const firstIdx = line.search(/\d{1,2}[:.]\d{2}\s*[-–—]/);
+    if (firstIdx > 0) {
+      const before = line.slice(0, firstIdx).trim();
+      const n = cleanName(before);
+      if (isLikelyName(n)) {
+        const shift = ranges[0];
+        // Sonraki aralıklar = breaks (shift aralığının İÇİNDE olanlar)
+        const breaks: Array<[number, number]> = [];
+        for (let i = 1; i < ranges.length; i++) {
+          const r = ranges[i];
+          // Mola, shift aralığının içinde olmalı; aksi halde başka satırın aralığı
+          if (r.startFloat >= shift.startFloat && r.endFloat <= shift.endFloat) {
+            breaks.push([r.startFloat, r.endFloat]);
+          }
+        }
+        // Ek olarak loose extractor (B/MOLA keyword) çıkarsın, dedupe et
+        const bt = extractBreaksAndTasks(rawLine, shift.start, shift.end);
+        for (const b of bt.breaks) {
+          if (!breaks.some(([s]) => Math.abs(s - b[0]) < 0.01)) breaks.push(b);
+        }
+        // Suppress: firstRangeText sadece debug
+        void firstRangeText;
+        return {
+          name: n,
+          startHour: shift.start,
+          endHour: shift.end,
+          breaks,
+          tasks: bt.tasks,
+          source: rawLine,
+        };
+      }
+    }
+  }
+
+  // ── Eski PATTERN'ler (geriye dönük uyum) ──
   for (const p of PATTERNS) {
     const m = line.match(p.re);
     if (m) {
@@ -367,13 +448,31 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
         .filter((l) => !tryParseLine(l));
       if (followLines.length > 0) {
         const combined = followLines.join(" ");
+        // 1) Loose B/MOLA keyword extractor
         const extra = extractBreaksAndTasksLoose(combined, p.startHour, p.endHour);
         for (const b of extra.breaks) {
-          if (!p.breaks.some(([s]) => s === b[0])) p.breaks.push(b);
+          if (!p.breaks.some(([s]) => Math.abs(s - b[0]) < 0.01)) p.breaks.push(b);
         }
         for (const t of extra.tasks) {
           if (!p.tasks.some((x) => x.hour === t.hour && x.type === t.type)) {
             p.tasks.push(t);
+          }
+        }
+        // 2) Structured HH:MM-HH:MM aralıkları (multi-line break hücresi)
+        //    Fadime/Kıymet gibi 2 molalı kişilerde Orquest PDF break
+        //    hücresini iki satıra böler. Bu alt satırlardaki aralıkları da
+        //    shift içinde olanlar için break'e ekle.
+        for (const range of extractAllHourRanges(combined)) {
+          // Shift aralığının içinde olmalı
+          if (range.startFloat < p.startHour || range.endFloat > p.endHour) continue;
+          // Tüm shift aralığını kapsıyorsa (yani aslında shift'in kendisi
+          // başka şekilde yazılmış) atla
+          if (
+            range.startFloat === p.startHour &&
+            range.endFloat === p.endHour
+          ) continue;
+          if (!p.breaks.some(([s]) => Math.abs(s - range.startFloat) < 0.01)) {
+            p.breaks.push([range.startFloat, range.endFloat]);
           }
         }
       }
