@@ -32,8 +32,8 @@ function competenciesToSolver(row: StaffWithCompetencies): Record<string, number
 
 function tenureToGroup(row: StaffWithCompetencies): string {
   if (row.isManager) {
-    if (row.note && /müdür/i.test(row.note)) return "YONETICI";
-    return "SAHA_YONETIM";
+    if (row.note && /organizasyon/i.test(row.note)) return "SAHA_YONETIM";
+    return "YONETICI";
   }
   return TENURE_TO_GROUP[row.tenureLevel] ?? "CEKIRDEK";
 }
