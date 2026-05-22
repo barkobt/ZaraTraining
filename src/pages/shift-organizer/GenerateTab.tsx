@@ -236,7 +236,7 @@ export function GenerateTab({
       setParseReport({ ...report, skippedSamples: [] });
       if (report.shifts.length === 0) {
         setPdfError(
-          `PDF okundu ama BASIC bölümünde vardiya bulunamadı. Metin yapıştırmayı dene.`,
+          `PDF'den vardiya çıkarılamadı. Muhtemel nedenler: (1) PDF'in sütun başlıkları İngilizce değil, (2) "BASIC" bölüm başlığı eksik, (3) saat formatı tanınmadı. Metin yapıştırma seçeneğini dene.`,
         );
         return;
       }

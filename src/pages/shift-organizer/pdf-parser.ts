@@ -288,14 +288,14 @@ type HourRange = { start: number; end: number; startFloat: number; endFloat: num
 
 function extractAllHourRanges(line: string): HourRange[] {
   const ranges: HourRange[] = [];
-  // HH:MM-HH:MM (HH 1-2 digit, MM 2 digit; ayraç: - – —)
-  const re = /(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/g;
+  // HH:MM-HH:MM, HH-HH, HH:MM-HH, HH-HH:MM (ayraç: - – —)
+  const re = /(\d{1,2})(?:[:.](\d{2}))?\s*[-–—]\s*(\d{1,2})(?:[:.](\d{2}))?/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(line))) {
     const sh = parseInt(m[1], 10);
-    const sm = parseInt(m[2], 10);
+    const sm = m[2] ? parseInt(m[2], 10) : 0;
     const eh = parseInt(m[3], 10);
-    const em = parseInt(m[4], 10);
+    const em = m[4] ? parseInt(m[4], 10) : 0;
     if (sh < 0 || sh > 24 || eh < 0 || eh > 24) continue;
     if (sm > 59 || em > 59) continue;
     const startF = sh + sm / 60;
@@ -588,27 +588,36 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     //    Sayfa 1'de ilk header'ı bul; sonraki sayfalarda da aynı x-koordinatlar
     //    olduğu için ilk sayfadaki header'ı yeniden kullanmak da mümkün, ama
     //    safety için her sayfada arıyoruz.
+    const HEADER_KEYWORDS: Record<string, string[]> = {
+      name: ["name", "nombre", "isim", "personel", "empleado", "personnel", "employee"],
+      shift: ["shift", "turno", "vardiya", "time", "horario", "schedule"],
+      break: ["break", "descanso", "pausa", "mola", "rest", "pause"],
+      hours: ["hours", "horas", "saat", "total", "süre", "sure", "duration"],
+    };
+    const findHeaderCol = (row: Item[], keywords: string[]): Item | undefined =>
+      row.find((it) => {
+        const s = it.str.trim().toLowerCase().replace(/[:;]+$/g, "");
+        return keywords.some((kw) => s === kw || s.includes(kw));
+      });
     const headerRow = rows.find((r) => {
-      const lower = r.map((it) => it.str.trim().toLowerCase());
       return (
-        lower.includes("name") &&
-        lower.includes("shift") &&
-        lower.includes("break") &&
-        lower.includes("hours")
+        findHeaderCol(r, HEADER_KEYWORDS.name) &&
+        findHeaderCol(r, HEADER_KEYWORDS.shift) &&
+        findHeaderCol(r, HEADER_KEYWORDS.break) &&
+        findHeaderCol(r, HEADER_KEYWORDS.hours)
       );
     });
     if (!headerRow) {
-      // Bu sayfada tablo header yok → atla
+      console.warn(`[PDF Parser] Page ${i}: no header row found`);
       continue;
     }
+    console.warn(`[PDF Parser] Page ${i}: header row found`);
 
     // 3) Sütun x-aralıkları
-    const findCol = (label: string) =>
-      headerRow.find((it) => it.str.trim().toLowerCase() === label);
-    const nameH = findCol("name")!;
-    const shiftH = findCol("shift")!;
-    const breakH = findCol("break")!;
-    const hoursH = findCol("hours")!;
+    const nameH = findHeaderCol(headerRow, HEADER_KEYWORDS.name)!;
+    const shiftH = findHeaderCol(headerRow, HEADER_KEYWORDS.shift)!;
+    const breakH = findHeaderCol(headerRow, HEADER_KEYWORDS.break)!;
+    const hoursH = findHeaderCol(headerRow, HEADER_KEYWORDS.hours)!;
     // Her sütun: [x_start, x_end). Header item'ının x-pozisyonu sütunun sol
     // kenarına yakın; sağ kenarı bir sonraki header'ın x'ine kadar uzanır.
     // Header'lar x sırasına göre yeniden sıralanır.
@@ -627,7 +636,7 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     // Bölüm header satırlarını ("BASIC", "CABALLERO", "KASA", "MÜDUR", "NIÑO",
     // "OPERASYON", "WOMAN") tespit edip BASIC içi/dışı durumu takip et.
     const SECTION_KEYWORDS = new Set([
-      "BASIC", "CABALLERO", "KASA", "MÜDUR", "MÜDÜR", "NIÑO", "NINO",
+      "BASIC", "CABALLERO", "KASA", "MÜDUR", "MUDUR", "NIÑO", "NINO",
       "OPERASYON", "WOMAN", "WOMEN", "MAN", "MEN", "KIDS",
     ]);
 
@@ -642,6 +651,7 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
         if (firstTok === "BASIC") {
           inBasic = true;
           sawBasic = true;
+          console.warn("[PDF Parser] Section BASIC detected");
         } else {
           inBasic = false;
         }
@@ -649,11 +659,32 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
         continue;
       }
       if (!inBasic && sawBasic) continue;
-      // BASIC görmediğimiz sayfalarda da deneyebiliriz; ama tipik olarak ilk
-      // sayfada BASIC header vardır.
       if (!inBasic && !sawBasic) {
-        // Henüz BASIC başlamamış (sayfa üstü/header) → atla
-        continue;
+        // Henüz explicit BASIC section görmedik. Satır kişi satırına
+        // benziyorsa otomatik BASIC moduna geç.
+        const previewName = row
+          .filter((it) => inCol(it, cols.name as [number, number]))
+          .sort((a, b) => a.x - b.x)
+          .map((it) => it.str)
+          .join(" ")
+          .trim();
+        const previewShift = row
+          .filter((it) => inCol(it, cols.shift as [number, number]))
+          .sort((a, b) => a.x - b.x)
+          .map((it) => it.str)
+          .join(" ")
+          .trim();
+        if (
+          previewName &&
+          isLikelyName(previewName) &&
+          extractAllHourRanges(previewShift).length > 0
+        ) {
+          inBasic = true;
+          sawBasic = true;
+          console.warn("[PDF Parser] Auto-entering BASIC mode (no section header found)");
+        } else {
+          continue;
+        }
       }
 
       const nameItems = row.filter((it) => inCol(it, cols.name as [number, number]));
@@ -725,11 +756,49 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
   // gerçekte olmaz ama defansif): dedupe.
   const seen = new Map<string, ParsedShift>();
   for (const s of shifts) seen.set(s.name.toLowerCase(), s);
+  let resultShifts = Array.from(seen.values());
+
+  // Fallback: yapısal parser 0 shift bulduysa, tüm metni çıkarıp
+  // text tabanlı parser'a ver (eski, daha toleranslı parser).
+  if (resultShifts.length === 0) {
+    console.warn("[PDF Parser] Structured parser found 0 shifts, falling back to text parser");
+    try {
+      const allLines: string[] = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const items = (content.items as Array<{ str: string; transform: number[] }>)
+          .map((it) => ({ y: it.transform[5], x: it.transform[4], str: it.str }))
+          .filter((it) => it.str.trim().length > 0);
+        items.sort((a, b) => b.y - a.y || a.x - b.x);
+        const lines: string[] = [];
+        let currentLine = "";
+        let lastY = Number.POSITIVE_INFINITY;
+        for (const it of items) {
+          if (currentLine === "" || Math.abs(it.y - lastY) < 3) {
+            currentLine += (currentLine ? " " : "") + it.str;
+            lastY = it.y;
+          } else {
+            lines.push(currentLine.trim());
+            currentLine = it.str;
+            lastY = it.y;
+          }
+        }
+        if (currentLine) lines.push(currentLine.trim());
+        allLines.push(...lines);
+      }
+      const textReport = parseShiftsFromTextWithReport(allLines.join("\n"));
+      resultShifts = textReport.shifts;
+      console.warn(`[PDF Parser] Text fallback found ${resultShifts.length} shifts`);
+    } catch (e) {
+      console.warn("[PDF Parser] Text fallback failed:", e);
+    }
+  }
 
   return {
-    shifts: Array.from(seen.values()),
-    totalLines: shifts.length,
-    matchedLines: shifts.length,
+    shifts: resultShifts,
+    totalLines: resultShifts.length,
+    matchedLines: resultShifts.length,
     skippedSamples: [],
   };
 }
