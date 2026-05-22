@@ -216,12 +216,38 @@ export function GenerateTab({
     setPdfError(null);
     setParseReport(null);
     try {
-      const report = await parseShiftsFromPdfWithReport(file);
+      let report = await parseShiftsFromPdfWithReport(file);
       // BASIC dışındaki / eşleşmeyen satırların raporunu kullanıcıya göstermiyoruz
       setParseReport({ ...report, skippedSamples: [] });
+
+      // Fallback: structured parser 0 sonuç verirse, PDF'in tüm text'ini çıkar
+      // ve text parser'a ver.
+      if (report.shifts.length === 0) {
+        console.warn("[pdf-parser] Structured parse returned 0 shifts, trying text fallback…");
+        const pdfjsLib = await import("pdfjs-dist");
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        const lines: string[] = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const text = (content.items as Array<{ str: string }>)
+            .map((it) => it.str)
+            .join(" ");
+          lines.push(text);
+        }
+        const rawText = lines.join("\n");
+        const textReport = parseShiftsFromTextWithReport(rawText);
+        if (textReport.shifts.length > 0) {
+          report = textReport;
+          setParseReport({ ...report, skippedSamples: [] });
+          setPdfError("PDF yapısal olarak okunamadı (BASIC header bulunamadı). Metin bazlı fallback kullanıldı.");
+        }
+      }
+
       if (report.shifts.length === 0) {
         setPdfError(
-          `PDF okundu ama BASIC bölümünde vardiya bulunamadı. Metin yapıştırmayı dene.`,
+          `PDF okundu ama vardiya bulunamadı. Metin yapıştırmayı dene.`,
         );
         return;
       }

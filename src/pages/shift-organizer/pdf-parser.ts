@@ -585,17 +585,25 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     }
     if (currentRow.length) rows.push(currentRow);
 
-    // 2) Header satırı: "Name", "Shift", "Break", "Hours" başlıklarını içerir.
-    //    Sayfa 1'de ilk header'ı bul; sonraki sayfalarda da aynı x-koordinatlar
-    //    olduğu için ilk sayfadaki header'ı yeniden kullanmak da mümkün, ama
-    //    safety için her sayfada arıyoruz.
+    // 2) Header satırı: tablo başlıklarını içerir.
+    //    İngilizce: "Name", "Shift", "Break", "Hours"
+    //    Türkçe:    "Ad", "Vardiya", "Mola", "Saat"
+    //    Her iki dilde de aranır.
+    const NAME_ALIASES = ["name", "ad", "isim", "personel", "çalışan"];
+    const SHIFT_ALIASES = ["shift", "vardiya", "mesai"];
+    const BREAK_ALIASES = ["break", "mola", "ara"];
+    const HOURS_ALIASES = ["hours", "hrs", "saat", "süre"];
+
+    const findAlias = (lower: string[], aliases: string[]) =>
+      aliases.some((a) => lower.includes(a));
+
     const headerRow = rows.find((r) => {
       const lower = r.map((it) => it.str.trim().toLowerCase());
       return (
-        lower.includes("name") &&
-        lower.includes("shift") &&
-        lower.includes("break") &&
-        lower.includes("hours")
+        findAlias(lower, NAME_ALIASES) &&
+        findAlias(lower, SHIFT_ALIASES) &&
+        findAlias(lower, BREAK_ALIASES) &&
+        findAlias(lower, HOURS_ALIASES)
       );
     });
     if (!headerRow) {
@@ -604,12 +612,12 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     }
 
     // 3) Sütun x-aralıkları
-    const findCol = (label: string) =>
-      headerRow.find((it) => it.str.trim().toLowerCase() === label);
-    const nameH = findCol("name")!;
-    const shiftH = findCol("shift")!;
-    const breakH = findCol("break")!;
-    const hoursH = findCol("hours")!;
+    const findCol = (aliases: string[]) =>
+      headerRow.find((it) => aliases.includes(it.str.trim().toLowerCase()));
+    const nameH = findCol(NAME_ALIASES)!;
+    const shiftH = findCol(SHIFT_ALIASES)!;
+    const breakH = findCol(BREAK_ALIASES)!;
+    const hoursH = findCol(HOURS_ALIASES)!;
     // Her sütun: [x_start, x_end). Header item'ının x-pozisyonu sütunun sol
     // kenarına yakın; sağ kenarı bir sonraki header'ın x'ine kadar uzanır.
     // Header'lar x sırasına göre yeniden sıralanır.
@@ -649,13 +657,10 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
         lastPerson = null; // section değişiminde "lastPerson" track'ini sıfırla
         continue;
       }
-      if (!inBasic && sawBasic) continue;
-      // BASIC görmediğimiz sayfalarda da deneyebiliriz; ama tipik olarak ilk
-      // sayfada BASIC header vardır.
-      if (!inBasic && !sawBasic) {
-        // Henüz BASIC başlamamış (sayfa üstü/header) → atla
-        continue;
-      }
+      // BASIC görüldü ve şu an başka bir section'dayız → atla
+      if (sawBasic && !inBasic) continue;
+      // BASIC hiç görülmediyse → TÜM satırları parse et (fallback)
+      // Bu sayede "BASIC" keyword'ü olmayan PDF'ler de çalışır.
 
       const nameItems = row.filter((it) => inCol(it, cols.name as [number, number]));
       const shiftItems = row.filter((it) => inCol(it, cols.shift as [number, number]));
