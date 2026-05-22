@@ -120,10 +120,48 @@ export default function Home() {
       {/* ─────────── HERO — büyük ZMark logo + şiirsel başlık ─────────── */}
       <section
         ref={heroRef}
-        className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 md:px-12 pt-24"
+        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 sm:px-6 md:px-12 pt-24"
       >
-        {/* Atelier-tarzı köşe çentikleri */}
-        <div className="absolute inset-6 sm:inset-12 pointer-events-none">
+        {/* Atelier video — en arka katman. Atelier estetiği: grayscale, düşük
+            opaklık, paper tonlu mask. ZT monogram önde "altın yaprak" gibi
+            video üstünde durur. Mobil ve reduced-motion'da poster kalır. */}
+        <motion.video
+          aria-hidden
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster="/zt-mark-gold.png"
+          initial={{ opacity: 0, scale: 1.08 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 2.4, ease: [0.22, 0.61, 0.36, 1] }}
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none motion-reduce:hidden"
+          style={{
+            // Atelier paper'a sığdırılmış film hissi: grayscale + düşük opaklık
+            // (sistem spec'i: imagery always 0.25–0.55 opacity, grayscale).
+            filter: "grayscale(0.85) contrast(1.05) brightness(0.95)",
+            opacity: 0.42,
+            zIndex: 0,
+          }}
+        >
+          <source src="/hero-atelier.mp4" type="video/mp4" />
+        </motion.video>
+
+        {/* Cream paper overlay — video'yu paper tonuna yumuşatır;
+            üstünden gold radial glow geçer. */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(180deg, var(--zara-bg) 0%, rgba(245,241,234,0.55) 35%, rgba(245,241,234,0.70) 65%, var(--zara-bg) 100%)",
+            zIndex: 1,
+          }}
+        />
+
+        {/* Atelier-tarzı köşe çentikleri (en üst katmanlardan) */}
+        <div className="absolute inset-6 sm:inset-12 pointer-events-none z-[5]">
           <CornerVignette color="var(--zara-ink)" opacity={0.45} />
         </div>
 
@@ -131,13 +169,13 @@ export default function Home() {
         <motion.div
           aria-hidden
           style={{ y: ornamentY }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[140vw] max-w-[1200px] max-h-[1200px] pointer-events-none"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[140vw] max-w-[1200px] max-h-[1200px] pointer-events-none z-[2]"
         >
           <div
             className="w-full h-full rounded-full"
             style={{
               background:
-                "radial-gradient(circle, rgba(184, 147, 90, 0.07) 0%, transparent 60%)",
+                "radial-gradient(circle, rgba(184, 147, 90, 0.10) 0%, transparent 60%)",
             }}
           />
         </motion.div>
