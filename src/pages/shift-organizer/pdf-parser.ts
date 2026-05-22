@@ -36,6 +36,8 @@ async function loadPdfjs() {
  */
 export type BlockingTaskType = "HR" | "TR" | "ISG" | "OTHER";
 
+export type SoftTask = { hour: number | null; label: string };
+
 export type ParsedShift = {
   name: string;
   startHour: number;
@@ -44,6 +46,8 @@ export type ParsedShift = {
   breaks: Array<[number, number]>;
   /** Blocking task'lar (HR/TR/ISG). Bu saatlerde kişi chart'ta yer almaz. */
   tasks: Array<{ hour: number; type: BlockingTaskType; label: string }>;
+  /** Pembe (soft) görevler — RUNNER LIDER, AKSIYON, IPOD vb. Solver kısıtlamaz. */
+  soft_tasks: SoftTask[];
   source: string; // hangi satırdan çıkarıldı (debug için)
 };
 
@@ -109,6 +113,23 @@ function isLikelyName(s: string): boolean {
   return true;
 }
 
+// ─── Mola birleştirme (çakışan/adjacent aralıkları union et) ───
+function mergeBreaks(breaks: Array<[number, number]>): Array<[number, number]> {
+  if (breaks.length < 2) return breaks;
+  const sorted = [...breaks].sort((a, b) => a[0] - b[0]);
+  const merged: Array<[number, number]> = [];
+  for (const [s, e] of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && s < last[1] - 0.01) {
+      // Çakışıyor → union
+      last[1] = Math.max(last[1], e);
+    } else {
+      merged.push([s, e]);
+    }
+  }
+  return merged;
+}
+
 // ─── Mola ve task çıkartma (parse edilmiş satır üzerinden) ───
 //
 // Orquest PDF formatları çok çeşitli; aynı satırda mola gösterimi:
@@ -127,9 +148,10 @@ function extractBreaksAndTasks(
   rawLine: string,
   startHour: number,
   endHour: number,
-): { breaks: Array<[number, number]>; tasks: ParsedShift["tasks"] } {
+): { breaks: Array<[number, number]>; tasks: ParsedShift["tasks"]; soft_tasks: SoftTask[] } {
   const breaks: Array<[number, number]> = [];
   const tasks: ParsedShift["tasks"] = [];
+  const soft_tasks: SoftTask[] = [];
 
   const BLOCKING_TASKS = new Set<BlockingTaskType>(["HR", "TR", "ISG"]);
 
@@ -191,7 +213,7 @@ function extractBreaksAndTasks(
     }
   }
 
-  // Task: "HR 18", "TR 15:00", "ISG 17"
+  // Blocking Task: "HR 18", "TR 15:00", "ISG 17"
   const taskRe = /\b(HR|TR|ISG)\b\s*[:.\s]*(\d{1,2})(?:[:.,]\d{1,2})?/g;
   let mt: RegExpExecArray | null;
   while ((mt = taskRe.exec(rawLine))) {
@@ -213,7 +235,28 @@ function extractBreaksAndTasks(
     }
   }
 
-  return { breaks, tasks };
+  // Soft (PEMBE) görevler — HR/TR/ISG/BREAK/MOLA dışı büyük harfli token'lar
+  // Örn: "RUNNER LIDER", "AKSIYON", "IPOD", "TEMPE", "CX QR", "PEMBE"
+  {
+    const usedRanges = new Set<number>();
+    tasks.forEach((t) => usedRanges.add(t.hour));
+    // HR/TR/ISG/B/MOLA/BREAK keyword'lerini hariç tut
+    const softRe = /\b([A-ZÇĞİÖŞÜ][A-ZÇĞİÖŞÜa-zçğıöşü.&\/\-]*(?:\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü.&\/\-]+)*)\b/g;
+    let sm: RegExpExecArray | null;
+    while ((sm = softRe.exec(rawLine))) {
+      const label = sm[1].trim();
+      // HR/TR/ISG/BREAK/MOLA/B ile başlayanları at
+      const upper = label.toUpperCase();
+      if (/^(HR|TR|ISG|BREAK|MOLA|B\b|BR\b)/.test(upper)) continue;
+      // Saat araması: token'dan önceki son sayı (örn. "15 AKSİYON")
+      const before = rawLine.slice(0, sm.index);
+      const hourMatch = before.match(/(\d{1,2})(?:[:.,]\d{1,2})?\s*$/);
+      const hour = hourMatch ? parseHour(hourMatch[1]) : null;
+      soft_tasks.push({ hour, label });
+    }
+  }
+
+  return { breaks: mergeBreaks(breaks), tasks, soft_tasks };
 }
 
 // ─── Regex pattern'leri (sıra önemli — en spesifik önce) ───
@@ -349,8 +392,9 @@ function tryParseLine(rawLine: string): ParsedShift | null {
           name: n,
           startHour: shift.start,
           endHour: shift.end,
-          breaks,
+          breaks: mergeBreaks(breaks),
           tasks: bt.tasks,
+          soft_tasks: bt.soft_tasks,
           source: rawLine,
         };
       }
@@ -364,7 +408,7 @@ function tryParseLine(rawLine: string): ParsedShift | null {
       const r = p.extract(m);
       if (r && isLikelyName(r.name)) {
         const bt = extractBreaksAndTasks(rawLine, r.startHour, r.endHour);
-        return { ...r, breaks: bt.breaks, tasks: bt.tasks, source: rawLine };
+        return { ...r, breaks: bt.breaks, tasks: bt.tasks, soft_tasks: bt.soft_tasks, source: rawLine };
       }
     }
   }
@@ -383,7 +427,7 @@ function tryParseLine(rawLine: string): ParsedShift | null {
       const n = cleanName(candidate);
       if (isLikelyName(n)) {
         const bt = extractBreaksAndTasks(rawLine, sh, eh);
-        return { name: n, startHour: sh, endHour: eh, breaks: bt.breaks, tasks: bt.tasks, source: rawLine };
+        return { name: n, startHour: sh, endHour: eh, breaks: bt.breaks, tasks: bt.tasks, soft_tasks: bt.soft_tasks, source: rawLine };
       }
     }
   }
@@ -473,6 +517,11 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
             p.tasks.push(t);
           }
         }
+        for (const st of extra.soft_tasks) {
+          if (!p.soft_tasks.some((x) => x.label === st.label)) {
+            p.soft_tasks.push(st);
+          }
+        }
         // 2) Structured HH:MM-HH:MM aralıkları (multi-line break hücresi)
         //    Fadime/Kıymet gibi 2 molalı kişilerde Orquest PDF break
         //    hücresini iki satıra böler. Bu alt satırlardaki aralıkları da
@@ -491,6 +540,8 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
           }
         }
       }
+      // Çakışan molaları birleştir
+      p.breaks = mergeBreaks(p.breaks);
       const key = p.name.toLowerCase();
       seen.set(key, p);
       matched++;
@@ -517,7 +568,7 @@ function extractBreaksAndTasksLoose(
   rawLine: string,
   startHour: number,
   endHour: number,
-): { breaks: Array<[number, number]>; tasks: ParsedShift["tasks"] } {
+): { breaks: Array<[number, number]>; tasks: ParsedShift["tasks"]; soft_tasks: SoftTask[] } {
   return extractBreaksAndTasks(rawLine, startHour, endHour);
 }
 
@@ -725,8 +776,9 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
           name: cleanName(nameStr),
           startHour: shift.start,
           endHour: shift.end,
-          breaks,
+          breaks: mergeBreaks(breaks),
           tasks: [],
+          soft_tasks: [],
           source: `${nameStr} | ${shiftStr} | ${breakStr}`,
         };
         shifts.push(newPerson);
@@ -746,6 +798,7 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
             lastPerson.breaks.push(b);
           }
         }
+        lastPerson.breaks = mergeBreaks(lastPerson.breaks);
       }
     }
 

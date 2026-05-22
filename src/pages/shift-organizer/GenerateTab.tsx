@@ -133,6 +133,7 @@ export function GenerateTab({
         included: boolean;
         breaks: Array<[number, number]>;
         tasks: Array<[number, string]>;
+        soft_tasks: Array<{ hour: number | null; label: string }>;
       }
     >
   >(() => {
@@ -144,9 +145,10 @@ export function GenerateTab({
         included: boolean;
         breaks: Array<[number, number]>;
         tasks: Array<[number, string]>;
+        soft_tasks: Array<{ hour: number | null; label: string }>;
       }
     > = {};
-    for (const s of staff) m[s.id] = { start: 10, end: 22, included: true, breaks: [], tasks: [] };
+    for (const s of staff) m[s.id] = { start: 10, end: 22, included: true, breaks: [], tasks: [], soft_tasks: [] };
     return m;
   });
   const [pdfError, setPdfError] = useState<string | null>(null);
@@ -169,7 +171,7 @@ export function GenerateTab({
       const next = { ...prev };
       for (const s of staff) {
         if (!next[s.id])
-          next[s.id] = { start: startHour, end: endHour, included: true, breaks: [], tasks: [] };
+          next[s.id] = { start: startHour, end: endHour, included: true, breaks: [], tasks: [], soft_tasks: [] };
       }
       return next;
     });
@@ -218,6 +220,7 @@ export function GenerateTab({
           included: true,
           breaks: p.breaks ?? [],
           tasks: (p.tasks ?? []).map((t) => [t.hour, t.type] as [number, string]),
+          soft_tasks: p.soft_tasks ?? [],
         };
       }
       return next;
@@ -417,7 +420,7 @@ export function GenerateTab({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {staff.map((p) => {
-              const row = shiftsState[p.id] ?? { start: startHour, end: endHour, included: true };
+              const row = shiftsState[p.id] ?? { start: startHour, end: endHour, included: true, breaks: [], tasks: [], soft_tasks: [] };
               return (
                 <div
                   key={p.id}
