@@ -131,17 +131,18 @@ export function ChartResult({
   const displayName = (name: string, hour: number): string =>
     halfBreakNamesByHour.get(hour)?.has(name) ? `${name} 1/2` : name;
 
-  /** Mola kolonu: SADECE tam saat molalar. Yarım molalar burada yer almaz;
-   *  o kişi o saatte rolünde "X 1/2" suffix ile görünür (paslaşma vurgusu). */
+  /** Mola kolonu: tam + yarım mola. Yarım mola "X 1/2" suffix'le yazılır
+   *  (özetlenebilir hat). Aynı kişi rol hücresinde de "X 1/2" görünür. */
   const breaksByHour = useMemo(() => {
     const m = new Map<number, string[]>();
     if (!shifts) return m;
     for (const s of shifts) {
       for (const [bStart, bEnd] of s.breaks ?? []) {
-        if (bEnd - bStart <= 0.5 + 1e-6) continue;
+        const isHalf = bEnd - bStart <= 0.5 + 1e-6;
         for (let h = Math.floor(bStart); h < Math.ceil(bEnd); h++) {
           const arr = m.get(h) ?? [];
-          if (!arr.includes(s.short_name)) arr.push(s.short_name);
+          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
+          if (!arr.includes(label)) arr.push(label);
           m.set(h, arr);
         }
       }

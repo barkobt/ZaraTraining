@@ -134,15 +134,16 @@ export function exportChartToPdf(
   const labelName = (name: string, hour: number): string =>
     halfBreakSetByHour.get(hour)?.has(name) ? `${name} 1/2` : name;
 
-  // Mola hesapla — SADECE tam saat molalar. Yarım molalar role cell'de "1/2" görünür.
+  // Mola hesapla — tam + yarım mola, yarım için "X 1/2" suffix
   const breaksByHour = new Map<number, string[]>();
   if (shifts) {
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
-        if (be - bs <= 0.5 + 1e-6) continue;
+        const isHalf = be - bs <= 0.5 + 1e-6;
         for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
           const arr = breaksByHour.get(h) ?? [];
-          if (!arr.includes(s.short_name)) arr.push(s.short_name);
+          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
+          if (!arr.includes(label)) arr.push(label);
           breaksByHour.set(h, arr);
         }
       }
