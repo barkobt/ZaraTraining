@@ -137,24 +137,6 @@ function BreakChipPicker({
   );
 }
 
-/** Task listesini compact UI metnine çevirir: [(18,'HR')] → "18:HR". */
-function taskStr(tasks: Array<[number, string]>): string {
-  return tasks.map(([h, t]) => `${h}:${t}`).join(",");
-}
-
-/** Compact UI metnini task listesine çevirir: "18:HR, 17:TR" → [(18,'HR'),(17,'TR')]. */
-function parseTaskStr(s: string): Array<[number, string]> {
-  return s
-    .split(/[,;]+/)
-    .map((p) => p.trim().match(/^(\d{1,2})\s*[:.\s]?\s*(HR|TR|ISG)$/i))
-    .filter((m): m is RegExpMatchArray => m !== null)
-    .map((m) => {
-      const h = parseInt(m[1], 10);
-      return [h, m[2].toUpperCase()] as [number, string];
-    })
-    .filter(([h]) => h >= 0 && h < 24);
-}
-
 type GenerateMutation = {
   mutate: (input: { shiftDate: string; hours: number[]; shifts: ShiftInput[] }) => void;
   isPending: boolean;
@@ -578,22 +560,6 @@ export function GenerateTab({
                       }))
                     }
                     disabled={!row.included}
-                  />
-                  {/* Task saatleri — HR/TR/ISG, "18:HR,17:TR" */}
-                  <input
-                    type="text"
-                    value={taskStr(row.tasks)}
-                    placeholder="Task"
-                    title="HR/TR/ISG task, örn: 18:HR,17:TR (bu saatte chart'a atanmaz)"
-                    onChange={(e) => {
-                      const tasks = parseTaskStr(e.target.value);
-                      setShiftsState((prev) => ({
-                        ...prev,
-                        [p.id]: { ...row, tasks },
-                      }));
-                    }}
-                    disabled={!row.included}
-                    className="w-16 text-[10px] border-b border-stone-300 outline-none focus:border-rose-600 text-center font-mono placeholder:text-stone-300"
                   />
                 </div>
               );
