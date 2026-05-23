@@ -67,7 +67,7 @@ function BreakChipPicker({
             return (
               <span
                 key={`${s}-${i}`}
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono tabular-nums shadow-sm border ${
+                className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-mono tabular-nums shadow-sm border whitespace-nowrap leading-tight ${
                   half
                     ? "bg-amber-100 border-amber-400 text-amber-900"
                     : "bg-amber-50 border-amber-300 text-amber-800"
@@ -117,7 +117,7 @@ function BreakChipPicker({
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value) as 0.5 | 1)}
             disabled={disabled}
-            className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5 min-w-[56px]"
+            className="text-[10px] bg-transparent border border-stone-300 rounded outline-none focus:border-amber-600 pl-1 pr-4 py-0.5 min-w-[64px]"
             aria-label="Süre"
           >
             <option value={1}>1 saat</option>
