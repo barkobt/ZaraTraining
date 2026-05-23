@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 import type { GenerateResult, ShiftInputForChart } from "./ChartResult";
 
 /**
@@ -87,12 +87,10 @@ export function exportChartToExcel(
     }
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
-        const dur = be - bs;
-        const isHalf = dur <= 0.5 + 1e-6;
+        if (be - bs <= 0.5 + 1e-6) continue;
         for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
           const arr = breaksByHour.get(h) ?? [];
-          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
-          if (!arr.includes(label)) arr.push(label);
+          if (!arr.includes(s.short_name)) arr.push(s.short_name);
           breaksByHour.set(h, arr);
         }
       }
@@ -159,9 +157,91 @@ export function exportChartToExcel(
 
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);
-  ws["!cols"] = [{ wch: 18 }, ...hours.map(() => ({ wch: 14 }))];
+  ws["!cols"] = [{ wch: 22 }, ...hours.map(() => ({ wch: 16 }))];
+
+  // chart1 görsel paritesi: sarı header, MOLA turuncu, TASK pembe, AKTİF yeşil,
+  // başlık merge'lenmiş büyük, rol satırları beyaz/gri striped, freeze panes.
+  const nCols = hours.length + 1; // Rol + saatler
+  ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: nCols - 1 } }];
+  ws["!freeze"] = { ySplit: 3, xSplit: 1 };
+
+  const border = {
+    top: { style: "thin", color: { rgb: "DDDDDD" } },
+    bottom: { style: "thin", color: { rgb: "DDDDDD" } },
+    left: { style: "thin", color: { rgb: "DDDDDD" } },
+    right: { style: "thin", color: { rgb: "DDDDDD" } },
+  } as const;
+
+  // A1 başlık
+  const a1 = XLSX.utils.encode_cell({ r: 0, c: 0 });
+  if (ws[a1]) {
+    ws[a1].s = {
+      font: { bold: true, sz: 16, color: { rgb: "1A1A1A" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      fill: { patternType: "solid", fgColor: { rgb: "FAFAF7" } },
+    };
+  }
+
+  // Row 3: header (sarı bg + bold)
+  for (let c = 0; c < nCols; c++) {
+    const ref = XLSX.utils.encode_cell({ r: 2, c });
+    if (!ws[ref]) ws[ref] = { t: "s", v: "" };
+    ws[ref].s = {
+      font: { bold: true, sz: 11, color: { rgb: "1A1A1A" } },
+      fill: { patternType: "solid", fgColor: { rgb: "FFD400" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border,
+    };
+  }
+
+  // Role rows: alt-row alternation + center align + border
+  for (let i = 0; i < roleRows.length; i++) {
+    const r = 3 + i;
+    const stripe = i % 2 === 0 ? "FFFFFF" : "F7F7F4";
+    for (let c = 0; c < nCols; c++) {
+      const ref = XLSX.utils.encode_cell({ r, c });
+      if (!ws[ref]) ws[ref] = { t: "s", v: "" };
+      ws[ref].s = {
+        font: { sz: 10, color: { rgb: "1A1A1A" } },
+        alignment: { horizontal: c === 0 ? "left" : "center", vertical: "center", wrapText: true },
+        fill: { patternType: "solid", fgColor: { rgb: stripe } },
+        border,
+      };
+      if (c === 0) ws[ref].s.font = { ...ws[ref].s.font, bold: true };
+    }
+  }
+
+  // Extra rows (MOLA / TASK / AKTİF): renkli backgrounds
+  const extraColors: Record<string, string> = {
+    MOLA: "FFE0B2", // turuncu
+    "TASK (HR/TR/ISG)": "F8BBD0", // pembe
+    "AKTİF İŞ GÜCÜ": "C8E6C9", // yeşil
+  };
+  for (let i = 0; i < extraRows.length; i++) {
+    const r = 3 + roleRows.length + i;
+    const label = String(extraRows[i][0] ?? "");
+    const bg = extraColors[label] ?? "EEEEEE";
+    for (let c = 0; c < nCols; c++) {
+      const ref = XLSX.utils.encode_cell({ r, c });
+      if (!ws[ref]) ws[ref] = { t: "s", v: "" };
+      ws[ref].s = {
+        font: { sz: 10, color: { rgb: "1A1A1A" }, bold: c === 0 },
+        alignment: { horizontal: c === 0 ? "left" : "center", vertical: "center", wrapText: true },
+        fill: { patternType: "solid", fgColor: { rgb: bg } },
+        border,
+      };
+    }
+  }
+
+  // Row heights: header + MOLA-tarzı satırlar biraz daha uzun
+  const rows: { hpt: number }[] = [{ hpt: 22 }, { hpt: 6 }, { hpt: 20 }];
+  for (let i = 0; i < roleRows.length; i++) rows.push({ hpt: 22 });
+  for (let i = 0; i < extraRows.length; i++) rows.push({ hpt: 24 });
+  ws["!rows"] = rows;
+
   XLSX.utils.book_append_sheet(wb, ws, "Chart");
   const wsMeta = XLSX.utils.aoa_to_sheet(meta);
+  wsMeta["!cols"] = [{ wch: 28 }, { wch: 40 }];
   XLSX.utils.book_append_sheet(wb, wsMeta, "Bilgi");
 
   const filename = `shift-${shiftDate}.xlsx`;

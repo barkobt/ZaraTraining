@@ -56,6 +56,7 @@ export type ParseReport = {
   totalLines: number;
   matchedLines: number;
   skippedSamples: string[]; // ilk 5 atlanmış satır (debug için)
+  warnings?: string[]; // boş shift, eksik veri vb. uyarılar (UI'da göster)
 };
 
 // ─── Yardımcılar ───
@@ -848,10 +849,29 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     }
   }
 
+  // Diagnostic: her kişinin start/end/breaks'i — DevTools console'da görünür
+  for (const p of resultShifts) {
+    console.debug(
+      `[PDF Parser] ${p.name}: ${p.startHour}-${p.endHour} breaks=${JSON.stringify(p.breaks)} tasks=${JSON.stringify(p.tasks)}`,
+    );
+  }
+
+  // Blank/eksik shift uyarı: start=end veya start tanımsız
+  const warnings: string[] = [];
+  const blanks = resultShifts.filter(
+    (p) => !Number.isFinite(p.startHour) || p.startHour === p.endHour,
+  );
+  if (blanks.length > 0) {
+    warnings.push(
+      `${blanks.length} kişide vardiya başlangıç/bitiş saatleri tespit edilemedi: ${blanks.map((b) => b.name).join(", ")}`,
+    );
+  }
+
   return {
     shifts: resultShifts,
     totalLines: resultShifts.length,
     matchedLines: resultShifts.length,
     skippedSamples: [],
+    warnings,
   };
 }

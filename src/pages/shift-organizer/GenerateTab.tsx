@@ -20,29 +20,107 @@ export type ShiftInput = {
   tasks: Array<[number, string]>;
 };
 
-/** Mola listesini compact UI metnine çevirir: [(12,13),(15,16)] → "12,15". */
-function breakStr(breaks: Array<[number, number]> | undefined): string {
-  if (!breaks || breaks.length === 0) return "";
-  return breaks.map(([s]) => String(s)).join(",");
+/** Float saati "HH:MM" stringine çevirir: 13.5 → "13:30". */
+function formatHourLabel(h: number): string {
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  return `${String(hh).padStart(2, "0")}:${mm === 30 ? "30" : "00"}`;
 }
 
-/** Compact UI metnini mola listesine çevirir: "12, 15" → [(12,13),(15,16)]. */
-function parseBreakStr(s: string): Array<[number, number]> {
-  return s
-    .split(/[,\s;]+/)
-    .map((p) => p.trim())
-    .filter((p) => /^\d{1,2}(?:[.:]\d{1,2})?$/.test(p))
-    .map((p) => {
-      // "10.5" yarım saat, "11" tam saat. Float parse.
-      const n = parseFloat(p.replace(":", "."));
-      return n;
-    })
-    .filter((h) => Number.isFinite(h) && h >= 0 && h < 24)
-    .map((h) => {
-      // Yarım saat: 0.5 dur; Tam saat: 1.0 dur
-      const dur = h % 1 === 0.5 ? 0.5 : 1.0;
-      return [h, h + dur] as [number, number];
-    });
+/**
+ * Mola chip picker: saat (8-21) + dakika (00/30) + süre (1s / ½s) dropdown
+ * + "Ekle" buton + var olan molalar chip listesi (× ile silinebilir).
+ * row.breaks tuple array'i doğrudan günceller — text parse yok.
+ */
+function BreakChipPicker({
+  breaks,
+  onChange,
+  disabled,
+}: {
+  breaks: Array<[number, number]>;
+  onChange: (b: Array<[number, number]>) => void;
+  disabled?: boolean;
+}) {
+  const [hour, setHour] = useState(13);
+  const [minute, setMinute] = useState<0 | 30>(0);
+  const [duration, setDuration] = useState<0.5 | 1>(1);
+  const add = () => {
+    const start = hour + minute / 60;
+    const end = start + duration;
+    if (breaks.some(([s]) => Math.abs(s - start) < 0.01)) return;
+    const next = [...breaks, [start, end] as [number, number]].sort((a, b) => a[0] - b[0]);
+    onChange(next);
+  };
+  const remove = (idx: number) => onChange(breaks.filter((_, i) => i !== idx));
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {breaks.map(([s, e], i) => {
+        const half = e - s <= 0.5 + 1e-6;
+        return (
+          <span
+            key={`${s}-${i}`}
+            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 border border-amber-200 rounded-full text-[10px] font-mono tabular-nums"
+            title={`${formatHourLabel(s)}–${formatHourLabel(e)}`}
+          >
+            {formatHourLabel(s)}{half ? " ½" : ""}
+            <button
+              type="button"
+              onClick={() => remove(i)}
+              disabled={disabled}
+              className="text-amber-700 hover:text-rose-700 leading-none ml-0.5 disabled:opacity-50"
+              aria-label="Mola sil"
+            >
+              ×
+            </button>
+          </span>
+        );
+      })}
+      {!disabled && (
+        <span className="inline-flex items-center gap-0.5 text-[10px]">
+          <select
+            value={hour}
+            onChange={(e) => setHour(Number(e.target.value))}
+            disabled={disabled}
+            className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5"
+            aria-label="Saat"
+          >
+            {Array.from({ length: 14 }, (_, i) => i + 8).map((h) => (
+              <option key={h} value={h}>{String(h).padStart(2, "0")}</option>
+            ))}
+          </select>
+          <span className="text-stone-400">:</span>
+          <select
+            value={minute}
+            onChange={(e) => setMinute(Number(e.target.value) as 0 | 30)}
+            disabled={disabled}
+            className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5"
+            aria-label="Dakika"
+          >
+            <option value={0}>00</option>
+            <option value={30}>30</option>
+          </select>
+          <select
+            value={duration}
+            onChange={(e) => setDuration(Number(e.target.value) as 0.5 | 1)}
+            disabled={disabled}
+            className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5"
+            aria-label="Süre"
+          >
+            <option value={1}>1s</option>
+            <option value={0.5}>½s</option>
+          </select>
+          <button
+            type="button"
+            onClick={add}
+            disabled={disabled}
+            className="text-[10px] text-amber-700 hover:text-amber-900 font-bold px-1 disabled:opacity-50"
+          >
+            + Ekle
+          </button>
+        </span>
+      )}
+    </div>
+  );
 }
 
 /** Task listesini compact UI metnine çevirir: [(18,'HR')] → "18:HR". */
@@ -394,6 +472,17 @@ export function GenerateTab({
             </div>
           )}
 
+          {parseReport && parseReport.warnings && parseReport.warnings.length > 0 && (
+            <div className="mb-3 border border-amber-300 bg-amber-50 p-2 text-[11px] text-amber-900">
+              <strong>Parser uyarısı:</strong>
+              <ul className="mt-1 list-disc list-inside">
+                {parseReport.warnings.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {showPaste && (
             <div className="mb-3 border border-stone-300 p-3">
               <textarea
@@ -465,21 +554,16 @@ export function GenerateTab({
                     disabled={!row.included}
                     className="w-10 text-xs border-b border-stone-300 outline-none focus:border-black text-right"
                   />
-                  {/* Mola saatleri — compact text input, "12,15" veya "10.5,13.5" */}
-                  <input
-                    type="text"
-                    value={breakStr(row.breaks)}
-                    placeholder="Mola"
-                    title="Mola saatleri, örn: 12,15 (tam) veya 10.5,13.5 (yarım)"
-                    onChange={(e) => {
-                      const breaks = parseBreakStr(e.target.value);
+                  {/* Mola saatleri — chip picker (saat:dakika + süre + Ekle) */}
+                  <BreakChipPicker
+                    breaks={row.breaks ?? []}
+                    onChange={(breaks) =>
                       setShiftsState((prev) => ({
                         ...prev,
                         [p.id]: { ...row, breaks },
-                      }));
-                    }}
+                      }))
+                    }
                     disabled={!row.included}
-                    className="w-14 text-[10px] border-b border-stone-300 outline-none focus:border-amber-600 text-center font-mono tabular-nums placeholder:text-stone-300"
                   />
                   {/* Task saatleri — HR/TR/ISG, "18:HR,17:TR" */}
                   <input
