@@ -27,10 +27,16 @@ function formatHourLabel(h: number): string {
   return `${String(hh).padStart(2, "0")}:${mm === 30 ? "30" : "00"}`;
 }
 
+/** Mola label: tam ve yarım mola için range göster — "17:00–18:00", "17:30–18:00". */
+function formatBreakLabel(start: number, end: number): string {
+  return `${formatHourLabel(start)}–${formatHourLabel(end)}`;
+}
+
 /**
- * Mola chip picker: saat (8-21) + dakika (00/30) + süre (1s / ½s) dropdown
- * + "Ekle" buton + var olan molalar chip listesi (× ile silinebilir).
- * row.breaks tuple array'i doğrudan günceller — text parse yok.
+ * Mola chip picker — dikey 2 satır:
+ *   üst: chip pill listesi (var olan molalar; × ile silinir)
+ *   alt: saat + dakika + süre dropdown + "+ Ekle" buton
+ * Chip format range — "17:00–17:30" — ½ symbol yok, format kendisi anlatır.
  */
 function BreakChipPicker({
   breaks,
@@ -53,35 +59,43 @@ function BreakChipPicker({
   };
   const remove = (idx: number) => onChange(breaks.filter((_, i) => i !== idx));
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      {breaks.map(([s, e], i) => {
-        const half = e - s <= 0.5 + 1e-6;
-        return (
-          <span
-            key={`${s}-${i}`}
-            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 border border-amber-200 rounded-full text-[10px] font-mono tabular-nums"
-            title={`${formatHourLabel(s)}–${formatHourLabel(e)}`}
-          >
-            {formatHourLabel(s)}{half ? " ½" : ""}
-            <button
-              type="button"
-              onClick={() => remove(i)}
-              disabled={disabled}
-              className="text-amber-700 hover:text-rose-700 leading-none ml-0.5 disabled:opacity-50"
-              aria-label="Mola sil"
-            >
-              ×
-            </button>
-          </span>
-        );
-      })}
+    <div className="flex flex-col gap-1 min-w-[200px]">
+      {breaks.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {breaks.map(([s, e], i) => {
+            const half = e - s <= 0.5 + 1e-6;
+            return (
+              <span
+                key={`${s}-${i}`}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono tabular-nums shadow-sm border ${
+                  half
+                    ? "bg-amber-100 border-amber-400 text-amber-900"
+                    : "bg-amber-50 border-amber-300 text-amber-800"
+                }`}
+                title={half ? "Yarım mola" : "Tam mola"}
+              >
+                {formatBreakLabel(s, e)}
+                <button
+                  type="button"
+                  onClick={() => remove(i)}
+                  disabled={disabled}
+                  className="text-amber-700 hover:text-rose-700 leading-none disabled:opacity-50"
+                  aria-label="Mola sil"
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
       {!disabled && (
-        <span className="inline-flex items-center gap-0.5 text-[10px]">
+        <div className="flex items-center gap-1 text-[10px]">
           <select
             value={hour}
             onChange={(e) => setHour(Number(e.target.value))}
             disabled={disabled}
-            className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5"
+            className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5 font-mono"
             aria-label="Saat"
           >
             {Array.from({ length: 14 }, (_, i) => i + 8).map((h) => (
@@ -93,7 +107,7 @@ function BreakChipPicker({
             value={minute}
             onChange={(e) => setMinute(Number(e.target.value) as 0 | 30)}
             disabled={disabled}
-            className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5"
+            className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5 font-mono"
             aria-label="Dakika"
           >
             <option value={0}>00</option>
@@ -113,11 +127,11 @@ function BreakChipPicker({
             type="button"
             onClick={add}
             disabled={disabled}
-            className="text-[10px] text-amber-700 hover:text-amber-900 font-bold px-1 disabled:opacity-50"
+            className="text-[10px] text-amber-700 hover:text-amber-900 font-bold px-1.5 py-0.5 rounded border border-amber-300 hover:bg-amber-50 disabled:opacity-50 transition-colors"
           >
-            + Ekle
+            + Mola
           </button>
-        </span>
+        </div>
       )}
     </div>
   );

@@ -684,12 +684,28 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     const inCol = (it: Item, col: [number, number]) =>
       it.x >= col[0] && it.x < col[1];
 
+    console.debug(`[PDF Parser] Page ${i} cols:`, cols);
+
     // 4) Her data satırını sütunlara göre işle
-    // Bölüm header satırlarını ("BASIC", "CABALLERO", "KASA", "MÜDUR", "NIÑO",
-    // "OPERASYON", "WOMAN") tespit edip BASIC içi/dışı durumu takip et.
-    const SECTION_KEYWORDS = new Set([
-      "BASIC", "CABALLERO", "KASA", "MÜDUR", "MUDUR", "NIÑO", "NINO",
-      "OPERASYON", "WOMAN", "WOMEN", "MAN", "MEN", "KIDS",
+    //
+    // KÖKEN BUG (2026-05-23): Orquest PDF'inde BASIC bir ANA kategori;
+    // içinde alt-bölümler var (WOMAN, MAN, KIDS gibi mağaza departmanları).
+    // Eskiden WOMAN/MAN/KIDS de SECTION_KEYWORDS'te idi → BASIC görüldükten
+    // sonra hemen WOMAN görüldüğünde inBasic=false oluyor ve tüm kişi
+    // satırları atlandı (0 shift bug).
+    //
+    // Düzeltme: 2 set —
+    //   MAIN_SECTION_KEYWORDS: BASIC'in dışına çıkış sinyali (CABALLERO,
+    //   KASA, MUDUR, OPERASYON, NIÑO). Birini görünce inBasic=false.
+    //   SUB_SECTION_KEYWORDS: BASIC içindeki alt başlıklar (WOMAN, MAN,
+    //   KIDS, ACCESSORIES, ...). Sadece grup ayırıcı; inBasic'i değiştirmez.
+    const MAIN_SECTION_KEYWORDS = new Set([
+      "BASIC", "CABALLERO", "KASA", "MÜDUR", "MUDUR",
+      "OPERASYON", "NIÑO", "NINO",
+    ]);
+    const SUB_SECTION_KEYWORDS = new Set([
+      "WOMAN", "WOMEN", "MAN", "MEN", "KIDS", "KID", "TRF", "BABY",
+      "ACCESSORIES", "ACCESORIES", "SHOES", "BEAUTY",
     ]);
 
     let lastPerson: ParsedShift | null = null;
@@ -699,15 +715,22 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
       // Section header check
       const rowStr = row.map((it) => it.str.trim()).join(" ").trim().toUpperCase();
       const firstTok = rowStr.split(/\s+/)[0];
-      if (SECTION_KEYWORDS.has(firstTok)) {
-        if (firstTok === "BASIC") {
-          inBasic = true;
+      if (MAIN_SECTION_KEYWORDS.has(firstTok)) {
+        const wasInBasic = inBasic;
+        inBasic = (firstTok === "BASIC");
+        if (inBasic) {
           sawBasic = true;
-          console.warn("[PDF Parser] Section BASIC detected");
-        } else {
-          inBasic = false;
+          console.warn("[PDF Parser] MAIN section BASIC entered");
+        } else if (wasInBasic) {
+          console.warn(`[PDF Parser] MAIN section ${firstTok} → exiting BASIC`);
         }
-        lastPerson = null; // section değişiminde "lastPerson" track'ini sıfırla
+        lastPerson = null;
+        continue;
+      }
+      if (SUB_SECTION_KEYWORDS.has(firstTok)) {
+        // Alt başlık — sadece grup ayırıcı; inBasic değişmez.
+        console.warn(`[PDF Parser] Sub-section ${firstTok} (inBasic=${inBasic})`);
+        lastPerson = null;
         continue;
       }
       if (!inBasic && sawBasic) continue;
@@ -758,6 +781,15 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
         .map((it) => it.str)
         .join(" ")
         .trim();
+
+      // Per-row diagnostic: hangi satırın hangi sütun değerleriyle düştüğünü göster.
+      if (nameStr || shiftStr || breakStr) {
+        const likely = nameStr ? isLikelyName(nameStr) : false;
+        const ranges = shiftStr ? extractAllHourRanges(shiftStr).length : 0;
+        console.debug(
+          `[PDF Parser] row name="${nameStr}" shift="${shiftStr}" break="${breakStr}" likelyName=${likely} ranges=${ranges}`,
+        );
+      }
 
       // 5) Kişi satırı: name sütununda gerçek isim var
       if (nameStr && isLikelyName(nameStr)) {
