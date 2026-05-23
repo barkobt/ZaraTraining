@@ -59,7 +59,7 @@ function BreakChipPicker({
   };
   const remove = (idx: number) => onChange(breaks.filter((_, i) => i !== idx));
   return (
-    <div className="flex flex-col gap-1 min-w-[200px]">
+    <div className="flex flex-col gap-1 flex-1 min-w-0">
       {breaks.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {breaks.map(([s, e], i) => {
@@ -120,8 +120,8 @@ function BreakChipPicker({
             className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5"
             aria-label="Süre"
           >
-            <option value={1}>1s</option>
-            <option value={0.5}>½s</option>
+            <option value={1}>1 saat</option>
+            <option value={0.5}>30dk</option>
           </select>
           <button
             type="button"
@@ -527,7 +527,7 @@ export function GenerateTab({
               return (
                 <div
                   key={p.id}
-                  className={`flex items-center gap-2 border px-2 py-1.5 ${
+                  className={`flex items-center flex-wrap gap-2 border px-2 py-1.5 overflow-hidden ${
                     row.included ? "border-black bg-white" : "border-stone-200 bg-stone-50"
                   }`}
                 >

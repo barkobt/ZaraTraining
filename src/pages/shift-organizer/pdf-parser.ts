@@ -619,13 +619,16 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
 
     if (items.length === 0) continue;
 
-    // 1) Y-coord epsilon grouping (fark <3 → aynı satır)
+    // 1) Y-coord epsilon grouping (fark <5 → aynı satır)
+    // 2026-05-23: epsilon 3 → 5. Orquest PDF font rendering baseline farkı
+    // 4-5pt olabilir → 3 dar gelince kelime fragment'leri ayrı satıra düşüyor,
+    // nameStr boş kalıyor. 5 daha güvenli, ama yine de farklı satırları ayırır.
     items.sort((a, b) => b.y - a.y); // yukarıdan aşağı
     const rows: Item[][] = [];
     let currentRow: Item[] = [];
     let rowY = Number.POSITIVE_INFINITY;
     for (const it of items) {
-      if (currentRow.length === 0 || Math.abs(it.y - rowY) < 3) {
+      if (currentRow.length === 0 || Math.abs(it.y - rowY) < 5) {
         currentRow.push(it);
         if (currentRow.length === 1) rowY = it.y;
       } else {
@@ -660,10 +663,13 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
       );
     });
     if (!headerRow) {
-      console.warn(`[PDF Parser] Page ${i}: no header row found`);
+      console.warn(`[PDF Parser] Page ${i}: no header row found, ${rows.length} rows total`);
       continue;
     }
-    console.warn(`[PDF Parser] Page ${i}: header row found`);
+    const headerIdx = rows.indexOf(headerRow);
+    console.warn(
+      `[PDF Parser] Page ${i}: header row found (rows=${rows.length}, headerRow at index ${headerIdx})`,
+    );
 
     // 3) Sütun x-aralıkları
     const nameH = findHeaderCol(headerRow, HEADER_KEYWORDS.name)!;
@@ -684,7 +690,7 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     const inCol = (it: Item, col: [number, number]) =>
       it.x >= col[0] && it.x < col[1];
 
-    console.debug(`[PDF Parser] Page ${i} cols:`, cols);
+    console.warn(`[PDF Parser] Page ${i} cols:`, cols);
 
     // 4) Her data satırını sütunlara göre işle
     //
@@ -714,8 +720,14 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
       if (row === headerRow) continue;
       // Section header check
       const rowStr = row.map((it) => it.str.trim()).join(" ").trim().toUpperCase();
-      const firstTok = rowStr.split(/\s+/)[0];
-      if (MAIN_SECTION_KEYWORDS.has(firstTok)) {
+      const tokens = rowStr.split(/\s+/).filter(Boolean);
+      const firstTok = tokens[0];
+      const wordCount = tokens.length;
+      // Section header genellikle 1-3 kelime. Eğer row 4+ kelime içeriyorsa,
+      // kişi data row'u olabilir (y-epsilon nedeniyle section label data ile
+      // birleşmiş olabilir). 4+ kelime varsa section olarak değil data olarak
+      // işle — isLikelyName + REJECT_TOKENS zaten yanlış kabul yapmaz.
+      if (MAIN_SECTION_KEYWORDS.has(firstTok) && wordCount <= 3) {
         const wasInBasic = inBasic;
         inBasic = (firstTok === "BASIC");
         if (inBasic) {
@@ -727,7 +739,7 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
         lastPerson = null;
         continue;
       }
-      if (SUB_SECTION_KEYWORDS.has(firstTok)) {
+      if (SUB_SECTION_KEYWORDS.has(firstTok) && wordCount <= 3) {
         // Alt başlık — sadece grup ayırıcı; inBasic değişmez.
         console.warn(`[PDF Parser] Sub-section ${firstTok} (inBasic=${inBasic})`);
         lastPerson = null;
@@ -783,10 +795,11 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
         .trim();
 
       // Per-row diagnostic: hangi satırın hangi sütun değerleriyle düştüğünü göster.
+      // console.warn ile çıkar → Chrome DevTools default level'da görünür (debug ayrı kanal).
       if (nameStr || shiftStr || breakStr) {
         const likely = nameStr ? isLikelyName(nameStr) : false;
         const ranges = shiftStr ? extractAllHourRanges(shiftStr).length : 0;
-        console.debug(
+        console.warn(
           `[PDF Parser] row name="${nameStr}" shift="${shiftStr}" break="${breakStr}" likelyName=${likely} ranges=${ranges}`,
         );
       }
