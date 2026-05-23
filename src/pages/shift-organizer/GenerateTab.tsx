@@ -509,58 +509,62 @@ export function GenerateTab({
               return (
                 <div
                   key={p.id}
-                  className={`flex items-center flex-wrap gap-3 border px-3 py-2 overflow-hidden ${
+                  className={`flex flex-col gap-1.5 border px-3 py-2 ${
                     row.included ? "border-black bg-white" : "border-stone-200 bg-stone-50"
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={row.included}
-                    onChange={(e) =>
-                      setShiftsState((prev) => ({
-                        ...prev,
-                        [p.id]: { ...row, included: e.target.checked },
-                      }))
-                    }
-                    className="accent-black"
-                  />
-                  <span className="text-xs flex-1">{staffLabel(p, staff)}</span>
-                  <input
-                    type="number"
-                    value={row.start}
-                    onChange={(e) =>
-                      setShiftsState((prev) => ({
-                        ...prev,
-                        [p.id]: { ...row, start: Number(e.target.value) },
-                      }))
-                    }
-                    disabled={!row.included}
-                    className="w-10 text-xs border-b border-stone-300 outline-none focus:border-black text-right"
-                  />
-                  <span className="text-stone-400 text-xs">–</span>
-                  <input
-                    type="number"
-                    value={row.end}
-                    onChange={(e) =>
-                      setShiftsState((prev) => ({
-                        ...prev,
-                        [p.id]: { ...row, end: Number(e.target.value) },
-                      }))
-                    }
-                    disabled={!row.included}
-                    className="w-10 text-xs border-b border-stone-300 outline-none focus:border-black text-right"
-                  />
-                  {/* Mola saatleri — chip picker (saat:dakika + süre + Ekle) */}
-                  <BreakChipPicker
-                    breaks={row.breaks ?? []}
-                    onChange={(breaks) =>
-                      setShiftsState((prev) => ({
-                        ...prev,
-                        [p.id]: { ...row, breaks },
-                      }))
-                    }
-                    disabled={!row.included}
-                  />
+                  {/* Üst satır: checkbox + isim + saat aralığı (sola hizalı, kompakt) */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={row.included}
+                      onChange={(e) =>
+                        setShiftsState((prev) => ({
+                          ...prev,
+                          [p.id]: { ...row, included: e.target.checked },
+                        }))
+                      }
+                      className="accent-black"
+                    />
+                    <span className="text-xs flex-1 truncate">{staffLabel(p, staff)}</span>
+                    <input
+                      type="number"
+                      value={row.start}
+                      onChange={(e) =>
+                        setShiftsState((prev) => ({
+                          ...prev,
+                          [p.id]: { ...row, start: Number(e.target.value) },
+                        }))
+                      }
+                      disabled={!row.included}
+                      className="w-9 text-xs border-b border-stone-300 outline-none focus:border-black text-right"
+                    />
+                    <span className="text-stone-400 text-xs">–</span>
+                    <input
+                      type="number"
+                      value={row.end}
+                      onChange={(e) =>
+                        setShiftsState((prev) => ({
+                          ...prev,
+                          [p.id]: { ...row, end: Number(e.target.value) },
+                        }))
+                      }
+                      disabled={!row.included}
+                      className="w-9 text-xs border-b border-stone-300 outline-none focus:border-black text-right"
+                    />
+                  </div>
+                  {/* Alt satır: mola picker (her zaman görünür ki controllerlar kutu içinde sığsın) */}
+                  {row.included && (
+                    <BreakChipPicker
+                      breaks={row.breaks ?? []}
+                      onChange={(breaks) =>
+                        setShiftsState((prev) => ({
+                          ...prev,
+                          [p.id]: { ...row, breaks },
+                        }))
+                      }
+                    />
+                  )}
                 </div>
               );
             })}

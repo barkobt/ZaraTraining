@@ -59,9 +59,19 @@ export type ResponsibilityRole = (typeof RESPONSIBILITY_ROLES)[number];
  */
 export function staffLabel(s: StaffRow, all: StaffRow[]): string {
   const parts = s.fullName.trim().split(/\s+/);
-  const first = parts[0] ?? s.shortName;
-  // Aynı ilk-isim başka biri var mı?
-  const dup = all.some((o) => o.id !== s.id && o.fullName.trim().split(/\s+/)[0] === first);
+  const firstFromFull = parts[0] ?? "";
+  // 2026-05-23: User kuralı — eğer shortName custom (fullName'in ilk
+  // kelimesinden FARKLI) ise mutlaka onu kullan. Kullanıcı CompetencyTab'da
+  // shortName'i özel olarak değiştirdi (örn "Ahmet Baran Bozkurt" → "Baran")
+  // — bu tercihe saygı duy, fullName-first ile override etme.
+  if (s.shortName && s.shortName.trim() !== "" && s.shortName !== firstFromFull) {
+    return s.shortName;
+  }
+  // shortName ya boş ya da fullName ilk kelimesiyle aynı → çakışma kontrolü
+  const first = firstFromFull || s.shortName;
+  const dup = all.some(
+    (o) => o.id !== s.id && o.fullName.trim().split(/\s+/)[0] === first,
+  );
   if (!dup) return first;
   // Çakışma: ilk soyadın baş harfi eklenir
   const last = parts[parts.length - 1];
