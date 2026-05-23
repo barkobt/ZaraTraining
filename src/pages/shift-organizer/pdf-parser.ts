@@ -671,26 +671,39 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
       `[PDF Parser] Page ${i}: header row found (rows=${rows.length}, headerRow at index ${headerIdx})`,
     );
 
-    // 3) Sütun x-aralıkları
+    // 3) Sütun atama — VORONOI yaklaşımı
+    //
+    // KÖKEN BUG (2026-05-23): Eski "cols=[header[i].x-5, header[i+1].x-5)"
+    // aralık tabanlı kontrol Orquest PDF'inde başarısız. Çünkü header item'lar
+    // SOL-hizalı (örn "Shift" x=200), data değerleri SAĞ-hizalı veya ORTA-hizalı
+    // (örn "07:00-13:00" x=130) → data Shift sütununa DEĞİL Name sütununa düştü.
+    //
+    // Çözüm: Her data item kendi x'ine EN YAKIN header item'ın sütununa
+    // düşsün (Voronoi-style). Hizalama farkından bağımsız doğru atama.
     const nameH = findHeaderCol(headerRow, HEADER_KEYWORDS.name)!;
     const shiftH = findHeaderCol(headerRow, HEADER_KEYWORDS.shift)!;
     const breakH = findHeaderCol(headerRow, HEADER_KEYWORDS.break)!;
     const hoursH = findHeaderCol(headerRow, HEADER_KEYWORDS.hours)!;
-    // Her sütun: [x_start, x_end). Header item'ının x-pozisyonu sütunun sol
-    // kenarına yakın; sağ kenarı bir sonraki header'ın x'ine kadar uzanır.
-    // Header'lar x sırasına göre yeniden sıralanır.
     const headerByX = [nameH, shiftH, breakH, hoursH].sort((a, b) => a.x - b.x);
-    const cols = {
-      name: [headerByX[0].x - 5, headerByX[1].x - 5],
-      shift: [headerByX[1].x - 5, headerByX[2].x - 5],
-      break: [headerByX[2].x - 5, headerByX[3].x - 5],
-      hours: [headerByX[3].x - 5, headerByX[3].x + 40],
+    const colNames = ["name", "shift", "break", "hours"] as const;
+    type ColName = typeof colNames[number];
+    const whichCol = (itemX: number): ColName => {
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < headerByX.length; i++) {
+        const d = Math.abs(itemX - headerByX[i].x);
+        if (d < bestDist) {
+          bestDist = d;
+          bestIdx = i;
+        }
+      }
+      return colNames[bestIdx];
     };
 
-    const inCol = (it: Item, col: [number, number]) =>
-      it.x >= col[0] && it.x < col[1];
-
-    console.warn(`[PDF Parser] Page ${i} cols:`, cols);
+    console.warn(
+      `[PDF Parser] Page ${i} headerX:`,
+      headerByX.map((h) => `${h.str.trim()}@${h.x.toFixed(1)}`).join(", "),
+    );
 
     // 4) Her data satırını sütunlara göre işle
     //
@@ -750,13 +763,13 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
         // Henüz explicit BASIC section görmedik. Satır kişi satırına
         // benziyorsa otomatik BASIC moduna geç.
         const previewName = row
-          .filter((it) => inCol(it, cols.name as [number, number]))
+          .filter((it) => whichCol(it.x) === "name")
           .sort((a, b) => a.x - b.x)
           .map((it) => it.str)
           .join(" ")
           .trim();
         const previewShift = row
-          .filter((it) => inCol(it, cols.shift as [number, number]))
+          .filter((it) => whichCol(it.x) === "shift")
           .sort((a, b) => a.x - b.x)
           .map((it) => it.str)
           .join(" ")
@@ -774,9 +787,9 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
         }
       }
 
-      const nameItems = row.filter((it) => inCol(it, cols.name as [number, number]));
-      const shiftItems = row.filter((it) => inCol(it, cols.shift as [number, number]));
-      const breakItems = row.filter((it) => inCol(it, cols.break as [number, number]));
+      const nameItems = row.filter((it) => whichCol(it.x) === "name");
+      const shiftItems = row.filter((it) => whichCol(it.x) === "shift");
+      const breakItems = row.filter((it) => whichCol(it.x) === "break");
 
       const nameStr = nameItems
         .sort((a, b) => a.x - b.x)

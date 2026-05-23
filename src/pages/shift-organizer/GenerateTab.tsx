@@ -117,7 +117,7 @@ function BreakChipPicker({
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value) as 0.5 | 1)}
             disabled={disabled}
-            className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5"
+            className="text-[10px] bg-transparent border-b border-stone-300 outline-none focus:border-amber-600 px-0.5 min-w-[56px]"
             aria-label="Süre"
           >
             <option value={1}>1 saat</option>
@@ -509,7 +509,7 @@ export function GenerateTab({
               return (
                 <div
                   key={p.id}
-                  className={`flex items-center flex-wrap gap-2 border px-2 py-1.5 overflow-hidden ${
+                  className={`flex items-center flex-wrap gap-3 border px-3 py-2 overflow-hidden ${
                     row.included ? "border-black bg-white" : "border-stone-200 bg-stone-50"
                   }`}
                 >
