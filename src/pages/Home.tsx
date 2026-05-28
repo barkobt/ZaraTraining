@@ -50,13 +50,13 @@ const PROJECTS: Project[] = [
     title: "Buenas Dias",
     subtitle: "Issue 03 · Toplantı",
     description:
-      "Günlük Buenas Dias toplantısı için form & hesaplayıcı. Şu an inşa halinde — yakında parçaya eklenecek.",
-    href: "#",
+      "Sabah toplantısı için otomatik hedef üretici. Motor A günlük hedefi, Motor B challenge dağıtımını hesaplar; PDF olarak dışa aktarılır.",
+    href: "/buenas-dias",
     accent: "#7E6B5B",
     image:
       "https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
-    available: false,
-    status: "İNŞA HALİNDE",
+    available: true,
+    status: "AÇIK",
     index: 2,
   },
   {
