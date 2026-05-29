@@ -174,7 +174,9 @@ export function ChartResult({
     for (const h of hours) {
       let count = 0;
       for (const s of shifts) {
-        if (h < s.start_hour || h >= s.end_hour) continue;
+        // Overlap semantiği (backend is_working_at ile birebir): [h, h+1) slotu
+        // shift aralığıyla kesişiyorsa sahada. Yarım saat (16.5) başlangıcı yakalar.
+        if (s.start_hour >= h + 1 || s.end_hour <= h) continue;
         // Tam saat mola?
         const onBreak = (s.breaks ?? []).some(
           ([bs, be]) => bs <= h && be >= h + 1,
