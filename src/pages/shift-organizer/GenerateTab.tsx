@@ -140,6 +140,103 @@ function BreakChipPicker({
   );
 }
 
+// Mağazada sık dönen aksiyon familyaları — tık-tık hızlı eklemek için öneri listesi.
+// User isteği (2026-05-30): aksiyon alanı mola gibi seçilebilir pill olsun.
+const ACTION_FAMILY_SUGGESTIONS = [
+  "Pantolon", "Bermuda", "Şort", "Elbise", "Gömlek", "Tişört",
+  "Çanta", "Ayakkabı", "Ecobag", "Mont", "Ceket", "Aksesuar",
+];
+
+/** Virgülle ayrılmış aksiyon string'ini pill listesine çevirip yöneten seçici.
+ *  altInfo.aksiyon string olarak kalır (PDF geriye dönük uyum) — UI sadece üstüne biner. */
+function ActionFamilyPicker({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
+  const [custom, setCustom] = useState("");
+  const families = value.split(",").map((s) => s.trim()).filter(Boolean);
+  const has = (f: string) => families.some((x) => x.toLowerCase() === f.toLowerCase());
+  const add = (f: string) => {
+    const t = f.trim();
+    if (!t || has(t)) return;
+    onChange([...families, t].join(", "));
+  };
+  const remove = (idx: number) => onChange(families.filter((_, i) => i !== idx).join(", "));
+  const addCustom = () => {
+    add(custom);
+    setCustom("");
+  };
+  return (
+    <div className="flex flex-col gap-1.5">
+      {families.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {families.map((f, i) => (
+            <span
+              key={`${f}-${i}`}
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] shadow-sm border whitespace-nowrap leading-tight bg-stone-800 border-stone-800 text-white"
+            >
+              {f}
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                disabled={disabled}
+                className="text-stone-300 hover:text-rose-300 leading-none disabled:opacity-50"
+                aria-label="Aksiyon sil"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      {!disabled && (
+        <>
+          <div className="flex flex-wrap gap-1">
+            {ACTION_FAMILY_SUGGESTIONS.filter((f) => !has(f)).map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => add(f)}
+                className="text-[9px] px-1.5 py-0.5 rounded-full border border-stone-300 text-stone-600 hover:border-black hover:text-black transition-colors"
+              >
+                + {f}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1">
+            <input
+              type="text"
+              placeholder="Özel familya…"
+              value={custom}
+              onChange={(e) => setCustom(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addCustom();
+                }
+              }}
+              className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent py-1 flex-1 min-w-0"
+            />
+            <button
+              type="button"
+              onClick={addCustom}
+              disabled={!custom.trim()}
+              className="text-[10px] text-stone-700 hover:text-black font-bold px-1.5 py-0.5 rounded border border-stone-300 hover:bg-stone-100 disabled:opacity-40 transition-colors whitespace-nowrap"
+            >
+              + Ekle
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 type GenerateMutation = {
   mutate: (input: { shiftDate: string; hours: number[]; shifts: ShiftInput[] }) => void;
   isPending: boolean;
@@ -589,16 +686,13 @@ export function GenerateTab({
             Günün Bilgileri <span className="text-stone-400 normal-case tracking-normal">(opsiyonel · PDF altına eklenir)</span>
           </summary>
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <label className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 sm:col-span-2">
               <span className="text-[9px] tracking-[0.2em] uppercase text-stone-500">Haftanın aksiyon familyaları</span>
-              <input
-                type="text"
-                placeholder="Pantolon, Bermuda, Elbise, Çanta, Ecobag"
+              <ActionFamilyPicker
                 value={altInfo.aksiyon}
-                onChange={(e) => setAltInfo((p) => ({ ...p, aksiyon: e.target.value }))}
-                className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent py-1"
+                onChange={(v) => setAltInfo((p) => ({ ...p, aksiyon: v }))}
               />
-            </label>
+            </div>
             <label className="flex flex-col gap-1">
               <span className="text-[9px] tracking-[0.2em] uppercase text-stone-500">CX QR hedefi</span>
               <input
