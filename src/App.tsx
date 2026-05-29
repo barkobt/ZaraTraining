@@ -10,6 +10,8 @@ import BuenasDiasToday from './pages/buenas-dias/Today'
 import BuenasDiasSetup from './pages/buenas-dias/Setup'
 import { PinGuard } from './components/PinGuard'
 import { ScrollToTop } from './components/ScrollToTop'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 export default function App() {
   return (
@@ -40,6 +42,8 @@ export default function App() {
           }
         />
       </Routes>
+      <Analytics />
+      <SpeedInsights />
     </>
   )
 }
