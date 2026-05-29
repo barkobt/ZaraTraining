@@ -10,6 +10,7 @@ import BuenasDiasToday from './pages/buenas-dias/Today'
 import BuenasDiasSetup from './pages/buenas-dias/Setup'
 import { PinGuard } from './components/PinGuard'
 import { ScrollToTop } from './components/ScrollToTop'
+import { PageViewTracker } from './components/PageViewTracker'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 
@@ -17,6 +18,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <PageViewTracker />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/fitting-room" element={<FittingRoom />} />

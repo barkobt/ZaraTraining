@@ -24,6 +24,7 @@ import {
   updateChartResponsibilities,
 } from "./queries/charts.js";
 import { getStore, updateStore, getSystemInfo } from "./queries/stores.js";
+import { logPageView, getAnalyticsStats } from "./queries/analytics.js";
 import { solveShift, pingSolver } from "./solver-client.js";
 import { staffRowsToSolverInput } from "./shift-mapping.js";
 import { env } from "./lib/env.js";
@@ -133,6 +134,18 @@ export const appRouter = createRouter({
         if (!env.shiftOrganizerPassword) return { ok: true };
         return { ok: input.token === env.shiftOrganizerPassword };
       }),
+  }),
+
+  // Site-içi sayfa görüntüleme analitiği. Mevcut audit_log tablosunu yeniden
+  // kullanır (DB migration YOK): logPageView fire-and-forget yazar, stats okur.
+  audit: createRouter({
+    logPageView: publicQuery
+      .input(z.object({ route: z.string().min(1).max(300), ua: z.string().max(500).optional() }))
+      .mutation(async ({ input }) => {
+        await logPageView(input.route, input.ua ?? null);
+        return { ok: true };
+      }),
+    stats: publicQuery.query(async () => getAnalyticsStats()),
   }),
 
   participant: createRouter({

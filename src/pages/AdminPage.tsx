@@ -55,6 +55,12 @@ function AdminContent() {
   const { data: stats } = trpc.admin.stats.useQuery(undefined, {
     refetchInterval: 5000,
   });
+  const { data: analytics } = trpc.audit.stats.useQuery(undefined, {
+    refetchInterval: 30000,
+  });
+
+  // Günlük bar grafiği için en yüksek değeri baz alıp yükseklikleri ölçekle.
+  const maxDaily = Math.max(1, ...(analytics?.daily.map((d) => d.count) ?? [0]));
 
   const total = stats?.total || 0;
   const distributions = [
@@ -245,6 +251,90 @@ function AdminContent() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </section>
+
+          {/* Site Analytics */}
+          <section className="animate-fade-up delay-300">
+            <div className="flex items-end justify-between mb-4 pb-3 border-b border-zara">
+              <h3 className="text-[10px] tracking-[0.3em] text-ink/50 font-mono uppercase">
+                · SİTE TRAFİĞİ
+              </h3>
+              <span className="text-[10px] font-mono tracking-[0.25em] uppercase text-ink/30">
+                Sayfa görüntüleme
+              </span>
+            </div>
+
+            {/* Özet kartlar */}
+            <div className="grid grid-cols-3 gap-px bg-zara border border-zara mb-px">
+              {[
+                { label: "Toplam", value: analytics?.total ?? 0 },
+                { label: "Son 7 gün", value: analytics?.last7 ?? 0 },
+                { label: "Son 30 gün", value: analytics?.last30 ?? 0 },
+              ].map((s) => (
+                <div key={s.label} className="bg-white p-5">
+                  <div className="text-[9px] font-mono tracking-[0.3em] uppercase text-ink/40 mb-2">
+                    {s.label}
+                  </div>
+                  <div className="font-serif text-3xl tabular-nums text-ink">{s.value}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-px bg-zara border border-x-zara border-b-zara">
+              {/* Günlük bar grafik (son 14 gün) */}
+              <div className="bg-white p-5">
+                <div className="text-[9px] font-mono tracking-[0.3em] uppercase text-ink/40 mb-4">
+                  Son 14 gün
+                </div>
+                {analytics && analytics.daily.length > 0 ? (
+                  <div className="flex items-end gap-1 h-32">
+                    {analytics.daily.map((d) => (
+                      <div key={d.day} className="flex-1 flex flex-col items-center justify-end h-full group">
+                        <div
+                          className="w-full bg-[var(--zara-gold)] transition-all duration-700 ease-out relative"
+                          style={{ height: `${(d.count / maxDaily) * 100}%`, minHeight: d.count > 0 ? 2 : 0 }}
+                          title={`${d.day}: ${d.count}`}
+                        >
+                          <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] font-mono text-ink/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {d.count}
+                          </span>
+                        </div>
+                        <span className="text-[7px] font-mono text-ink/25 mt-1 tabular-nums">
+                          {d.day.slice(8)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-32 flex items-center justify-center text-[10px] font-mono tracking-[0.3em] uppercase text-ink/25">
+                    · Veri yok ·
+                  </div>
+                )}
+              </div>
+
+              {/* Top route'lar */}
+              <div className="bg-white p-5">
+                <div className="text-[9px] font-mono tracking-[0.3em] uppercase text-ink/40 mb-4">
+                  En çok ziyaret (30 gün)
+                </div>
+                {analytics && analytics.topRoutes.length > 0 ? (
+                  <div className="space-y-2">
+                    {analytics.topRoutes.map((r) => (
+                      <div key={r.route} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="font-mono text-xs text-ink/70 truncate">{r.route}</span>
+                        <span className="font-mono text-xs tabular-nums text-[var(--zara-gold)] shrink-0">
+                          {r.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-32 flex items-center justify-center text-[10px] font-mono tracking-[0.3em] uppercase text-ink/25">
+                    · Veri yok ·
+                  </div>
+                )}
+              </div>
             </div>
           </section>
         </div>
