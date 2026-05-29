@@ -134,9 +134,32 @@ export function ChartResult({
     return m;
   }, [shifts]);
 
-  /** İsmi o saate göre "1/2" suffix'iyle göstersin yarım molada ise. */
+  /**
+   * Yarım saat giriş/çıkış tespiti — kişi o saatte sadece yarım çalışıyor.
+   * start=10.5 → 10:00 slotu yarım (floor(10.5)=10).
+   * end=21.5 → 21:00 slotu yarım (floor(21.5)=21, end exclusive olduğundan 21:00-21:30).
+   * Backend bu kişiyi tam slota yazar; chart'ta "1/2" ile paslaşma vurgusu yapılır.
+   */
+  const halfBoundaryNamesByHour = useMemo(() => {
+    const m = new Map<number, Set<string>>();
+    if (!shifts) return m;
+    const mark = (h: number, name: string) => {
+      const set = m.get(h) ?? new Set<string>();
+      set.add(name);
+      m.set(h, set);
+    };
+    for (const s of shifts) {
+      if (s.start_hour % 1 === 0.5) mark(Math.floor(s.start_hour), s.short_name);
+      if (s.end_hour % 1 === 0.5) mark(Math.floor(s.end_hour), s.short_name);
+    }
+    return m;
+  }, [shifts]);
+
+  /** İsmi o saate göre "1/2" suffix'iyle göstersin: yarım mola VEYA yarım giriş/çıkış. */
   const displayName = (name: string, hour: number): string =>
-    halfBreakNamesByHour.get(hour)?.has(name) ? `${name} 1/2` : name;
+    halfBreakNamesByHour.get(hour)?.has(name) || halfBoundaryNamesByHour.get(hour)?.has(name)
+      ? `${name} 1/2`
+      : name;
 
   /** Mola kolonu: tam + yarım mola. Yarım mola "X 1/2" suffix'le yazılır
    *  (özetlenebilir hat). Aynı kişi rol hücresinde de "X 1/2" görünür. */

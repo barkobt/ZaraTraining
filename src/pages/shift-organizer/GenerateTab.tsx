@@ -27,6 +27,9 @@ function formatHourLabel(h: number): string {
   return `${String(hh).padStart(2, "0")}:${mm === 30 ? "30" : "00"}`;
 }
 
+/** Vardiya start/end için yarım saat ızgarası: 06:00 → 24:00 (0.5 adım). */
+const HALF_HOUR_OPTIONS: number[] = Array.from({ length: 37 }, (_, i) => 6 + i * 0.5);
+
 /** Mola label: tam ve yarım mola için range göster — "17:00–18:00", "17:30–18:00". */
 function formatBreakLabel(start: number, end: number): string {
   return `${formatHourLabel(start)}–${formatHourLabel(end)}`;
@@ -527,8 +530,8 @@ export function GenerateTab({
                       className="accent-black"
                     />
                     <span className="text-xs flex-1 truncate">{staffLabel(p, staff)}</span>
-                    <input
-                      type="number"
+                    {/* Yarım saat destekli giriş: 10:30 gibi. Değer float (10.5). */}
+                    <select
                       value={row.start}
                       onChange={(e) =>
                         setShiftsState((prev) => ({
@@ -537,11 +540,14 @@ export function GenerateTab({
                         }))
                       }
                       disabled={!row.included}
-                      className="w-9 text-xs border-b border-stone-300 outline-none focus:border-black text-right"
-                    />
+                      className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent font-mono disabled:text-stone-300"
+                    >
+                      {HALF_HOUR_OPTIONS.filter((h) => h < 24).map((h) => (
+                        <option key={h} value={h}>{formatHourLabel(h)}</option>
+                      ))}
+                    </select>
                     <span className="text-stone-400 text-xs">–</span>
-                    <input
-                      type="number"
+                    <select
                       value={row.end}
                       onChange={(e) =>
                         setShiftsState((prev) => ({
@@ -550,8 +556,12 @@ export function GenerateTab({
                         }))
                       }
                       disabled={!row.included}
-                      className="w-9 text-xs border-b border-stone-300 outline-none focus:border-black text-right"
-                    />
+                      className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent font-mono disabled:text-stone-300"
+                    >
+                      {HALF_HOUR_OPTIONS.filter((h) => h > 6).map((h) => (
+                        <option key={h} value={h}>{formatHourLabel(h)}</option>
+                      ))}
+                    </select>
                   </div>
                   {/* Alt satır: mola picker (her zaman görünür ki controllerlar kutu içinde sığsın) */}
                   {row.included && (

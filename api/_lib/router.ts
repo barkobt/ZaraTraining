@@ -109,14 +109,16 @@ const ipodGridSchema = z.object({
 
 const shiftInputSchema = z.object({
   short_name: z.string().min(1, { message: "Personel kısaltması boş olamaz" }),
+  // Yarım saat destekli: 10.5 = 10:30. Backend (domain.py) zaten float kabul ediyor;
+  // .multipleOf(0.5) yalnızca tam/yarım saat ızgarasına izin verir (10.25 reddedilir).
   start_hour: z
     .number()
-    .int()
-    .min(0, { message: "Başlangıç saati 0-23 arası olmalı" })
-    .max(23, { message: "Başlangıç saati 0-23 arası olmalı" }),
+    .multipleOf(0.5, { message: "Başlangıç saati tam veya yarım saat olmalı" })
+    .min(0, { message: "Başlangıç saati 0-23:30 arası olmalı" })
+    .max(23.5, { message: "Başlangıç saati 0-23:30 arası olmalı" }),
   end_hour: z
     .number()
-    .int()
+    .multipleOf(0.5, { message: "Bitiş saati tam veya yarım saat olmalı" })
     .min(1, { message: "Bitiş saati 1-24 arası olmalı" })
     .max(24, { message: "Bitiş saati 1-24 arası olmalı" }),
   breaks: z.array(z.tuple([z.number(), z.number()])).optional(),

@@ -64,6 +64,9 @@ export function exportChartToExcel(
             return `${name} 1/2`;
           }
         }
+        // Yarım saat giriş/çıkış: sınır slotu yarım → "1/2" (ChartResult ile aynı).
+        if (shift.start_hour % 1 === 0.5 && Math.floor(shift.start_hour) === c.hour) return `${name} 1/2`;
+        if (shift.end_hour % 1 === 0.5 && Math.floor(shift.end_hour) === c.hour) return `${name} 1/2`;
       }
       return name;
     });

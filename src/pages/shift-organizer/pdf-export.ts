@@ -120,15 +120,18 @@ export function exportChartToPdf(
   // hem normal rol hücrelerinde "X 1/2" suffix'iyle gösterilir.
   const halfBreakSetByHour = new Map<number, Set<string>>();
   if (shifts) {
+    const mark = (h: number, name: string) => {
+      const set = halfBreakSetByHour.get(h) ?? new Set<string>();
+      set.add(name);
+      halfBreakSetByHour.set(h, set);
+    };
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
-        if (be - bs <= 0.5 + 1e-6) {
-          const h = Math.floor(bs);
-          const set = halfBreakSetByHour.get(h) ?? new Set<string>();
-          set.add(s.short_name);
-          halfBreakSetByHour.set(h, set);
-        }
+        if (be - bs <= 0.5 + 1e-6) mark(Math.floor(bs), s.short_name);
       }
+      // Yarım saat giriş/çıkış: sınır slotu yarım → "1/2" (ChartResult ile aynı).
+      if (s.start_hour % 1 === 0.5) mark(Math.floor(s.start_hour), s.short_name);
+      if (s.end_hour % 1 === 0.5) mark(Math.floor(s.end_hour), s.short_name);
     }
   }
   const labelName = (name: string, hour: number): string =>
