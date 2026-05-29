@@ -1,0 +1,17 @@
+# ZARA · Atelye — robots.txt
+# Public sayfalar index'lenir, iç araçlar (password-gated) bloklanır.
+
+User-agent: *
+Allow: /
+Allow: /fitting-room
+Allow: /show
+
+# Password-gated veya iç çalışma alanları — index'lenmesin
+Disallow: /admin
+Disallow: /shift-organizer
+Disallow: /buenas-dias
+Disallow: /buenas-dias/setup
+Disallow: /sonuc/
+Disallow: /test
+
+Sitemap: https://zaratraining.online/sitemap.xml
