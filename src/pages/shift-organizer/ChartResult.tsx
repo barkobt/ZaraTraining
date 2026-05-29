@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Download, FileDown } from "lucide-react";
 import { ResponsibilitiesPanel, type Responsibilities } from "./ResponsibilitiesPanel";
 import type { StaffRow } from "./constants";
@@ -82,9 +82,16 @@ export function ChartResult({
   staff?: StaffRow[];
   shifts?: ShiftInputForChart[];
   shiftDate?: string;
-  onExportExcel?: () => void;
-  onExportPdf?: () => void;
+  onExportExcel?: (resp: Responsibilities) => void;
+  onExportPdf?: (resp: Responsibilities) => void;
 }) {
+  // Panelde seçilen sorumlular canlı tutulur; export bunu kullanır (DB'ye yazılan
+  // ama generate.data'ya yansımayan seçimler bayat kalmasın → FAZ 8 bind).
+  const [liveResp, setLiveResp] = useState<Responsibilities>(result.responsibilities ?? {});
+  useEffect(() => {
+    setLiveResp(result.responsibilities ?? {});
+  }, [result.chartId, result.responsibilities]);
+
   const cellsByHourRole = useMemo(() => {
     const m = new Map<string, string[]>();
     for (const c of result.chart) m.set(`${c.hour}|${c.role}`, c.persons);
@@ -217,7 +224,7 @@ export function ChartResult({
           <div className="ml-auto flex gap-2">
             {onExportPdf && (
               <button
-                onClick={onExportPdf}
+                onClick={() => onExportPdf(liveResp)}
                 className="border border-black px-3 py-1 text-[10px] tracking-[0.2em] uppercase flex items-center gap-1 hover:bg-stone-100"
               >
                 <FileDown size={11} strokeWidth={1.5} /> PDF
@@ -225,7 +232,7 @@ export function ChartResult({
             )}
             {onExportExcel && (
               <button
-                onClick={onExportExcel}
+                onClick={() => onExportExcel(liveResp)}
                 className="border border-black px-3 py-1 text-[10px] tracking-[0.2em] uppercase flex items-center gap-1 hover:bg-stone-100"
               >
                 <Download size={11} strokeWidth={1.5} /> Excel
@@ -350,6 +357,7 @@ export function ChartResult({
             chartId={result.chartId}
             staff={staff}
             initial={result.responsibilities ?? undefined}
+            onChange={setLiveResp}
           />
         </div>
       )}

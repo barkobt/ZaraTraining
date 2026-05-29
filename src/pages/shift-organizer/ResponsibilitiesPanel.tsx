@@ -9,10 +9,13 @@ export function ResponsibilitiesPanel({
   chartId,
   staff,
   initial,
+  onChange,
 }: {
   chartId: number | null;
   staff: StaffRow[];
   initial?: Responsibilities;
+  /** Seçim değişince canlı sorumlulukları yukarı bildirir (export bayat kalmasın). */
+  onChange?: (r: Responsibilities) => void;
 }) {
   const [local, setLocal] = useState<Responsibilities>(initial ?? {});
   const [saved, setSaved] = useState(true);
@@ -35,6 +38,7 @@ export function ResponsibilitiesPanel({
     const next = { ...local, [role]: shortName || undefined };
     setLocal(next);
     setSaved(false);
+    onChange?.(next);
     mut.mutate({
       id: chartId,
       responsibilities: Object.fromEntries(

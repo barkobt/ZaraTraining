@@ -661,9 +661,9 @@ export function GenerateTab({
               tasks: shiftsState[s.id].tasks ?? [],
             }))}
           shiftDate={shiftDate}
-          onExportExcel={() =>
+          onExportExcel={(resp) =>
             exportChartToExcel(
-              generate.data!,
+              { ...generate.data!, responsibilities: resp },
               shiftDate,
               staff
                 .filter((s) => shiftsState[s.id]?.included)
@@ -676,9 +676,9 @@ export function GenerateTab({
                 })),
             )
           }
-          onExportPdf={() =>
+          onExportPdf={(resp) =>
             exportChartToPdf(
-              generate.data!,
+              { ...generate.data!, responsibilities: resp },
               shiftDate,
               staff
                 .filter((s) => shiftsState[s.id]?.included)
