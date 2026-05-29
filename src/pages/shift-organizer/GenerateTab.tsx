@@ -374,6 +374,8 @@ export function GenerateTab({
   };
 
   const includedCount = staff.filter((s) => shiftsState[s.id]?.included).length;
+  // Günün Bilgileri'ndeki sorumlu dropdown'ları için: shift'e dahil edilen kişiler.
+  const includedStaff = staff.filter((s) => shiftsState[s.id]?.included);
 
   return (
     <div className="space-y-6">
@@ -609,33 +611,48 @@ export function GenerateTab({
             </label>
             <label className="flex flex-col gap-1">
               <span className="text-[9px] tracking-[0.2em] uppercase text-stone-500">IPOD Satışı sorumlusu</span>
-              <input
-                type="text"
-                placeholder="Meral"
+              <select
                 value={altInfo.ipod}
                 onChange={(e) => setAltInfo((p) => ({ ...p, ipod: e.target.value }))}
                 className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent py-1"
-              />
+              >
+                <option value="">— seç —</option>
+                {includedStaff.map((p) => (
+                  <option key={p.id} value={staffLabel(p, staff)}>
+                    {staffLabel(p, staff)}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="flex flex-col gap-1">
               <span className="text-[9px] tracking-[0.2em] uppercase text-stone-500">Tempe / ACC sorumlusu</span>
-              <input
-                type="text"
-                placeholder="Sevim"
+              <select
                 value={altInfo.tempe}
                 onChange={(e) => setAltInfo((p) => ({ ...p, tempe: e.target.value }))}
                 className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent py-1"
-              />
+              >
+                <option value="">— seç —</option>
+                {includedStaff.map((p) => (
+                  <option key={p.id} value={staffLabel(p, staff)}>
+                    {staffLabel(p, staff)}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="flex flex-col gap-1 sm:col-span-2">
               <span className="text-[9px] tracking-[0.2em] uppercase text-stone-500">İstek noktası sorumlusu</span>
-              <input
-                type="text"
-                placeholder="Selin"
+              <select
                 value={altInfo.istek}
                 onChange={(e) => setAltInfo((p) => ({ ...p, istek: e.target.value }))}
                 className="text-xs border-b border-stone-300 outline-none focus:border-black bg-transparent py-1"
-              />
+              >
+                <option value="">— seç —</option>
+                {includedStaff.map((p) => (
+                  <option key={p.id} value={staffLabel(p, staff)}>
+                    {staffLabel(p, staff)}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
         </details>
