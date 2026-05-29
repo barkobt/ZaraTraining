@@ -404,8 +404,9 @@ export const appRouter = createRouter({
           competency_weight: cfg?.competencyWeight ?? 4.0,
           fairness_weight: cfg?.fairnessWeight ?? 0.3,
           max_consecutive_hours: cfg?.maxConsecutiveHours ?? 4,
-          // Vercel Hobby plan 10s sabit limit. Solver 5s + ~3s overhead = ~8s.
-          time_limit_seconds: input.timeLimitSeconds ?? 5,
+          // Vercel fonksiyon duvarı 30s (vercel.json maxDuration). Best-of-N
+          // solver ~12s bütçe + ~3s DB/overhead = ~15s, 30s'in altında güvenli.
+          time_limit_seconds: input.timeLimitSeconds ?? 12,
         };
 
         // DB'deki Settings → Yasaklar UI'ından gelen rol çiftleri solver'a iletilir.
