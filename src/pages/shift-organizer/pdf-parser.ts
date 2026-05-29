@@ -462,8 +462,10 @@ function detectSection(line: string): string | null {
   return null;
 }
 
-// Güvenlik üst sınırı — BASIC bölümünde gerçek ortalama ≤20 personel.
-const MAX_MATCHES = 30;
+// Güvenlik üst sınırı. 2026-05-30: 30 → 80. FR/PROBADOR de okunduğundan
+// BASIC (~20) + FR (~10+) toplamı 30'u aşıp en SONDAKİ kişileri (çoğu zaman
+// en yeni personel) kesiyordu ("en yeni personeli okumuyor" bug'ı).
+const MAX_MATCHES = 80;
 
 export function parseShiftsFromTextWithReport(text: string): ParseReport {
   const lines = text.split(/[\r\n]+/);
@@ -659,12 +661,14 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
         const s = it.str.trim().toLowerCase().replace(/[:;]+$/g, "");
         return keywords.some((kw) => s === kw || s.includes(kw));
       });
+    // Header gate'i GEVŞETİLDİ (2026-05-30): eskiden 4 başlık da (name+shift+
+    // break+hours) zorunluydu → FR/PROBADOR gibi basit layout'lu sayfalarda
+    // (sadece Name+Shift) header bulunamayıp TÜM sayfa atlanıyordu ("FR
+    // okunmuyor"). Artık name+shift yeterli; break/hours opsiyonel.
     const headerRow = rows.find((r) => {
       return (
         findHeaderCol(r, HEADER_KEYWORDS.name) &&
-        findHeaderCol(r, HEADER_KEYWORDS.shift) &&
-        findHeaderCol(r, HEADER_KEYWORDS.break) &&
-        findHeaderCol(r, HEADER_KEYWORDS.hours)
+        findHeaderCol(r, HEADER_KEYWORDS.shift)
       );
     });
     if (!headerRow) {
@@ -687,22 +691,30 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     // düşsün (Voronoi-style). Hizalama farkından bağımsız doğru atama.
     const nameH = findHeaderCol(headerRow, HEADER_KEYWORDS.name)!;
     const shiftH = findHeaderCol(headerRow, HEADER_KEYWORDS.shift)!;
-    const breakH = findHeaderCol(headerRow, HEADER_KEYWORDS.break)!;
-    const hoursH = findHeaderCol(headerRow, HEADER_KEYWORDS.hours)!;
-    const headerByX = [nameH, shiftH, breakH, hoursH].sort((a, b) => a.x - b.x);
-    const colNames = ["name", "shift", "break", "hours"] as const;
-    type ColName = typeof colNames[number];
+    const breakH = findHeaderCol(headerRow, HEADER_KEYWORDS.break);
+    const hoursH = findHeaderCol(headerRow, HEADER_KEYWORDS.hours);
+    // break/hours opsiyonel — yoksa o sütun voronoi'ye dahil edilmez (FR gibi
+    // basit layout). Sıralı (x'e göre) header listesi + paralel isim listesi.
+    const headerCols: Array<{ item: Item; name: "name" | "shift" | "break" | "hours" }> = [
+      { item: nameH, name: "name" },
+      { item: shiftH, name: "shift" },
+    ];
+    if (breakH) headerCols.push({ item: breakH, name: "break" });
+    if (hoursH) headerCols.push({ item: hoursH, name: "hours" });
+    headerCols.sort((a, b) => a.item.x - b.item.x);
+    const headerByX = headerCols.map((c) => c.item);
+    type ColName = "name" | "shift" | "break" | "hours";
     const whichCol = (itemX: number): ColName => {
       let bestIdx = 0;
       let bestDist = Infinity;
-      for (let i = 0; i < headerByX.length; i++) {
-        const d = Math.abs(itemX - headerByX[i].x);
+      for (let i = 0; i < headerCols.length; i++) {
+        const d = Math.abs(itemX - headerCols[i].item.x);
         if (d < bestDist) {
           bestDist = d;
           bestIdx = i;
         }
       }
-      return colNames[bestIdx];
+      return headerCols[bestIdx].name;
     };
 
     console.warn(
