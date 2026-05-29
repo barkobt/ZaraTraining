@@ -391,8 +391,9 @@ function tryParseLine(rawLine: string): ParsedShift | null {
         void firstRangeText;
         return {
           name: n,
-          startHour: shift.start,
-          endHour: shift.end,
+          // startFloat/endFloat: integer start/end (13:30→13) buçuğu kaybediyordu.
+          startHour: shift.startFloat,
+          endHour: shift.endFloat,
           breaks: mergeBreaks(breaks),
           tasks: bt.tasks,
           soft_tasks: bt.soft_tasks,
@@ -445,7 +446,7 @@ export function parseShiftsFromText(text: string): ParsedShift[] {
 // Orquest PDF'inde sadece BASIC bölümü ele alınır; diğer bölümler atlanır.
 // Section başlığı tespiti: tek kelime, all-caps, ≤12 karakter, sayı/saat içermez.
 const SECTION_NAMES = [
-  "BASIC", "WOMAN", "WOMEN", "MAN", "MEN", "KIDS", "KID", "CHILD",
+  "BASIC", "FR", "PROBADOR", "WOMAN", "WOMEN", "MAN", "MEN", "KIDS", "KID", "CHILD",
   "TRF", "BABY", "ACCESSORIES", "ACCESORIES", "SHOES", "BEAUTY",
 ];
 const KNOWN_SECTIONS = new Set(SECTION_NAMES.map((s) => s.toUpperCase()));
@@ -482,6 +483,10 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
     if (section) {
       if (section === "BASIC") {
         if (basicBlockEnded) break; // ikinci BASIC bloğu — iterasyonu durdur
+        sawAnySection = true;
+        inBasic = true;
+      } else if (section === "FR" || section === "PROBADOR") {
+        // Kabin (fitting room) personeli — KABİN rolünün adayları, her zaman oku.
         sawAnySection = true;
         inBasic = true;
       } else {
@@ -726,6 +731,9 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
       "WOMAN", "WOMEN", "MAN", "MEN", "KIDS", "KID", "TRF", "BABY",
       "ACCESSORIES", "ACCESORIES", "SHOES", "BEAUTY",
     ]);
+    // Kişileri OKUDUĞUMUZ ana bölümler. BASIC = mağaza zemini; FR/PROBADOR =
+    // kabin (fitting room) → KABİN rolünün adayları, chart'a dahil edilmeli.
+    const READABLE_MAIN_SECTIONS = new Set(["BASIC", "FR", "PROBADOR"]);
 
     let lastPerson: ParsedShift | null = null;
 
@@ -742,12 +750,16 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
       // işle — isLikelyName + REJECT_TOKENS zaten yanlış kabul yapmaz.
       if (MAIN_SECTION_KEYWORDS.has(firstTok) && wordCount <= 3) {
         const wasInBasic = inBasic;
-        inBasic = (firstTok === "BASIC");
+        // FR/PROBADOR (kabin/fitting-room) personeli de chart'a girmeli —
+        // bunlar tam da KABİN rolünün adayları. Eskiden FR ana-section
+        // görülünce inBasic=false oluyor ve FR kişileri atlanıyordu
+        // ("FR kısmını okumuyor" bug'ı). BASIC gibi okunabilir kabul et.
+        inBasic = READABLE_MAIN_SECTIONS.has(firstTok);
         if (inBasic) {
           sawBasic = true;
-          console.warn("[PDF Parser] MAIN section BASIC entered");
+          console.warn(`[PDF Parser] MAIN section ${firstTok} entered (readable)`);
         } else if (wasInBasic) {
-          console.warn(`[PDF Parser] MAIN section ${firstTok} → exiting BASIC`);
+          console.warn(`[PDF Parser] MAIN section ${firstTok} → exiting readable section`);
         }
         lastPerson = null;
         continue;
@@ -826,15 +838,17 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
           continue;
         }
         const shift = shiftRanges[0];
-        // SADECE break sütunundan break çıkar — komşu sütun karışması yok
+        // SADECE break sütunundan break çıkar — komşu sütun karışması yok.
+        // startFloat/endFloat kullan: shift.start/end integer (13:30→13) buçuğu
+        // kaybediyordu → "buçukları okumuyor" bug'ı.
         const breaks: Array<[number, number]> = extractAllHourRanges(breakStr)
-          .filter((r) => r.startFloat >= shift.start && r.endFloat <= shift.end)
+          .filter((r) => r.startFloat >= shift.startFloat && r.endFloat <= shift.endFloat)
           .map((r) => [r.startFloat, r.endFloat] as [number, number]);
 
         const newPerson: ParsedShift = {
           name: cleanName(nameStr),
-          startHour: shift.start,
-          endHour: shift.end,
+          startHour: shift.startFloat,
+          endHour: shift.endFloat,
           breaks: mergeBreaks(breaks),
           tasks: [],
           soft_tasks: [],
