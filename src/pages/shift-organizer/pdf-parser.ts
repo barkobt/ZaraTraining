@@ -720,7 +720,7 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     //   KIDS, ACCESSORIES, ...). Sadece grup ayırıcı; inBasic'i değiştirmez.
     const MAIN_SECTION_KEYWORDS = new Set([
       "BASIC", "CABALLERO", "KASA", "MÜDUR", "MUDUR",
-      "OPERASYON", "NIÑO", "NINO",
+      "OPERASYON", "NIÑO", "NINO", "FR", "PROBADOR",
     ]);
     const SUB_SECTION_KEYWORDS = new Set([
       "WOMAN", "WOMEN", "MAN", "MEN", "KIDS", "KID", "TRF", "BABY",
