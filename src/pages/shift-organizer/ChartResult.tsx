@@ -197,30 +197,25 @@ export function ChartResult({
   }, [shifts]);
   const hasTasks = tasksByHour.size > 0;
 
-  /** Aktif İş Gücü: o saatte sahada + mola/task hariç. */
+  /**
+   * Aktif İş Gücü = o saatte BİR ROLE ATANMIŞ kişi sayısı (chart'ta görünen).
+   * Önceden "sahada bulunan" sayılıyordu; kapasite < kişi sayısı olduğunda
+   * (ör. 36 kişi ama saatlik kapasite ~31) atanmayan kişiler de sayıldığı için
+   * AKTİF, grid'deki gerçek dağılımdan fazla görünüyordu ("alt toplam yanlış").
+   * Artık result.chart'taki rol hücrelerinden distinct kişi sayılır → grid ile
+   * birebir tutar.
+   */
   const activeWorkforceByHour = useMemo(() => {
-    const m = new Map<number, number>();
-    if (!shifts) return m;
-    for (const h of hours) {
-      let count = 0;
-      for (const s of shifts) {
-        // Overlap semantiği (backend is_working_at ile birebir): [h, h+1) slotu
-        // shift aralığıyla kesişiyorsa sahada. Yarım saat (16.5) başlangıcı yakalar.
-        if (s.start_hour >= h + 1 || s.end_hour <= h) continue;
-        // Tam saat mola?
-        const onBreak = (s.breaks ?? []).some(
-          ([bs, be]) => bs <= h && be >= h + 1,
-        );
-        if (onBreak) continue;
-        // Blocking task?
-        const onTask = (s.tasks ?? []).some(([th]) => th === h);
-        if (onTask) continue;
-        count++;
-      }
-      m.set(h, count);
+    const byHour = new Map<number, Set<string>>();
+    for (const cell of result.chart) {
+      const set = byHour.get(cell.hour) ?? new Set<string>();
+      for (const p of cell.persons) set.add(p);
+      byHour.set(cell.hour, set);
     }
-    return m;
-  }, [shifts, hours]);
+    const counts = new Map<number, number>();
+    for (const [h, set] of byHour) counts.set(h, set.size);
+    return counts;
+  }, [result.chart]);
   const showActiveRow = activeWorkforceByHour.size > 0;
 
   return (

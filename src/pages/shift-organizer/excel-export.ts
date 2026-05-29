@@ -76,18 +76,20 @@ export function exportChartToExcel(
   // Saat → Mola / Task / Aktif iş gücü hesaplaması
   const breaksByHour = new Map<number, string[]>();
   const tasksByHour = new Map<number, string[]>();
+  // Aktif iş gücü = o saatte bir role ATANMIŞ distinct kişi (chart ile birebir).
+  // Ekrandaki ChartResult ile aynı semantik (eski "sahada bulunan" sayımı kapasite
+  // aşımında grid'den fazla görünüyordu).
   const activeByHour = new Map<number, number>();
-  if (shifts) {
-    for (const h of hours) {
-      let count = 0;
-      for (const s of shifts) {
-        if (h < s.start_hour || h >= s.end_hour) continue;
-        const onBreak = (s.breaks ?? []).some(([bs, be]) => bs <= h && be >= h + 1);
-        const onTask = (s.tasks ?? []).some(([th]) => th === h);
-        if (!onBreak && !onTask) count++;
-      }
-      activeByHour.set(h, count);
+  {
+    const byHour = new Map<number, Set<string>>();
+    for (const c of result.chart) {
+      const set = byHour.get(c.hour) ?? new Set<string>();
+      for (const p of c.persons) set.add(p);
+      byHour.set(c.hour, set);
     }
+    for (const h of hours) activeByHour.set(h, byHour.get(h)?.size ?? 0);
+  }
+  if (shifts) {
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
         const isHalf = be - bs <= 0.5 + 1e-6;
