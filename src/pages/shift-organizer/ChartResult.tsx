@@ -233,9 +233,10 @@ export function ChartResult({
             {onExportExcel && (
               <button
                 onClick={() => onExportExcel(liveResp)}
+                title="Düzenlenebilir .xlsx — Excel ve Apple Numbers'da açılır"
                 className="border border-black px-3 py-1 text-[10px] tracking-[0.2em] uppercase flex items-center gap-1 hover:bg-stone-100"
               >
-                <Download size={11} strokeWidth={1.5} /> Excel
+                <Download size={11} strokeWidth={1.5} /> Excel / Numbers
               </button>
             )}
           </div>
