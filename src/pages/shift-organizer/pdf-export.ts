@@ -316,20 +316,60 @@ export function exportChartToPdf(
 //  bölünür. Yeni solver gerektirmez. Sarı yerine alan renkleriyle şık görünüm.
 // ════════════════════════════════════════════════════════════════════════════
 
+type AreaGlyphShape = "circle" | "square" | "triDown" | "triUp" | "diamond" | "ring";
 type AreaTableDef = {
   label: string;
   sub: string;
   color: [number, number, number];
+  glyph: AreaGlyphShape;
   roles: string[]; // result.chart'taki rol adları (Türkçe enum değerleri)
 };
 
+/**
+ * Renkler + geometrik semboller design-system -3 (AREA_VISUAL) ile aynı —
+ * UI'daki AreaGlyph ile birebir eşleşir. Eski doygun renklerin (Tailwind 600)
+ * yerine yumuşak editorial palet.
+ */
 const AREA_TABLES: AreaTableDef[] = [
-  { label: "WOMAN", sub: "Welcome · Zone 1-2", color: [219, 39, 119], roles: ["WELCOME", "ZONE 2"] },
-  { label: "BASIC", sub: "Zone 3-4", color: [37, 99, 235], roles: ["ZONE 3", "ZONE 4"] },
-  { label: "TRF", sub: "Zone 5", color: [234, 88, 12], roles: ["ZONE 5"] },
-  { label: "FITTING ROOM", sub: "Kabin", color: [124, 58, 237], roles: ["KABİN WELCOMER", "KABİN"] },
-  { label: "SPRINTER", sub: "Joker", color: [22, 163, 74], roles: ["SPRINTER"] },
+  { label: "WOMAN", sub: "Welcome · Zone 1-2", color: [194, 90, 124], glyph: "circle", roles: ["WELCOME", "ZONE 2"] },
+  { label: "BASIC", sub: "Zone 3-4", color: [63, 102, 168], glyph: "square", roles: ["ZONE 3", "ZONE 4"] },
+  { label: "TRF", sub: "Zone 5", color: [198, 125, 51], glyph: "triDown", roles: ["ZONE 5"] },
+  { label: "FITTING ROOM", sub: "Kabin", color: [135, 91, 166], glyph: "diamond", roles: ["KABİN WELCOMER", "KABİN"] },
+  { label: "SPRINTER", sub: "Joker", color: [91, 147, 85], glyph: "triUp", roles: ["SPRINTER"] },
 ];
+
+/**
+ * Alan glyph'ini PDF header band'ine beyaz çizer (renkli zemin üstünde).
+ * cx,cy = merkez (mm), s = kenar/çap (mm). AreaGlyph (SVG) ile aynı sembol seti.
+ */
+function drawAreaGlyph(doc: jsPDF, shape: AreaGlyphShape, cx: number, cy: number, s: number) {
+  const h = s / 2;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(255, 255, 255);
+  switch (shape) {
+    case "square":
+      doc.rect(cx - h, cy - h, s, s, "F");
+      break;
+    case "circle":
+      doc.circle(cx, cy, h, "F");
+      break;
+    case "triDown":
+      doc.triangle(cx - h, cy - h, cx + h, cy - h, cx, cy + h, "F");
+      break;
+    case "triUp":
+      doc.triangle(cx, cy - h, cx + h, cy + h, cx - h, cy + h, "F");
+      break;
+    case "diamond":
+      doc.triangle(cx, cy - h, cx + h, cy, cx, cy + h, "F");
+      doc.triangle(cx, cy - h, cx - h, cy, cx, cy + h, "F");
+      break;
+    case "ring":
+      doc.setLineWidth(0.5);
+      doc.circle(cx, cy, h, "S");
+      doc.circle(cx, cy, h * 0.4, "F");
+      break;
+  }
+}
 
 // Alan kodu (staff.home_area) → tabloda hangi mola satırına düşeceği.
 const AREA_LABEL_BY_CODE: Record<string, string> = {
@@ -429,16 +469,18 @@ export function exportAreaChartToPdf(
       y = margin + 4;
     }
 
-    // Renkli başlık bandı
+    // Renkli başlık bandı + geometrik alan sembolü (AreaGlyph ile aynı)
     doc.setFillColor(area.color[0], area.color[1], area.color[2]);
     doc.rect(margin, y, tableWidth, 7, "F");
+    drawAreaGlyph(doc, area.glyph, margin + 4, y + 3.5, 3.4);
     doc.setTextColor(255);
     doc.setFont("Roboto", "bold");
     doc.setFontSize(9);
-    doc.text(`${area.label}`, margin + 2, y + 4.9);
+    const labelX = margin + 8;
+    doc.text(`${area.label}`, labelX, y + 4.9);
     doc.setFont("Roboto", "normal");
     doc.setFontSize(7.5);
-    doc.text(area.sub, margin + 2 + doc.getTextWidth(area.label) + 4, y + 4.9);
+    doc.text(area.sub, labelX + doc.getTextWidth(area.label) + 4, y + 4.9);
     y += 7;
 
     const head = [["", ...hours.map(fmtHour)]];
