@@ -283,6 +283,8 @@ export const appRouter = createRouter({
           isManager: z.boolean().optional(),
           isBlacklisted: z.boolean().optional(),
           note: z.string().nullable().optional(),
+          // Alan-bazlı v2: sabit çalışma alanı. null = atamayı kaldır.
+          homeArea: z.string().max(20).nullable().optional(),
         }),
       )
       .mutation(async ({ input }) => {

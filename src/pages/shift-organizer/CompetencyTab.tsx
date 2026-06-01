@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Crown, Plus, Search, Loader2, ArrowUpDown, Filter, Pencil, X as XIcon,
 } from "lucide-react";
-import { ROLES, STAR_LEVELS, TENURE_LEVELS, type Role, type StaffRow } from "./constants";
+import { AREAS, ROLES, STAR_LEVELS, TENURE_LEVELS, type Role, type StaffRow } from "./constants";
 
 type SortKey = "name" | "competency" | "tenure" | "manager";
 type SortDir = "asc" | "desc";
@@ -19,6 +19,7 @@ export function CompetencyTab(props: {
       tenureLevel: string;
       isManager: boolean;
       note: string | null;
+      homeArea: string | null;
     }>,
   ) => void;
   onDeleteStaff: (id: number) => void;
@@ -298,6 +299,9 @@ export function CompetencyTab(props: {
               <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-32" style={{ background: "white" }}>
                 Süre
               </th>
+              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-36" style={{ background: "white" }}>
+                Alan
+              </th>
               {ROLES.map((role) => (
                 <th
                   key={role}
@@ -316,14 +320,14 @@ export function CompetencyTab(props: {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={ROLES.length + 4} className="p-8 text-center text-stone-400">
+                <td colSpan={ROLES.length + 5} className="p-8 text-center text-stone-400">
                   <Loader2 className="inline-block animate-spin mr-2" size={14} /> Yükleniyor…
                 </td>
               </tr>
             )}
             {!loading && filtered.length === 0 && (
               <tr>
-                <td colSpan={ROLES.length + 4} className="p-8 text-center text-stone-400 text-sm">
+                <td colSpan={ROLES.length + 5} className="p-8 text-center text-stone-400 text-sm">
                   {activeFilterCount > 0
                     ? "Filtreler ile eşleşen personel yok."
                     : "Kayıt yok."}
@@ -370,6 +374,27 @@ export function CompetencyTab(props: {
                       {TENURE_LEVELS.map((t) => (
                         <option key={t.id} value={t.id}>
                           {t.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="p-4">
+                    {/* Alan-bazlı v2: sabit çalışma alanı seçimi. Boş = atanmamış.
+                        v1 chart üretimini etkilemez (solver homeArea'yı okumaz). */}
+                    <select
+                      value={person.homeArea ?? ""}
+                      onChange={(e) =>
+                        onUpdateStaff(person.id, {
+                          homeArea: e.target.value === "" ? null : e.target.value,
+                        })
+                      }
+                      className="text-[11px] py-1 px-2 border border-stone-200 bg-transparent outline-none cursor-pointer rounded-sm"
+                      style={{ color: AREAS.find((a) => a.id === person.homeArea)?.color }}
+                    >
+                      <option value="">—</option>
+                      {AREAS.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.label}
                         </option>
                       ))}
                     </select>
