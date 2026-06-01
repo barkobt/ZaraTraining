@@ -9,3 +9,11 @@ export { Eyebrow } from "./Eyebrow";
 export { SectionMarker } from "./SectionMarker";
 export { LiveDot } from "./LiveDot";
 export { Marquee } from "./Marquee";
+
+// editorial -3 primitive'leri (editorial.css ile eşleşir)
+export { Panel } from "./Panel";
+export { SectionBar } from "./SectionBar";
+export { StatCards, type Stat } from "./StatCards";
+export { Badge } from "./Badge";
+export { AreaGlyph } from "./AreaGlyph";
+export { AREA_VISUAL, areaVisual, type AreaGlyphShape } from "./area-visual";
