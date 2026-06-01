@@ -1,6 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { Crown, Loader2, Users } from "lucide-react";
 import { AREAS, DUTY_BY_ID, staffLabel, withinAreaRank, type StaffRow } from "./constants";
+import { AreaGlyph } from "@/components/atelier";
+import { areaVisual } from "@/components/atelier/area-visual";
 
 /**
  * AreasTab — Alan-bazlı (area-based) v2 görünümü.
@@ -43,8 +45,8 @@ export function AreasTab(props: {
 
   if (loading) {
     return (
-      <div className="p-12 text-center text-stone-400">
-        <Loader2 className="inline-block animate-spin mr-2" size={16} /> Yükleniyor…
+      <div style={{ padding: 48, textAlign: "center", color: "var(--zara-ink-40)" }}>
+        <Loader2 className="inline-block animate-spin" size={16} style={{ verticalAlign: "-3px", marginRight: 8 }} /> Yükleniyor…
       </div>
     );
   }
@@ -52,100 +54,84 @@ export function AreasTab(props: {
   const assignedCount = staff.length - groups.unassigned.length;
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Üst bilgi şeridi */}
-      <div className="flex items-center justify-between border-y border-stone-300 py-4">
-        <div className="flex items-center gap-2 text-[10px] tracking-[0.2em] uppercase text-stone-600">
-          <Users size={14} strokeWidth={1.5} />
-          Alan-bazlı dağılım
-        </div>
-        <div className="text-[10px] tracking-[0.15em] uppercase text-stone-500">
-          {assignedCount} / {staff.length} atanmış
-        </div>
+      <div className="areas-head">
+        <span className="ah-eb">
+          <Users size={14} strokeWidth={1.6} /> Alan-bazlı dağılım
+        </span>
+        <span className="ah-count num">{assignedCount} / {staff.length} atanmış</span>
       </div>
 
-      {/* Alan kartları — responsive grid */}
-      <div className="grid gap-px bg-stone-300 border border-stone-300 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Alan kartları — responsive grid (editorial.css: 3→2→1 kolon) */}
+      <div className="areas-grid">
         {AREAS.map((area) => {
           const people = groups.byArea.get(area.id) ?? [];
+          const color = areaVisual(area.id).color;
           return (
-            <section key={area.id} className="bg-white p-4 min-h-[140px] flex flex-col">
-              <header className="flex items-center justify-between mb-3 pb-2 border-b border-stone-200">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="inline-block w-2.5 h-2.5 rounded-full"
-                    style={{ background: area.color }}
-                  />
-                  <span className="text-sm font-medium" style={{ color: area.color }}>
-                    {area.label}
-                  </span>
-                  {area.sub && (
-                    <span className="text-[9px] tracking-wider uppercase text-stone-400">
-                      {area.sub}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[11px] tabular-nums text-stone-500">
-                  {String(people.length).padStart(2, "0")}
+            <section key={area.id} className="area-col" style={{ ["--ac" as string]: color } as CSSProperties}>
+              <header className="area-col-head">
+                <span className="ach-l">
+                  <AreaGlyph area={area.id} size={15} />
+                  <span className="ach-label" style={{ color }}>{area.label}</span>
+                  {area.sub && <span className="ach-sub">{area.sub}</span>}
                 </span>
+                <span className="ach-count num">{String(people.length).padStart(2, "0")}</span>
               </header>
-
-              {people.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-[11px] text-stone-300">
-                  Boş
-                </div>
-              ) : (
-                <ul className="space-y-1.5">
-                  {people.map((p) => (
-                    <li key={p.id}>
-                      <PersonChip
-                        person={p}
-                        all={staff}
-                        currentArea={area.id}
-                        onMove={(toArea) => onUpdateStaff(p.id, { homeArea: toArea })}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div className="area-col-body">
+                {people.length === 0 ? (
+                  <div className="ac-empty">Boş</div>
+                ) : (
+                  people.map((p) => (
+                    <PersonCard
+                      key={p.id}
+                      person={p}
+                      all={staff}
+                      currentArea={area.id}
+                      onMove={(toArea) => onUpdateStaff(p.id, { homeArea: toArea })}
+                    />
+                  ))
+                )}
+              </div>
             </section>
           );
         })}
       </div>
 
       {/* Atanmamış havuzu */}
-      <section className="bg-white border border-stone-300 p-4">
-        <header className="flex items-center justify-between mb-3 pb-2 border-b border-stone-200">
-          <span className="text-sm font-medium text-stone-500">Atanmamış</span>
-          <span className="text-[11px] tabular-nums text-stone-400">
-            {String(groups.unassigned.length).padStart(2, "0")}
+      <section className="panel" style={{ marginTop: 18 }}>
+        <div className="area-col-head" style={{ borderBottom: "1px solid var(--zara-line)" }}>
+          <span className="ach-l">
+            <span className="dl-dot" style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--zara-ink-30)", display: "inline-block" }} />
+            <span className="ach-label" style={{ color: "var(--zara-ink-50)" }}>Atanmamış</span>
           </span>
-        </header>
-        {groups.unassigned.length === 0 ? (
-          <div className="text-[11px] text-stone-300 py-2">
-            Herkes bir alana atanmış.
-          </div>
-        ) : (
-          <ul className="flex flex-wrap gap-1.5">
-            {groups.unassigned.map((p) => (
-              <li key={p.id}>
-                <PersonChip
-                  person={p}
-                  all={staff}
-                  currentArea={null}
-                  onMove={(toArea) => onUpdateStaff(p.id, { homeArea: toArea })}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
+          <span className="ach-count num">{String(groups.unassigned.length).padStart(2, "0")}</span>
+        </div>
+        <div style={{ padding: 14 }}>
+          {groups.unassigned.length === 0 ? (
+            <div className="ac-empty" style={{ textAlign: "left" }}>Herkes bir alana atanmış.</div>
+          ) : (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {groups.unassigned.map((p) => (
+                <div key={p.id} style={{ minWidth: 220, flex: "1 1 220px", maxWidth: 320 }}>
+                  <PersonCard
+                    person={p}
+                    all={staff}
+                    currentArea={null}
+                    onMove={(toArea) => onUpdateStaff(p.id, { homeArea: toArea })}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
 }
 
-/** Tek kişi — adı + alan değiştirme dropdown'u. */
-function PersonChip(props: {
+/** Tek kişi kartı — adı + görev/ft rozetleri + alan değiştirme dropdown'u. */
+function PersonCard(props: {
   person: StaffRow;
   all: StaffRow[];
   currentArea: string | null;
@@ -153,39 +139,29 @@ function PersonChip(props: {
 }) {
   const { person, all, currentArea, onMove } = props;
   return (
-    <div className="flex items-center justify-between gap-2 border border-stone-200 rounded-sm px-2 py-1 hover:border-stone-400 transition-colors">
-      <span className="flex items-center gap-1 text-[12px] truncate">
-        {person.isManager && (
-          <Crown size={10} strokeWidth={2} fill="currentColor" className="text-amber-500 shrink-0" />
-        )}
-        {person.duty && (
-          <span
-            className="text-[8px] font-semibold tracking-wide px-1 py-px rounded-sm shrink-0 text-white"
-            style={{ background: DUTY_BY_ID[person.duty]?.color ?? "#78716c" }}
-          >
-            {DUTY_BY_ID[person.duty]?.label ?? person.duty}
-          </span>
-        )}
-        {person.employment && (
-          <span className="text-[8px] tracking-wide px-1 py-px rounded-sm shrink-0 border border-stone-300 text-stone-500">
-            {person.employment}
-          </span>
-        )}
-        <span className="truncate">{staffLabel(person, all)}</span>
+    <div className="ac-card">
+      {person.isManager && <Crown className="ac-crown" size={12} strokeWidth={2} fill="currentColor" />}
+      {person.duty && (
+        <span className="ac-role" style={{ background: DUTY_BY_ID[person.duty]?.color ?? "#78716c" }}>
+          {DUTY_BY_ID[person.duty]?.label ?? person.duty}
+        </span>
+      )}
+      {person.employment && (
+        <span className={`ac-ft ${person.employment === "FT" ? "full" : ""}`}>{person.employment}</span>
+      )}
+      <span className="ac-name">{staffLabel(person, all)}</span>
+      <span className="ac-move">
+        <select
+          value={currentArea ?? ""}
+          onChange={(e) => onMove(e.target.value === "" ? null : e.target.value)}
+          title="Alanı değiştir"
+        >
+          <option value="">— Taşı</option>
+          {AREAS.map((a) => (
+            <option key={a.id} value={a.id}>{a.label}</option>
+          ))}
+        </select>
       </span>
-      <select
-        value={currentArea ?? ""}
-        onChange={(e) => onMove(e.target.value === "" ? null : e.target.value)}
-        className="text-[10px] bg-transparent outline-none cursor-pointer text-stone-400 hover:text-black shrink-0"
-        title="Alanı değiştir"
-      >
-        <option value="">—</option>
-        {AREAS.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.label}
-          </option>
-        ))}
-      </select>
     </div>
   );
 }

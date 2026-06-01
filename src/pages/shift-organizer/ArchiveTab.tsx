@@ -29,96 +29,65 @@ export function ArchiveTab({ staff }: { staff: StaffRow[] }) {
 
   const open = (q.data as ChartRow[] | undefined)?.find((c) => c.id === openId) ?? null;
 
+  const statusTone = (s: string) => (s === "OPTIMAL" ? "ok" : s === "FEASIBLE" ? "draft" : "bad");
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div>
+      <div className="arch-head">
         <div>
-          <h3 className="text-lg" style={{ fontFamily: "Georgia, serif" }}>
-            Arşiv
-          </h3>
-          <p className="text-xs text-stone-500 mt-1">
-            Geçmiş chart üretimlerini görüntüle, sil, Excel'e aktar.
-          </p>
+          <h2 className="arch-title">Arşiv</h2>
+          <p className="arch-sub">Geçmiş chart üretimlerini görüntüle, sil, Excel/PDF'e aktar.</p>
         </div>
-        <div className="text-[10px] tracking-[0.25em] uppercase text-stone-500">
-          {q.data?.length ?? 0} kayıt
-        </div>
+        <span className="arch-count num">{q.data?.length ?? 0} kayıt</span>
       </div>
 
       {q.isLoading ? (
-        <div className="border border-stone-200 p-8 text-center text-stone-400 text-sm">
-          <Loader2 className="inline-block animate-spin mr-2" size={14} /> Yükleniyor…
+        <div className="panel" style={{ padding: 32, textAlign: "center", color: "var(--zara-ink-40)", fontSize: 13 }}>
+          <Loader2 className="inline-block animate-spin" size={14} style={{ verticalAlign: "-2px", marginRight: 8 }} /> Yükleniyor…
         </div>
       ) : (q.data ?? []).length === 0 ? (
-        <div className="border border-stone-200 p-12 text-center text-stone-400">
-          <ArchiveIcon size={32} strokeWidth={1} className="mx-auto mb-3 opacity-50" />
-          <p className="text-sm">Henüz chart üretilmedi.</p>
-          <p className="text-xs mt-1">Shift & Chart sekmesinden ilk chart'ını üret.</p>
+        <div className="panel" style={{ padding: 48, textAlign: "center", color: "var(--zara-ink-40)" }}>
+          <ArchiveIcon size={32} strokeWidth={1} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
+          <p style={{ fontSize: 14, margin: 0 }}>Henüz chart üretilmedi.</p>
+          <p style={{ fontSize: 12, marginTop: 4 }}>Shift &amp; Chart sekmesinden ilk chart'ını üret.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="arch-grid">
           {(q.data as ChartRow[]).map((c) => (
-            <div
-              key={c.id}
-              className="border border-stone-300 hover:border-black transition-colors p-4 flex flex-col gap-3"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="font-mono text-[10px] tracking-wider text-stone-400">
-                    #{c.id}
-                  </div>
-                  <div className="font-serif text-xl mt-1">{c.shiftDate}</div>
-                  <div className="text-[10px] text-stone-500 mt-0.5">
-                    {new Date(c.generatedAt).toLocaleString("tr-TR", {
-                      day: "2-digit",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </div>
-                </div>
-                <span
-                  className={`text-[9px] tracking-wider uppercase px-2 py-0.5 ${
-                    c.status === "OPTIMAL"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : c.status === "FEASIBLE"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {c.status}
-                </span>
+            <div className="arch-card" key={c.id}>
+              <div className="arch-card-top">
+                <span className="ac-no num">#{c.id}</span>
+                <span className={`badge ${statusTone(c.status)}`}><span className="dot" />{c.status}</span>
               </div>
-
-              <div className="flex items-center justify-between text-xs text-stone-600">
-                <span>
-                  Skor:{" "}
-                  <strong className="tabular-nums">
-                    {c.qualityScore !== null ? c.qualityScore.toFixed(1) : "—"}
-                  </strong>
-                </span>
+              <div className="ac-date">{c.shiftDate}</div>
+              <div className="ac-stamp num">
+                {new Date(c.generatedAt).toLocaleString("tr-TR", {
+                  day: "2-digit",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+              <div className="ac-score">
+                Skor <b className="num">{c.qualityScore !== null ? c.qualityScore.toFixed(1) : "—"}</b>
                 {c.responsibilities && Object.keys(c.responsibilities).length > 0 && (
-                  <span className="text-[10px] text-stone-400">
-                    {Object.keys(c.responsibilities).length} sorumlu
+                  <span style={{ marginLeft: 10, color: "var(--zara-ink-40)", fontSize: 10 }}>
+                    · {Object.keys(c.responsibilities).length} sorumlu
                   </span>
                 )}
               </div>
-
-              <div className="flex gap-2 mt-auto">
-                <button
-                  onClick={() => setOpenId(c.id)}
-                  className="flex-1 border border-black px-3 py-1.5 text-[10px] tracking-[0.2em] uppercase flex items-center justify-center gap-1 hover:bg-stone-100"
-                >
-                  <Eye size={11} strokeWidth={1.5} /> Aç
+              <div className="ac-actions">
+                <button className="btn ghost sm" onClick={() => setOpenId(c.id)}>
+                  <Eye size={12} strokeWidth={1.6} /> Aç
                 </button>
                 <button
+                  className="ac-del"
                   onClick={() => {
                     if (confirm(`Chart #${c.id} silinsin mi?`)) delMut.mutate({ id: c.id });
                   }}
-                  className="border border-stone-300 px-3 py-1.5 text-stone-400 hover:text-red-600 hover:border-red-300"
                   title="Sil"
                 >
-                  <Trash2 size={11} strokeWidth={1.5} />
+                  <Trash2 size={14} strokeWidth={1.6} />
                 </button>
               </div>
             </div>
