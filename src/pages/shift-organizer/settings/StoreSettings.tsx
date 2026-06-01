@@ -32,51 +32,36 @@ export function StoreSettings() {
   }
 
   return (
-    <div className="space-y-6">
-      <p className="text-sm text-stone-600 leading-relaxed">
-        Mağaza kayıt bilgileri. Code, raporlamada ve PDF üst bilgilerinde görünür.
+    <div>
+      <p style={{ fontSize: 13, color: "var(--zara-ink-65)", lineHeight: 1.6, margin: "0 0 18px" }}>
+        Mağaza kayıt bilgileri. Kod, raporlamada ve PDF üst bilgilerinde görünür.
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl">
-        <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-600 mb-2">
-            Mağaza Kodu
-          </label>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 18, maxWidth: 720 }}>
+        <div className="field" style={{ border: "none", padding: 0 }}>
+          <label>Mağaza Kodu</label>
           <input
+            className="inp num"
             value={local.code}
-            onChange={(e) => {
-              setLocal({ ...local, code: e.target.value });
-              setDirty(true);
-            }}
-            className="w-full border-b border-stone-300 py-2 outline-none focus:border-black font-mono"
+            onChange={(e) => { setLocal({ ...local, code: e.target.value }); setDirty(true); }}
           />
-          <p className="text-[10px] text-stone-400 mt-1">Örn: 3643</p>
+          <span className="hint">Örn: 3643</span>
         </div>
-        <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-600 mb-2">
-            Mağaza Adı
-          </label>
+        <div className="field" style={{ border: "none", padding: 0 }}>
+          <label>Mağaza Adı</label>
           <input
+            className="inp"
             value={local.name}
-            onChange={(e) => {
-              setLocal({ ...local, name: e.target.value });
-              setDirty(true);
-            }}
-            className="w-full border-b border-stone-300 py-2 outline-none focus:border-black"
+            onChange={(e) => { setLocal({ ...local, name: e.target.value }); setDirty(true); }}
           />
-          <p className="text-[10px] text-stone-400 mt-1">Örn: Zara 3643</p>
+          <span className="hint">Örn: Zara 3643</span>
         </div>
-        <div>
-          <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-600 mb-2">
-            Bölüm
-          </label>
+        <div className="field" style={{ border: "none", padding: 0 }}>
+          <label>Bölüm</label>
           <select
+            className="inp"
             value={local.section}
-            onChange={(e) => {
-              setLocal({ ...local, section: e.target.value });
-              setDirty(true);
-            }}
-            className="w-full border-b border-stone-300 py-2 outline-none focus:border-black bg-transparent"
+            onChange={(e) => { setLocal({ ...local, section: e.target.value }); setDirty(true); }}
           >
             <option value="BASIC">BASIC</option>
             <option value="WOMAN">WOMAN</option>
@@ -87,15 +72,11 @@ export function StoreSettings() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-200">
-        <div className="text-xs text-stone-500">
+      <div className="set-foot" style={{ marginTop: 22, marginLeft: -26, marginRight: -26, marginBottom: -24 }}>
+        <span className="caption" style={{ marginRight: "auto", fontFamily: "var(--ff-sans)", fontSize: 12, color: "var(--zara-ink-50)" }}>
           {dirty ? "Kaydedilmemiş değişiklikler" : "Tüm değişiklikler kaydedildi"}
-        </div>
-        <button
-          disabled={!dirty || update.isPending}
-          onClick={() => update.mutate(local)}
-          className="bg-black text-white px-6 py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-stone-800 disabled:bg-stone-300"
-        >
+        </span>
+        <button className="btn" disabled={!dirty || update.isPending} onClick={() => update.mutate(local)}>
           {update.isPending ? "Kaydediliyor…" : "Kaydet"}
         </button>
       </div>

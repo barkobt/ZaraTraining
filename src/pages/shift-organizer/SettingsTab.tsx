@@ -38,26 +38,22 @@ export function SettingsTab() {
   const [sub, setSub] = useState<SubTab>("solver");
 
   return (
-    <div className="space-y-6">
-      <nav className="flex flex-wrap gap-1 border-b border-stone-200">
+    <div>
+      <nav className="set-subnav">
         {SUB_TABS.map(({ id, label, icon: Icon, desc }) => (
           <button
             key={id}
             onClick={() => setSub(id)}
-            className={`px-4 py-3 text-[10px] tracking-[0.2em] uppercase flex items-center gap-2 transition-colors border-b-2 ${
-              sub === id
-                ? "border-black text-black"
-                : "border-transparent text-stone-500 hover:text-black"
-            }`}
+            className={`set-subtab ${sub === id ? "on" : ""}`}
             title={desc}
           >
-            <Icon size={13} strokeWidth={1.5} />
+            <Icon size={13} strokeWidth={1.6} />
             {label}
           </button>
         ))}
       </nav>
 
-      <div className="border border-stone-300 p-4 sm:p-6 md:p-8">
+      <div className="panel" style={{ padding: "24px 26px" }}>
         {sub === "solver" && <SolverSettings />}
         {sub === "forbidden" && <ForbiddenPairsSettings />}
         {sub === "store" && <StoreSettings />}

@@ -924,3 +924,10 @@
 .mx-fchip { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--zara-line-strong); background: var(--zara-bg-white); padding: 5px 10px; border-radius: 4px; cursor: pointer; color: var(--zara-ink-65); display: inline-flex; align-items: center; gap: 5px; }
 .mx-fchip:hover { border-color: var(--zara-gold); }
 .mx-fchip.on { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
+
+/* ── settings alt-sekme barı ────────────────────────────── */
+.set-subnav { display: flex; flex-wrap: wrap; gap: 2px; border-bottom: 1px solid var(--zara-line-strong); margin-bottom: 22px; }
+.set-subtab { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border: none; border-bottom: 2px solid transparent; background: transparent; cursor: pointer; color: var(--zara-ink-50); font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; transition: color 160ms, border-color 160ms; }
+.set-subtab:hover { color: var(--zara-ink); }
+.set-subtab.on { color: var(--zara-ink); border-bottom-color: var(--zara-gold); }
+.set-subtab.on svg { color: var(--zara-gold); }
