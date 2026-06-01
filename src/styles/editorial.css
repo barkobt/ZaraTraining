@@ -899,3 +899,28 @@
 .so-tab .tc { font-size: 9px; opacity: 0.6; }
 .so-logout { border: none; background: transparent; cursor: pointer; color: var(--zara-ink-30); padding: 6px; display: inline-grid; place-items: center; }
 .so-logout:hover { color: var(--zara-ink); }
+
+/* ── matrix (yetkinlik) inline kontrol yardımcıları ─────── */
+.mx-sel { border: 1px solid var(--zara-line); background: var(--zara-bg-white); border-radius: 3px; padding: 5px 8px; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--zara-ink); cursor: pointer; outline: none; max-width: 100%; }
+.mx-sel:focus { border-color: var(--zara-gold); }
+.mx-note { font-family: var(--ff-sans); font-size: 12px; color: var(--zara-ink-50); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mx-crown { border: none; background: transparent; cursor: pointer; padding: 0; color: var(--zara-ink-30); display: inline-grid; place-items: center; }
+.mx-crown.on { color: var(--zara-gold); }
+.mx-crown:hover { color: var(--zara-ink); }
+.mx-acts { display: inline-flex; gap: 2px; justify-content: center; }
+.mx-acts button { border: none; background: transparent; cursor: pointer; color: var(--zara-ink-30); padding: 4px; display: inline-grid; place-items: center; }
+.mx-acts button:hover { color: var(--zara-ink); }
+.mx-acts button.del:hover { color: var(--zara-destructive); }
+.star-menu { position: absolute; z-index: 30; left: 50%; transform: translateX(-50%); background: var(--zara-bg-white); border: 1px solid var(--zara-line-strong); box-shadow: var(--shadow-card); border-radius: 4px; display: flex; flex-direction: column; min-width: 150px; padding: 4px; }
+.star-menu.up { bottom: 100%; margin-bottom: 4px; }
+.star-menu.down { top: 100%; margin-top: 4px; }
+.star-opt { display: flex; align-items: center; gap: 8px; text-align: left; border: none; background: transparent; cursor: pointer; padding: 8px 10px; border-radius: 3px; font-family: var(--ff-sans); font-size: 13px; white-space: nowrap; }
+.star-opt:hover { background: var(--zara-bg-alt); }
+.star-opt.on { background: var(--zara-gold-tint); font-weight: 600; }
+.star-opt .so-star { color: var(--zara-gold); min-width: 42px; }
+.star-opt .so-name { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); }
+/* filter chip row */
+.mx-filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 14px 2px 4px; }
+.mx-fchip { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--zara-line-strong); background: var(--zara-bg-white); padding: 5px 10px; border-radius: 4px; cursor: pointer; color: var(--zara-ink-65); display: inline-flex; align-items: center; gap: 5px; }
+.mx-fchip:hover { border-color: var(--zara-gold); }
+.mx-fchip.on { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }

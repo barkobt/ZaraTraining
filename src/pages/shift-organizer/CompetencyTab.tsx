@@ -6,6 +6,8 @@ import {
   AREAS, AREA_BY_ID, DUTIES, EMPLOYMENTS, ROLES, STAR_LEVELS, TENURE_LEVELS,
   withinAreaRank, type Role, type StaffRow,
 } from "./constants";
+import { StatCards, AreaGlyph } from "@/components/atelier";
+import { areaVisual } from "@/components/atelier/area-visual";
 
 type SortKey = "area" | "name" | "competency" | "tenure" | "manager";
 
@@ -163,51 +165,37 @@ export function CompetencyTab(props: {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-stone-300 border border-stone-300">
-        {[
-          { label: "Toplam Personel", value: stats.total },
-          { label: "Çok Yeni (0–1 ay)", value: stats.veryNew, accent: "#ef4444" },
-          { label: "Yetkin", value: stats.expert, accent: "#000" },
-          { label: "Yönetici", value: stats.managers },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white p-6">
-            <div className="text-[9px] tracking-[0.25em] uppercase text-stone-500 mb-2">
-              {stat.label}
-            </div>
-            <div
-              className="text-4xl font-light tabular-nums"
-              style={{ color: stat.accent || "#000" }}
-            >
-              {String(stat.value).padStart(2, "0")}
-            </div>
-          </div>
-        ))}
-      </div>
+    <div>
+      {/* KPI */}
+      <StatCards
+        cols={4}
+        stats={[
+          { label: "Toplam Personel", value: String(stats.total).padStart(2, "0") },
+          { label: "Çok Yeni · 0–1 ay", value: String(stats.veryNew).padStart(2, "0"), tone: "accent" },
+          { label: "Yetkin", value: String(stats.expert).padStart(2, "0") },
+          { label: "Yönetici", value: String(stats.managers).padStart(2, "0") },
+        ]}
+      />
 
-      {/* Search + sort + filter + add */}
-      <div className="flex flex-col gap-3 py-4 border-y border-stone-300">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3 flex-1 min-w-[200px]">
-            <Search size={14} className="text-stone-400" strokeWidth={1.5} />
-            <input
-              type="text"
-              placeholder="Personel ara (ad / kısa ad / not)..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent outline-none text-sm flex-1 placeholder:text-stone-400"
-            />
-          </div>
-
-          {/* Sort — net yön etiketi ile */}
-          <div className="flex items-center gap-2 border border-stone-300 px-3 py-1.5 text-[10px] tracking-[0.15em] uppercase">
-            <ArrowUpDown size={11} strokeWidth={1.5} className="text-stone-400" />
-            <span className="text-stone-500">Sırala:</span>
+      {/* Arama + sırala + filtre + ekle */}
+      <div className="so-toolbar" style={{ marginTop: 22 }}>
+        <div className="so-search">
+          <Search size={16} strokeWidth={1.6} />
+          <input
+            type="text"
+            placeholder="Personel ara — ad / kısa ad / not…"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="so-tb-right">
+          <div className="seg">
+            <span className="seg-lbl"><ArrowUpDown size={11} strokeWidth={1.6} style={{ verticalAlign: "-2px" }} /> Sırala</span>
             <select
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value as SortKey)}
-              className="bg-transparent outline-none cursor-pointer text-[10px] tracking-[0.15em] uppercase"
+              className="mx-sel"
+              style={{ border: "none", borderRadius: 0, textTransform: "uppercase", letterSpacing: "0.12em", fontSize: 10 }}
             >
               <option value="area">Alan</option>
               <option value="name">Ad</option>
@@ -215,363 +203,241 @@ export function CompetencyTab(props: {
               <option value="tenure">Süre</option>
               <option value="manager">Yönetici</option>
             </select>
-            <button
-              onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
-              className="flex items-center gap-1 text-stone-700 hover:text-black px-2 border-l border-stone-300 ml-1 pl-2"
-              title="Sıralama yönü"
-            >
-              <span className="text-base">{sortDir === "asc" ? "↑" : "↓"}</span>
-              <span className="text-[9px]">
-                {sortDir === "asc"
-                  ? sortKey === "name" || sortKey === "tenure" || sortKey === "area"
-                    ? "A → Z"
-                    : "Azdan Çoka"
-                  : sortKey === "name" || sortKey === "tenure" || sortKey === "area"
-                    ? "Z → A"
-                    : "Çoktan Aza"}
-              </span>
+            <button onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))} title="Sıralama yönü">
+              {sortDir === "asc" ? "↑ A–Z" : "↓ Z–A"}
             </button>
           </div>
 
-          {/* Filter toggle */}
-          <button
-            onClick={() => setShowFilters((v) => !v)}
-            className={`flex items-center gap-1 border px-3 py-1 text-[10px] tracking-[0.15em] uppercase ${
-              activeFilterCount > 0 ? "border-black bg-stone-100" : "border-stone-300"
-            }`}
-          >
-            <Filter size={11} strokeWidth={1.5} /> Filtrele
-            {activeFilterCount > 0 && (
-              <span className="ml-1 bg-black text-white rounded-full px-1.5 text-[9px]">
-                {activeFilterCount}
-              </span>
-            )}
+          <button onClick={() => setShowFilters((v) => !v)} className={`mx-fchip ${activeFilterCount > 0 ? "on" : ""}`}>
+            <Filter size={11} strokeWidth={1.6} /> Filtrele
+            {activeFilterCount > 0 && <span className="num">· {activeFilterCount}</span>}
           </button>
-
           {activeFilterCount > 0 && (
-            <button
-              onClick={clearAllFilters}
-              className="text-[10px] tracking-[0.15em] uppercase text-stone-500 hover:text-black"
-            >
-              Temizle
-            </button>
+            <button onClick={clearAllFilters} className="mx-fchip">Temizle</button>
           )}
 
-          <button
-            onClick={onAddPerson}
-            className="bg-black text-white px-4 py-1.5 text-[10px] tracking-[0.2em] uppercase flex items-center gap-2 hover:bg-stone-800"
-          >
-            <Plus size={12} strokeWidth={2} /> Personel Ekle
+          <button onClick={onAddPerson} className="btn gold sm">
+            <Plus size={13} strokeWidth={2} /> Personel Ekle
           </button>
         </div>
-
-        {/* Filter chips */}
-        {showFilters && (
-          <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-stone-200">
-            <span className="text-[9px] tracking-[0.25em] uppercase text-stone-500 mr-2">
-              Süre
-            </span>
-            {TENURE_LEVELS.map((t) => {
-              const active = filterTenure.has(t.id);
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => toggleTenure(t.id)}
-                  className={`text-[10px] tracking-wider uppercase border px-2.5 py-1 transition-colors ${
-                    active
-                      ? "border-black bg-black text-white"
-                      : "border-stone-300 hover:border-black"
-                  }`}
-                  style={!active ? { color: t.color } : undefined}
-                >
-                  {t.label}
-                </button>
-              );
-            })}
-            <span className="w-px h-4 bg-stone-300 mx-2" />
-            <button
-              onClick={() => setFilterManagers((v) => !v)}
-              className={`text-[10px] tracking-wider uppercase border px-2.5 py-1 flex items-center gap-1 transition-colors ${
-                filterManagers
-                  ? "border-black bg-black text-white"
-                  : "border-stone-300 hover:border-black"
-              }`}
-            >
-              <Crown size={10} strokeWidth={1.8} fill={filterManagers ? "currentColor" : "none"} />
-              Yöneticiler
-            </button>
-            <span className="ml-auto text-[10px] text-stone-500">
-              {filtered.length} / {staff.length} kayıt
-            </span>
-          </div>
-        )}
       </div>
 
-      {/* Tablo — sticky thead sayfa scroll'una göre kalır (max-h container yok).
-          User feedback: "tamamını sabitlemek görsel olarak biraz daha kötü". */}
-      <div className="bg-white border border-stone-300 overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="sticky top-0 z-20">
-            <tr style={{ background: "white", boxShadow: "inset 0 -2px 0 #000" }}>
-              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal" style={{ background: "white" }}>
-                Personel
-              </th>
-              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-32" style={{ background: "white" }}>
-                Süre
-              </th>
-              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-36" style={{ background: "white" }}>
-                Alan
-              </th>
-              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-28" style={{ background: "white" }}>
-                Görev
-              </th>
-              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-28" style={{ background: "white" }}>
-                FT/PT
-              </th>
-              {ROLES.map((role) => (
-                <th
-                  key={role}
-                  className="text-center p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal"
-                  style={{ background: "white" }}
-                >
-                  {role}
-                </th>
-              ))}
-              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal" style={{ background: "white" }}>
-                Not
-              </th>
-              <th className="w-20" style={{ background: "white" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
+      {/* Filtre çipleri */}
+      {showFilters && (
+        <div className="mx-filters">
+          <span className="eb">Süre</span>
+          {TENURE_LEVELS.map((t) => {
+            const active = filterTenure.has(t.id);
+            return (
+              <button
+                key={t.id}
+                onClick={() => toggleTenure(t.id)}
+                className={`mx-fchip ${active ? "on" : ""}`}
+                style={!active ? { color: t.color } : undefined}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+          <button
+            onClick={() => setFilterManagers((v) => !v)}
+            className={`mx-fchip ${filterManagers ? "on" : ""}`}
+          >
+            <Crown size={11} strokeWidth={1.8} fill={filterManagers ? "currentColor" : "none"} /> Yöneticiler
+          </button>
+          <span style={{ marginLeft: "auto", fontFamily: "var(--ff-mono)", fontSize: 10, color: "var(--zara-ink-50)" }} className="num">
+            {filtered.length} / {staff.length} kayıt
+          </span>
+        </div>
+      )}
+
+      {/* Matris — yatay scroll (mobil uyumlu), sticky personel kolonu + sticky thead */}
+      <div className="panel matrix-panel" style={{ marginTop: 18 }}>
+        <div className="matrix-scroll">
+          <table className="matrix">
+            <thead>
               <tr>
-                <td colSpan={ROLES.length + 7} className="p-8 text-center text-stone-400">
-                  <Loader2 className="inline-block animate-spin mr-2" size={14} /> Yükleniyor…
-                </td>
+                <th className="col-id sticky-l">Personel</th>
+                <th className="col-sm">Süre</th>
+                <th className="col-md">Alan</th>
+                <th className="col-sm">Görev</th>
+                <th className="col-sm">FT/PT</th>
+                {ROLES.map((role) => (
+                  <th key={role} className="col-skill">{role}</th>
+                ))}
+                <th className="col-md">Not</th>
+                <th className="col-skill"></th>
               </tr>
-            )}
-            {!loading && filtered.length === 0 && (
-              <tr>
-                <td colSpan={ROLES.length + 7} className="p-8 text-center text-stone-400 text-sm">
-                  {activeFilterCount > 0
-                    ? "Filtreler ile eşleşen personel yok."
-                    : "Kayıt yok."}
-                </td>
-              </tr>
-            )}
-            {filtered.map((person, idx) => {
-              const tenure = TENURE_LEVELS.find((t) => t.id === person.tenureLevel);
-              // Alan sıralamasında, alan değiştiğinde grup başlığı satırı bas
-              // ("ayrı ayrı gibi listelensin"). Grup-içi alfabetik zaten sortta.
-              const curArea = person.homeArea ?? "__none__";
-              const prevArea =
-                idx > 0 ? (filtered[idx - 1].homeArea ?? "__none__") : null;
-              const showGroupHeader = sortKey === "area" && curArea !== prevArea;
-              const areaMeta = person.homeArea ? AREA_BY_ID[person.homeArea] : undefined;
-              const groupCount = filtered.filter(
-                (p) => (p.homeArea ?? "__none__") === curArea,
-              ).length;
-              return (
-                <Fragment key={person.id}>
-                {showGroupHeader && (
-                  <tr>
-                    <td
-                      colSpan={ROLES.length + 7}
-                      className="px-4 py-2 border-b border-stone-300 bg-stone-100/70"
-                    >
-                      <span className="flex items-center gap-2 text-[10px] tracking-[0.2em] uppercase font-medium">
-                        <span
-                          className="inline-block w-2 h-2 rounded-full"
-                          style={{ background: areaMeta?.color ?? "#a8a29e" }}
-                        />
-                        <span style={{ color: areaMeta?.color ?? "#78716c" }}>
-                          {areaMeta?.label ?? "Atanmamış"}
-                        </span>
-                        {areaMeta?.sub && (
-                          <span className="text-stone-400 normal-case tracking-normal">
-                            {areaMeta.sub}
-                          </span>
-                        )}
-                        <span className="text-stone-400 tabular-nums">
-                          ({String(groupCount).padStart(2, "0")})
-                        </span>
-                      </span>
-                    </td>
-                  </tr>
-                )}
-                <tr
-                  className={`border-b border-stone-200 hover:bg-stone-50 transition-colors ${
-                    idx % 2 === 0 ? "" : "bg-stone-50/50"
-                  }`}
-                >
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => onUpdateStaff(person.id, { isManager: !person.isManager })}
-                        className={person.isManager ? "text-black" : "text-stone-300 hover:text-black"}
-                        title={person.isManager ? "Yöneticiyi kaldır" : "Yönetici yap"}
-                      >
-                        <Crown
-                          size={12}
-                          strokeWidth={2}
-                          fill={person.isManager ? "currentColor" : "none"}
-                        />
-                      </button>
-                      <div>
-                        <div className="text-sm">{person.fullName}</div>
-                        <div className="text-[10px] tracking-wider text-stone-400 uppercase">
-                          {person.shortName}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <select
-                      value={person.tenureLevel}
-                      onChange={(e) => onUpdateStaff(person.id, { tenureLevel: e.target.value })}
-                      className="text-[11px] py-1 px-2 border-0 bg-transparent outline-none cursor-pointer"
-                      style={{ color: tenure?.color }}
-                    >
-                      {TENURE_LEVELS.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="p-4">
-                    {/* Alan-bazlı v2: sabit çalışma alanı seçimi. Boş = atanmamış.
-                        v1 chart üretimini etkilemez (solver homeArea'yı okumaz). */}
-                    <select
-                      value={person.homeArea ?? ""}
-                      onChange={(e) =>
-                        onUpdateStaff(person.id, {
-                          homeArea: e.target.value === "" ? null : e.target.value,
-                        })
-                      }
-                      className="text-[11px] py-1 px-2 border border-stone-200 bg-transparent outline-none cursor-pointer rounded-sm"
-                      style={{ color: AREAS.find((a) => a.id === person.homeArea)?.color }}
-                    >
-                      <option value="">—</option>
-                      {AREAS.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="p-4">
-                    {/* Görev etiketi (COM/CX/Coach) — alan-içi sıralamada COM en üste. */}
-                    <select
-                      value={person.duty ?? ""}
-                      onChange={(e) =>
-                        onUpdateStaff(person.id, {
-                          duty: e.target.value === "" ? null : e.target.value,
-                        })
-                      }
-                      className="text-[11px] py-1 px-2 border border-stone-200 bg-transparent outline-none cursor-pointer rounded-sm"
-                      style={{ color: DUTIES.find((d) => d.id === person.duty)?.color }}
-                    >
-                      <option value="">—</option>
-                      {DUTIES.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="p-4">
-                    {/* Çalışma tipi — kullanıcı girer; alan-içi FT→PT sıralaması. */}
-                    <select
-                      value={person.employment ?? ""}
-                      onChange={(e) =>
-                        onUpdateStaff(person.id, {
-                          employment: e.target.value === "" ? null : e.target.value,
-                        })
-                      }
-                      className="text-[11px] py-1 px-2 border border-stone-200 bg-transparent outline-none cursor-pointer rounded-sm"
-                    >
-                      <option value="">—</option>
-                      {EMPLOYMENTS.map((em) => (
-                        <option key={em.id} value={em.id}>
-                          {em.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  {ROLES.map((role) => {
-                    const level = person.competencies[role] ?? 0;
-                    const isEditing =
-                      editingCell?.id === person.id && editingCell?.role === role;
-                    return (
-                      <td key={role} className="p-2 text-center relative">
-                        {isEditing && (
-                          <div
-                            ref={dropdownRef}
-                            className={`absolute z-30 left-1/2 -translate-x-1/2 ${
-                              editingCell.direction === "up"
-                                ? "bottom-full mb-1"
-                                : "top-full mt-1"
-                            } bg-white border-2 border-black flex flex-col shadow-xl`}
-                          >
-                            {STAR_LEVELS.map((s) => (
-                              <button
-                                key={s.value}
-                                onClick={() => {
-                                  onUpdateCompetency(person.id, role, s.value);
-                                  setEditingCell(null);
-                                }}
-                                className={`px-4 py-2 text-sm hover:bg-stone-100 whitespace-nowrap text-left ${
-                                  level === s.value ? "bg-stone-100 font-bold" : ""
-                                }`}
-                              >
-                                <span className="inline-block w-12">{s.label}</span>
-                                <span className="text-[10px] text-stone-500 ml-2">{s.name}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                        <button
-                          onClick={(e) => openCell(person, role, e.currentTarget)}
-                          className={`w-full py-2 text-sm hover:bg-stone-100 transition-colors ${
-                            level === 4 ? "font-bold" : level === 0 ? "text-stone-300" : ""
-                          }`}
-                        >
-                          {STAR_LEVELS.find((s) => s.value === level)?.label}
-                        </button>
-                      </td>
-                    );
-                  })}
-                  <td className="p-4 text-[11px] text-stone-500 max-w-[160px] truncate" title={person.note ?? ""}>
-                    {person.note ?? ""}
-                  </td>
-                  <td className="p-2 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <button
-                        onClick={() => onEditPerson(person)}
-                        className="text-stone-400 hover:text-black p-1"
-                        title="Düzenle"
-                      >
-                        <Pencil size={12} strokeWidth={1.5} />
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`${person.fullName} silinsin mi?`)) onDeleteStaff(person.id);
-                        }}
-                        className="text-stone-300 hover:text-red-600 p-1"
-                        title="Sil"
-                      >
-                        <XIcon size={12} strokeWidth={1.5} />
-                      </button>
-                    </div>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan={ROLES.length + 7} style={{ padding: 32, textAlign: "center", color: "var(--zara-ink-40)" }}>
+                    <Loader2 className="inline-block animate-spin" size={14} style={{ verticalAlign: "-2px", marginRight: 8 }} /> Yükleniyor…
                   </td>
                 </tr>
-                </Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+              )}
+              {!loading && filtered.length === 0 && (
+                <tr>
+                  <td colSpan={ROLES.length + 7} style={{ padding: 32, textAlign: "center", color: "var(--zara-ink-40)", fontSize: 13 }}>
+                    {activeFilterCount > 0 ? "Filtreler ile eşleşen personel yok." : "Kayıt yok."}
+                  </td>
+                </tr>
+              )}
+              {filtered.map((person, idx) => {
+                const tenure = TENURE_LEVELS.find((t) => t.id === person.tenureLevel);
+                // Alan sıralamasında, alan değiştiğinde grup başlığı satırı bas.
+                const curArea = person.homeArea ?? "__none__";
+                const prevArea = idx > 0 ? (filtered[idx - 1].homeArea ?? "__none__") : null;
+                const showGroupHeader = sortKey === "area" && curArea !== prevArea;
+                const areaMeta = person.homeArea ? AREA_BY_ID[person.homeArea] : undefined;
+                const groupCount = filtered.filter((p) => (p.homeArea ?? "__none__") === curArea).length;
+                return (
+                  <Fragment key={person.id}>
+                    {showGroupHeader && (
+                      <tr className="area-row">
+                        <td colSpan={ROLES.length + 7}>
+                          <div className="area-row-inner">
+                            <AreaGlyph area={person.homeArea} size={14} />
+                            <span className="ar-label" style={{ color: areaMeta ? areaVisual(person.homeArea).color : "var(--zara-ink-50)" }}>
+                              {areaMeta?.label ?? "Atanmamış"}
+                            </span>
+                            {areaMeta?.sub && <span className="ar-sub">{areaMeta.sub}</span>}
+                            <span className="ar-count num">· {String(groupCount).padStart(2, "0")}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    <tr className="person-row">
+                      <td className="col-id sticky-l">
+                        <div className="pr-id">
+                          <button
+                            className={`mx-crown ${person.isManager ? "on" : ""}`}
+                            onClick={() => onUpdateStaff(person.id, { isManager: !person.isManager })}
+                            title={person.isManager ? "Yöneticiyi kaldır" : "Yönetici yap"}
+                          >
+                            <Crown size={13} strokeWidth={2} fill={person.isManager ? "currentColor" : "none"} />
+                          </button>
+                          <div className="pr-name">
+                            <span className="pn">{person.fullName}</span>
+                            <span className="ps">{person.shortName}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <select
+                          value={person.tenureLevel}
+                          onChange={(e) => onUpdateStaff(person.id, { tenureLevel: e.target.value })}
+                          className="mx-sel"
+                          style={{ color: tenure?.color, border: "none", background: "transparent" }}
+                        >
+                          {TENURE_LEVELS.map((t) => (
+                            <option key={t.id} value={t.id}>{t.label}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        {/* Alan-bazlı v2: sabit çalışma alanı. v1 chart'ı etkilemez. */}
+                        <span className="area-select" style={{ justifyContent: "center" }}>
+                          <AreaGlyph area={person.homeArea} size={12} />
+                          <select
+                            value={person.homeArea ?? ""}
+                            onChange={(e) => onUpdateStaff(person.id, { homeArea: e.target.value === "" ? null : e.target.value })}
+                            className="mx-sel"
+                            style={{ border: "none", background: "transparent" }}
+                          >
+                            <option value="">—</option>
+                            {AREAS.map((a) => (
+                              <option key={a.id} value={a.id}>{a.label}</option>
+                            ))}
+                          </select>
+                        </span>
+                      </td>
+                      <td>
+                        {/* Görev (COM/CX/Coach) — alan-içi sıralamada COM en üste. */}
+                        <select
+                          value={person.duty ?? ""}
+                          onChange={(e) => onUpdateStaff(person.id, { duty: e.target.value === "" ? null : e.target.value })}
+                          className="mx-sel"
+                          style={{ color: DUTIES.find((d) => d.id === person.duty)?.color }}
+                        >
+                          <option value="">—</option>
+                          {DUTIES.map((d) => (
+                            <option key={d.id} value={d.id}>{d.label}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        {/* Çalışma tipi — alan-içi FT→PT sıralaması. */}
+                        <select
+                          value={person.employment ?? ""}
+                          onChange={(e) => onUpdateStaff(person.id, { employment: e.target.value === "" ? null : e.target.value })}
+                          className="mx-sel"
+                        >
+                          <option value="">—</option>
+                          {EMPLOYMENTS.map((em) => (
+                            <option key={em.id} value={em.id}>{em.label}</option>
+                          ))}
+                        </select>
+                      </td>
+                      {ROLES.map((role) => {
+                        const level = person.competencies[role] ?? 0;
+                        const isEditing = editingCell?.id === person.id && editingCell?.role === role;
+                        return (
+                          <td key={role} style={{ position: "relative" }}>
+                            {isEditing && (
+                              <div ref={dropdownRef} className={`star-menu ${editingCell.direction}`}>
+                                {STAR_LEVELS.map((s) => (
+                                  <button
+                                    key={s.value}
+                                    onClick={() => {
+                                      onUpdateCompetency(person.id, role, s.value);
+                                      setEditingCell(null);
+                                    }}
+                                    className={`star-opt ${level === s.value ? "on" : ""}`}
+                                  >
+                                    <span className="so-star">{s.label}</span>
+                                    <span className="so-name">{s.name}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                            <button
+                              onClick={(e) => openCell(person, role, e.currentTarget)}
+                              className={`stars ${level ? "t" + level : "empty"}`}
+                              title="Seviye değiştir"
+                            >
+                              {STAR_LEVELS.find((s) => s.value === level)?.label}
+                            </button>
+                          </td>
+                        );
+                      })}
+                      <td style={{ textAlign: "left" }}>
+                        <span className="mx-note" title={person.note ?? ""}>{person.note ?? ""}</span>
+                      </td>
+                      <td>
+                        <div className="mx-acts">
+                          <button onClick={() => onEditPerson(person)} title="Düzenle">
+                            <Pencil size={13} strokeWidth={1.6} />
+                          </button>
+                          <button
+                            className="del"
+                            onClick={() => {
+                              if (confirm(`${person.fullName} silinsin mi?`)) onDeleteStaff(person.id);
+                            }}
+                            title="Sil"
+                          >
+                            <XIcon size={13} strokeWidth={1.6} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
