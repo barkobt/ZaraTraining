@@ -3,7 +3,7 @@ import { Loader2, Upload, FileText } from "lucide-react";
 import { staffLabel, type StaffRow } from "./constants";
 import { ChartResult, type GenerateResult } from "./ChartResult";
 import { exportChartToExcel } from "./excel-export";
-import { exportChartToPdf } from "./pdf-export";
+import { exportChartToPdf, exportAreaChartToPdf } from "./pdf-export";
 import {
   parseShiftsFromPdfWithReport,
   parseShiftsFromTextWithReport,
@@ -811,6 +811,24 @@ export function GenerateTab({
                   tasks: shiftsState[s.id].tasks ?? [],
                 })),
               altInfo,
+            )
+          }
+          onExportAreaPdf={(resp) =>
+            exportAreaChartToPdf(
+              { ...generate.data!, responsibilities: resp },
+              shiftDate,
+              staff
+                .filter((s) => shiftsState[s.id]?.included)
+                .map((s) => ({
+                  short_name: s.shortName,
+                  start_hour: shiftsState[s.id].start,
+                  end_hour: shiftsState[s.id].end,
+                  breaks: shiftsState[s.id].breaks ?? [],
+                  tasks: shiftsState[s.id].tasks ?? [],
+                })),
+              altInfo,
+              // shortName → home_area: mola satırlarını doğru alana yazmak için.
+              Object.fromEntries(staff.map((s) => [s.shortName, s.homeArea ?? null])),
             )
           }
         />

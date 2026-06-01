@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, FileDown } from "lucide-react";
+import { Download, FileDown, LayoutGrid } from "lucide-react";
 import { ResponsibilitiesPanel, type Responsibilities } from "./ResponsibilitiesPanel";
 import type { StaffRow } from "./constants";
 
@@ -77,6 +77,7 @@ export function ChartResult({
   shiftDate: _shiftDate,
   onExportExcel,
   onExportPdf,
+  onExportAreaPdf,
 }: {
   result: GenerateResult;
   staff?: StaffRow[];
@@ -84,6 +85,7 @@ export function ChartResult({
   shiftDate?: string;
   onExportExcel?: (resp: Responsibilities) => void;
   onExportPdf?: (resp: Responsibilities) => void;
+  onExportAreaPdf?: (resp: Responsibilities) => void;
 }) {
   // Panelde seçilen sorumlular canlı tutulur; export bunu kullanır (DB'ye yazılan
   // ama generate.data'ya yansımayan seçimler bayat kalmasın → FAZ 8 bind).
@@ -246,6 +248,15 @@ export function ChartResult({
                 className="border border-black px-3 py-1 text-[10px] tracking-[0.2em] uppercase flex items-center gap-1 hover:bg-stone-100"
               >
                 <FileDown size={11} strokeWidth={1.5} /> PDF
+              </button>
+            )}
+            {onExportAreaPdf && (
+              <button
+                onClick={() => onExportAreaPdf(liveResp)}
+                title="Deneysel: alanlara göre (Woman/Basic/TRF/Fitting Room/Sprinter) ayrı 5 tablo. Mevcut PDF'i değiştirmez."
+                className="border border-stone-400 text-stone-700 px-3 py-1 text-[10px] tracking-[0.2em] uppercase flex items-center gap-1 hover:bg-stone-100"
+              >
+                <LayoutGrid size={11} strokeWidth={1.5} /> PDF (Alan)
               </button>
             )}
             {onExportExcel && (

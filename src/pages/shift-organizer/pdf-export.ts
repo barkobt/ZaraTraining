@@ -299,3 +299,287 @@ export function exportChartToPdf(
 
   doc.save(`shift-${shiftDate}.pdf`);
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ALAN-BAZLI (area-based) PDF — AYRI ÇIKTI. exportChartToPdf'e DOKUNMAZ.
+//
+//  Aynı grid mantığı (saatler üstte, hücrede kişiler) ama tek büyük tablo yerine
+//  5 ayrı alan tablosu: Woman, Basic, TRF, Fitting Room, Sprinter. Her alanın
+//  satırları o alanın alt-rolleri:
+//    Woman        → Welcome, Zone 2
+//    Basic        → Zone 3, Zone 4
+//    TRF          → Zone 5
+//    Fitting Room → Kabin Welcomer, Kabin
+//    Sprinter     → Sprinter
+//
+//  Veri AYNI mevcut chart sonucundan (result.chart) gelir — rol→alan eşlemesiyle
+//  bölünür. Yeni solver gerektirmez. Sarı yerine alan renkleriyle şık görünüm.
+// ════════════════════════════════════════════════════════════════════════════
+
+type AreaTableDef = {
+  label: string;
+  sub: string;
+  color: [number, number, number];
+  roles: string[]; // result.chart'taki rol adları (Türkçe enum değerleri)
+};
+
+const AREA_TABLES: AreaTableDef[] = [
+  { label: "WOMAN", sub: "Welcome · Zone 1-2", color: [219, 39, 119], roles: ["WELCOME", "ZONE 2"] },
+  { label: "BASIC", sub: "Zone 3-4", color: [37, 99, 235], roles: ["ZONE 3", "ZONE 4"] },
+  { label: "TRF", sub: "Zone 5", color: [234, 88, 12], roles: ["ZONE 5"] },
+  { label: "FITTING ROOM", sub: "Kabin", color: [124, 58, 237], roles: ["KABİN WELCOMER", "KABİN"] },
+  { label: "SPRINTER", sub: "Joker", color: [22, 163, 74], roles: ["SPRINTER"] },
+];
+
+// Alan kodu (staff.home_area) → tabloda hangi mola satırına düşeceği.
+const AREA_LABEL_BY_CODE: Record<string, string> = {
+  WOMAN: "WOMAN",
+  BASIC: "BASIC",
+  TRF: "TRF",
+  FITTING_ROOM: "FITTING ROOM",
+  SPRINTER: "SPRINTER",
+};
+
+/** Rengi beyaza doğru açar (tint). amount=0 → aynı, 1 → beyaz. */
+function lighten(c: [number, number, number], amount: number): [number, number, number] {
+  return [
+    Math.round(c[0] + (255 - c[0]) * amount),
+    Math.round(c[1] + (255 - c[1]) * amount),
+    Math.round(c[2] + (255 - c[2]) * amount),
+  ];
+}
+
+export function exportAreaChartToPdf(
+  result: GenerateResult,
+  shiftDate: string,
+  shifts?: ShiftInputForChart[],
+  altInfo?: ChartAltInfo,
+  /** { shortName: home_area | null } — mola satırını doğru alana yazmak için. */
+  staffAreaByShortName?: Record<string, string | null>,
+) {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 10;
+  const tableWidth = pageWidth - margin * 2;
+
+  doc.addFileToVFS("Roboto-Regular.ttf", ROBOTO_REGULAR_BASE64);
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "bold");
+  doc.setFont("Roboto", "normal");
+
+  // Başlık
+  doc.setFontSize(15);
+  doc.setTextColor(0);
+  doc.text("Günlük Chart — Alan Bazlı", pageWidth / 2, 13, { align: "center" });
+  doc.setFontSize(9);
+  doc.setTextColor(110);
+  doc.text(fmtDate(shiftDate), pageWidth / 2, 18, { align: "center" });
+
+  // ─── Ortak veri: saatler + (hour|role)→kişiler ───
+  const hours = [...new Set(result.chart.map((c) => c.hour))].sort((a, b) => a - b);
+  const byKey = new Map<string, string[]>();
+  for (const c of result.chart) byKey.set(`${c.hour}|${c.role}`, c.persons);
+
+  // Yarım mola / yarım giriş-çıkış → "X 1/2" (mevcut PDF ile aynı kural)
+  const halfBreakSetByHour = new Map<number, Set<string>>();
+  const breaksByHourArea = new Map<string, string[]>(); // "hour|AREA_LABEL" → kişiler
+  if (shifts) {
+    const markHalf = (h: number, name: string) => {
+      const set = halfBreakSetByHour.get(h) ?? new Set<string>();
+      set.add(name);
+      halfBreakSetByHour.set(h, set);
+    };
+    for (const s of shifts) {
+      for (const [bs, be] of s.breaks ?? []) {
+        if (be - bs <= 0.5 + 1e-6) markHalf(Math.floor(bs), s.short_name);
+      }
+      if (s.start_hour % 1 === 0.5) markHalf(Math.floor(s.start_hour), s.short_name);
+      if (s.end_hour % 1 === 0.5) markHalf(Math.floor(s.end_hour), s.short_name);
+    }
+    // Molaları alana göre dağıt — kişinin home_area'sı hangi tablo ise oraya.
+    for (const s of shifts) {
+      const code = staffAreaByShortName?.[s.short_name] ?? null;
+      const areaLabel = code ? AREA_LABEL_BY_CODE[code] : undefined;
+      if (!areaLabel) continue; // alanı yoksa hiçbir mola satırında gösterme
+      for (const [bs, be] of s.breaks ?? []) {
+        const isHalf = be - bs <= 0.5 + 1e-6;
+        for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
+          const key = `${h}|${areaLabel}`;
+          const arr = breaksByHourArea.get(key) ?? [];
+          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
+          if (!arr.includes(label)) arr.push(label);
+          breaksByHourArea.set(key, arr);
+        }
+      }
+    }
+  }
+  const labelName = (name: string, hour: number): string =>
+    halfBreakSetByHour.get(hour)?.has(name) ? `${name} 1/2` : name;
+
+  let y = 24;
+  const ROW_H = 11;
+
+  for (const area of AREA_TABLES) {
+    // Bu alan için tablo yüksekliği tahmini → sayfa taşarsa yeni sayfa.
+    const dataRows = area.roles.length + 1; // alt-roller + MOLA
+    const estH = 7 /*başlık bandı*/ + 8 /*head*/ + dataRows * ROW_H + 5;
+    if (y + estH > pageHeight - margin) {
+      doc.addPage();
+      y = margin + 4;
+    }
+
+    // Renkli başlık bandı
+    doc.setFillColor(area.color[0], area.color[1], area.color[2]);
+    doc.rect(margin, y, tableWidth, 7, "F");
+    doc.setTextColor(255);
+    doc.setFont("Roboto", "bold");
+    doc.setFontSize(9);
+    doc.text(`${area.label}`, margin + 2, y + 4.9);
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(7.5);
+    doc.text(area.sub, margin + 2 + doc.getTextWidth(area.label) + 4, y + 4.9);
+    y += 7;
+
+    const head = [["", ...hours.map(fmtHour)]];
+    const body: string[][] = [];
+    for (const r of area.roles) {
+      body.push([
+        roleLabel(r),
+        ...hours.map((h) =>
+          (byKey.get(`${h}|${r}`) ?? []).map((p) => labelName(p, h)).join("\n"),
+        ),
+      ]);
+    }
+    // MOLA satırı — bu alana ait molalar
+    body.push([
+      "MOLA",
+      ...hours.map((h) => (breaksByHourArea.get(`${h}|${area.label}`) ?? []).join("\n")),
+    ]);
+
+    const headTint = lighten(area.color, 0.78);
+    const labelTint = lighten(area.color, 0.88);
+
+    autoTable(doc, {
+      startY: y,
+      head,
+      body,
+      theme: "grid",
+      styles: {
+        font: "Roboto",
+        fontSize: 7,
+        cellPadding: 1.5,
+        minCellHeight: ROW_H,
+        valign: "middle",
+        halign: "center",
+        lineColor: [210, 210, 210],
+        lineWidth: 0.2,
+        textColor: [25, 25, 25],
+        overflow: "linebreak",
+      },
+      headStyles: {
+        fillColor: headTint,
+        textColor: [40, 40, 40],
+        fontStyle: "bold",
+        fontSize: 7,
+        halign: "center",
+        minCellHeight: 7,
+        cellPadding: 1,
+      },
+      columnStyles: {
+        0: {
+          fillColor: labelTint,
+          textColor: [area.color[0], area.color[1], area.color[2]],
+          fontStyle: "bold",
+          halign: "left",
+          cellWidth: 28,
+          fontSize: 7.5,
+        },
+      },
+      didParseCell: (data) => {
+        const txt = data.cell.text;
+        if (txt.length === 1 && (txt[0] === "" || txt[0] === "—")) {
+          data.cell.text = [""];
+        }
+        // MOLA satırı sol etiketini gri yap (rol değil)
+        if (data.section === "body" && data.column.index === 0 && data.cell.raw === "MOLA") {
+          data.cell.styles.textColor = [120, 120, 120];
+        }
+      },
+      tableWidth,
+      margin: { left: margin, right: margin },
+    });
+
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 5;
+  }
+
+  // ─── Alt bilgi (sorumlular + altInfo) — mevcut PDF ile aynı içerik ───
+  renderAreaBottomInfo(doc, y, result, altInfo, pageHeight, margin);
+
+  doc.save(`shift-${shiftDate}-alan.pdf`);
+}
+
+/** Sorumlular + günün operasyonel bilgileri — alan PDF'inin altına. */
+function renderAreaBottomInfo(
+  doc: jsPDF,
+  startY: number,
+  result: GenerateResult,
+  altInfo: ChartAltInfo | undefined,
+  pageHeight: number,
+  margin: number,
+) {
+  let y = startY + 6;
+  if (y > pageHeight - 20) {
+    doc.addPage();
+    y = margin + 4;
+  }
+
+  const resp = (result.responsibilities ?? {}) as Record<string, string | null | undefined>;
+  const respItems = [
+    { key: "Liderlik", value: resp["Liderlik"] },
+    { key: "CX Sorumlusu", value: resp["CX Sorumlusu"] },
+    { key: "Runner Lider", value: resp["Runner Lider"] },
+    { key: "iPod Sorumlusu", value: resp["iPod Sorumlusu"] },
+    { key: "Aksiyon Sorumlusu", value: resp["Aksiyon Sorumlusu"] },
+  ];
+  if (respItems.some((it) => it.value && it.value.trim())) {
+    doc.setFont("Roboto", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(20);
+    doc.text("Günün Sorumluları", margin, y);
+    y += 6;
+    for (const it of respItems) {
+      if (!it.value || !it.value.trim()) continue;
+      if (y > pageHeight - 12) break;
+      doc.setFont("Roboto", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(20);
+      const lt = `${it.key}: `;
+      doc.text(lt, margin, y);
+      doc.setFont("Roboto", "bold");
+      doc.text(it.value, margin + doc.getTextWidth(lt), y);
+      y += 7;
+    }
+    y += 4;
+  }
+
+  const altItems = [
+    { key: "Haftanın aksiyon familyaları", value: altInfo?.aksiyon },
+    { key: "CX QR hedefi", value: altInfo?.cxQr },
+    { key: "IPOD Satışı hedefi / sorumlusu", value: altInfo?.ipod },
+    { key: "Tempe / ACC sorumlusu", value: altInfo?.tempe },
+    { key: "İstek noktası sorumlusu", value: altInfo?.istek },
+  ];
+  for (const it of altItems) {
+    if (!it.value || !it.value.trim()) continue;
+    if (y > pageHeight - 12) break;
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(20);
+    const lt = `${it.key}: `;
+    doc.text(lt, margin, y);
+    doc.setFont("Roboto", "bold");
+    doc.text(it.value, margin + doc.getTextWidth(lt), y);
+    y += 7;
+  }
+}
