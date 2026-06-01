@@ -16,18 +16,18 @@ import { Save, Plus, Trash2, ArrowLeft } from "lucide-react";
  */
 export default function BuenasDiasSetup() {
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900">
-      <header className="border-b bg-white">
-        <div className="mx-auto max-w-3xl px-4 py-3 flex items-center justify-between">
-          <Link to="/buenas-dias" className="text-sm text-neutral-500 hover:text-neutral-900 flex items-center gap-1">
-            <ArrowLeft className="h-4 w-4" />
-            Buenas Dias
-          </Link>
-          <div className="text-xs text-neutral-500">Setup</div>
+    <div className="zt-editorial so-shell">
+      <header className="so-head">
+        <div className="so-brand">
+          <div className="bn">Buenas Dias · <em>Setup</em></div>
+          <div className="bs">AYARLAR</div>
+        </div>
+        <div className="so-tabs">
+          <Link to="/buenas-dias" className="so-tab"><ArrowLeft className="h-4 w-4" /> Buenas Dias</Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6 space-y-4">
+      <main className="content" style={{ maxWidth: 820, display: "flex", flexDirection: "column", gap: 16 }}>
         <SettingsPanel />
         <ChallengePanel />
         <SpecialDaysPanel />

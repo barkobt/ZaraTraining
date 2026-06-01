@@ -141,27 +141,24 @@ export default function BuenasDiasToday() {
   const editable = status === "TASLAK";
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900">
-      <header className="border-b bg-white">
-        <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="text-sm text-neutral-500 hover:text-neutral-900">
-            ← Atelye
-          </Link>
-          <div className="text-xs text-neutral-500 flex items-center gap-3">
-            <span>Buenas Dias · {today}</span>
-            {calcAndSave.isPending && (
-              <span className="text-amber-600 flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" /> kaydediliyor
-              </span>
-            )}
-            <Link to="/buenas-dias/setup" className="hover:text-neutral-900 underline decoration-dotted">
-              Setup
-            </Link>
-          </div>
+    <div className="zt-editorial so-shell">
+      <header className="so-head">
+        <div className="so-brand">
+          <div className="bn">Buenas <em>Dias</em></div>
+          <div className="bs num">{today}</div>
+        </div>
+        <div className="so-tabs" style={{ gap: 16 }}>
+          {calcAndSave.isPending && (
+            <span className="eb" style={{ color: "var(--zara-gold-deep)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Loader2 className="h-3 w-3 animate-spin" /> kaydediliyor
+            </span>
+          )}
+          <Link to="/buenas-dias/setup" className="so-tab">Setup</Link>
+          <Link to="/" className="so-tab">← Atelye</Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 space-y-4">
+      <main className="content" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {loading && (
           <div className="flex items-center gap-2 text-neutral-500 py-12 justify-center">
             <Loader2 className="h-4 w-4 animate-spin" />
