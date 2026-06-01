@@ -1,10 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   Crown, Plus, Search, Loader2, ArrowUpDown, Filter, Pencil, X as XIcon,
 } from "lucide-react";
-import { AREAS, ROLES, STAR_LEVELS, TENURE_LEVELS, type Role, type StaffRow } from "./constants";
+import { AREAS, AREA_BY_ID, ROLES, STAR_LEVELS, TENURE_LEVELS, type Role, type StaffRow } from "./constants";
 
-type SortKey = "name" | "competency" | "tenure" | "manager";
+type SortKey = "area" | "name" | "competency" | "tenure" | "manager";
+
+// Alan sıralama rütbesi: AREAS sırası (Woman→Basic→TRF→…); atanmamış en sonda.
+const AREA_RANK = new Map<string, number>(AREAS.map((a, i) => [a.id, i]));
+function areaRank(area: string | null): number {
+  if (!area) return 999;
+  return AREA_RANK.get(area) ?? 998;
+}
 type SortDir = "asc" | "desc";
 
 export function CompetencyTab(props: {
@@ -30,7 +37,8 @@ export function CompetencyTab(props: {
 
   // Search + Sort + Filter state
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("name");
+  // Varsayılan: alana göre gruplu (kullanıcı isteği). Grup-içi alfabetik.
+  const [sortKey, setSortKey] = useState<SortKey>("area");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [filterTenure, setFilterTenure] = useState<Set<string>>(new Set());
   const [filterManagers, setFilterManagers] = useState(false);
@@ -101,6 +109,11 @@ export function CompetencyTab(props: {
     const sorted = [...arr].sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
+        case "area":
+          // Önce alan rütbesi, eşitse grup-içi alfabetik.
+          cmp = areaRank(a.homeArea) - areaRank(b.homeArea);
+          if (cmp === 0) cmp = a.fullName.localeCompare(b.fullName, "tr");
+          break;
         case "name":
           cmp = a.fullName.localeCompare(b.fullName, "tr");
           break;
@@ -190,6 +203,7 @@ export function CompetencyTab(props: {
               onChange={(e) => setSortKey(e.target.value as SortKey)}
               className="bg-transparent outline-none cursor-pointer text-[10px] tracking-[0.15em] uppercase"
             >
+              <option value="area">Alan</option>
               <option value="name">Ad</option>
               <option value="competency">Yetkinlik</option>
               <option value="tenure">Süre</option>
@@ -203,10 +217,10 @@ export function CompetencyTab(props: {
               <span className="text-base">{sortDir === "asc" ? "↑" : "↓"}</span>
               <span className="text-[9px]">
                 {sortDir === "asc"
-                  ? sortKey === "name" || sortKey === "tenure"
+                  ? sortKey === "name" || sortKey === "tenure" || sortKey === "area"
                     ? "A → Z"
                     : "Azdan Çoka"
-                  : sortKey === "name" || sortKey === "tenure"
+                  : sortKey === "name" || sortKey === "tenure" || sortKey === "area"
                     ? "Z → A"
                     : "Çoktan Aza"}
               </span>
@@ -336,9 +350,45 @@ export function CompetencyTab(props: {
             )}
             {filtered.map((person, idx) => {
               const tenure = TENURE_LEVELS.find((t) => t.id === person.tenureLevel);
+              // Alan sıralamasında, alan değiştiğinde grup başlığı satırı bas
+              // ("ayrı ayrı gibi listelensin"). Grup-içi alfabetik zaten sortta.
+              const curArea = person.homeArea ?? "__none__";
+              const prevArea =
+                idx > 0 ? (filtered[idx - 1].homeArea ?? "__none__") : null;
+              const showGroupHeader = sortKey === "area" && curArea !== prevArea;
+              const areaMeta = person.homeArea ? AREA_BY_ID[person.homeArea] : undefined;
+              const groupCount = filtered.filter(
+                (p) => (p.homeArea ?? "__none__") === curArea,
+              ).length;
               return (
+                <Fragment key={person.id}>
+                {showGroupHeader && (
+                  <tr>
+                    <td
+                      colSpan={ROLES.length + 5}
+                      className="px-4 py-2 border-b border-stone-300 bg-stone-100/70"
+                    >
+                      <span className="flex items-center gap-2 text-[10px] tracking-[0.2em] uppercase font-medium">
+                        <span
+                          className="inline-block w-2 h-2 rounded-full"
+                          style={{ background: areaMeta?.color ?? "#a8a29e" }}
+                        />
+                        <span style={{ color: areaMeta?.color ?? "#78716c" }}>
+                          {areaMeta?.label ?? "Atanmamış"}
+                        </span>
+                        {areaMeta?.sub && (
+                          <span className="text-stone-400 normal-case tracking-normal">
+                            {areaMeta.sub}
+                          </span>
+                        )}
+                        <span className="text-stone-400 tabular-nums">
+                          ({String(groupCount).padStart(2, "0")})
+                        </span>
+                      </span>
+                    </td>
+                  </tr>
+                )}
                 <tr
-                  key={person.id}
                   className={`border-b border-stone-200 hover:bg-stone-50 transition-colors ${
                     idx % 2 === 0 ? "" : "bg-stone-50/50"
                   }`}
@@ -466,6 +516,7 @@ export function CompetencyTab(props: {
                     </div>
                   </td>
                 </tr>
+                </Fragment>
               );
             })}
           </tbody>
