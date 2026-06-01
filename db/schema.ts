@@ -39,6 +39,12 @@ export const staff = pgTable(
     fullName: varchar("full_name", { length: 100 }).notNull(),
     shortName: varchar("short_name", { length: 30 }).notNull(),
     tenureLevel: varchar("tenure_level", { length: 20 }).notNull(),
+    // ── Alan-bazlı (area-based) v2 sistemi ──────────────────────────────────
+    // Kişinin sabit çalışma alanı: WOMAN | BASIC | TRF | FITTING_ROOM |
+    // SPRINTER | RUNNER_360. NULLABLE bilinçli: v1 (yetkinlik-bazlı) solver
+    // bu kolonu hiç okumaz, dolayısıyla null kalması eski sistemi bozmaz.
+    // v2 solver çalışırken bu alanı sabit istasyon olarak kullanacak.
+    homeArea: varchar("home_area", { length: 20 }),
     isManager: boolean("is_manager").notNull().default(false),
     isBlacklisted: boolean("is_blacklisted").notNull().default(false),
     note: text("note"),

@@ -11,6 +11,8 @@ export type StaffWithCompetencies = {
   isManager: boolean;
   isBlacklisted: boolean;
   note: string | null;
+  // Alan-bazlı v2: sabit çalışma alanı (null = atanmamış). v1 bunu yok sayar.
+  homeArea: string | null;
   competencies: Record<string, number>;
 };
 
@@ -44,6 +46,7 @@ export async function listStaff(storeId: number): Promise<StaffWithCompetencies[
     isManager: s.isManager,
     isBlacklisted: s.isBlacklisted,
     note: s.note,
+    homeArea: s.homeArea,
     competencies: compByStaff.get(s.id) ?? {},
   }));
 }
@@ -70,6 +73,7 @@ export async function updateStaff(
     isManager: boolean;
     isBlacklisted: boolean;
     note: string | null;
+    homeArea: string | null;
   }>,
 ) {
   const db = getDb();

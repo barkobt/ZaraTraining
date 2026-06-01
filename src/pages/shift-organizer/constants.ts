@@ -26,6 +26,30 @@ export const ROLES = [
 ] as const;
 export type Role = (typeof ROLES)[number];
 
+/**
+ * ALAN-BAZLI (area-based) v2 sistemi — kişinin sabit çalışma alanı.
+ *
+ * v1 (yetkinlik-bazlı, ROLES) ile ÇAKIŞMAZ: v1 solver alanı yok sayar, kişiyi
+ * saatlik rol rotasyonuyla atar. v2 ise kişiyi `id` alanına sabitler. Aynı
+ * personel listesi, iki ayrı mantık, mod seçimiyle ayrılır.
+ *
+ * Sıra kullanıcı isteğiyle: Woman → Basic → TRF → Fitting Room → Sprinter → 360.
+ * `id` DB'de staff.home_area olarak saklanır (varchar 20, nullable).
+ */
+export const AREAS = [
+  { id: "WOMAN", label: "Woman", sub: "Welcome · Zone 1-2", color: "#db2777" },
+  { id: "BASIC", label: "Basic", sub: "Zone 3-4", color: "#2563eb" },
+  { id: "TRF", label: "TRF", sub: "Zone 5", color: "#ea580c" },
+  { id: "FITTING_ROOM", label: "Fitting Room", sub: "Kabin", color: "#7c3aed" },
+  { id: "SPRINTER", label: "Sprinter", sub: "Joker", color: "#16a34a" },
+  { id: "RUNNER_360", label: "Runner 360", sub: "", color: "#0891b2" },
+] as const;
+export type AreaId = (typeof AREAS)[number]["id"];
+
+export const AREA_BY_ID: Record<string, (typeof AREAS)[number]> = Object.fromEntries(
+  AREAS.map((a) => [a.id, a]),
+);
+
 export type StaffRow = {
   id: number;
   fullName: string;
@@ -33,6 +57,7 @@ export type StaffRow = {
   tenureLevel: string;
   isManager: boolean;
   note: string | null;
+  homeArea: string | null;
   competencies: Record<string, number>;
 };
 

@@ -1,0 +1,1 @@
+ALTER TABLE "staff" ADD COLUMN "home_area" varchar(20);
