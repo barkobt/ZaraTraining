@@ -871,3 +871,31 @@
   .cov-row { grid-template-columns: 90px 1fr 48px; gap: 10px; }
   .dist-row { grid-template-columns: 110px 1fr 28px; }
 }
+
+/* ============================================================
+   SHIFT ORGANIZER — kabuk (shell) + üst sekme barı
+   ============================================================ */
+.so-shell { min-height: 100vh; background: var(--zara-bg); }
+.so-head {
+  position: sticky; top: 0; z-index: 30;
+  background: rgba(242,239,233,0.86); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--zara-line-strong);
+  padding: 16px 40px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+}
+.so-brand { display: flex; flex-direction: column; gap: 4px; }
+.so-brand .bn { font-family: var(--ff-display); font-size: 23px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.so-brand .bn em { font-style: italic; font-weight: 400; }
+.so-brand .bs { font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--zara-ink-50); }
+.so-tabs { display: flex; align-items: center; gap: 2px; margin-left: auto; flex-wrap: wrap; }
+.so-tab {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 9px 15px; border: none; background: transparent; color: var(--zara-ink-65);
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  border-radius: 5px; white-space: nowrap; transition: background 160ms var(--ease-atelier), color 160ms var(--ease-atelier);
+}
+.so-tab:hover { background: var(--zara-gold-tint); color: var(--zara-ink); }
+.so-tab.on { background: var(--zara-ink); color: var(--zara-bg); }
+.so-tab.on svg { color: var(--zara-gold-soft); }
+.so-tab .tc { font-size: 9px; opacity: 0.6; }
+.so-logout { border: none; background: transparent; cursor: pointer; color: var(--zara-ink-30); padding: 6px; display: inline-grid; place-items: center; }
+.so-logout:hover { color: var(--zara-ink); }

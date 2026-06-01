@@ -1,17 +1,13 @@
 import { useMemo } from "react";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-  Cell,
-  LineChart,
-  Line,
-  CartesianGrid,
-} from "recharts";
-import { ROLES, STAR_LEVELS, TENURE_LEVELS, type StaffRow } from "./constants";
+  AREAS,
+  DUTIES,
+  ROLES,
+  TENURE_LEVELS,
+  type StaffRow,
+} from "./constants";
+import { Panel, SectionBar, StatCards, AreaGlyph } from "@/components/atelier";
+import { AREA_VISUAL } from "@/components/atelier/area-visual";
 import { trpc } from "@/providers/trpc";
 
 type ChartRow = {
@@ -23,266 +19,303 @@ type ChartRow = {
   chartData: unknown;
 };
 
+/** Yetkinlik kapsamı katman renkleri (Temel → Uzman). */
+const TIER_C = ["#E5D4AE", "#D9BE84", "#CBA45E", "#BF9550"];
+
 export function ReportTab({ staff }: { staff: StaffRow[] }) {
   const chartsQuery = trpc.chart.list.useQuery({ limit: 100 });
   const charts = (chartsQuery.data ?? []) as ChartRow[];
 
-  const trendData = useMemo(() => {
-    return charts
-      .filter((c) => c.qualityScore !== null)
-      .sort((a, b) => new Date(a.generatedAt).getTime() - new Date(b.generatedAt).getTime())
-      .slice(-30)
-      .map((c) => ({
-        date: c.shiftDate,
-        score: c.qualityScore,
-        status: c.status,
-      }));
-  }, [charts]);
+  /** Skorlu chart'lar, eski → yeni (trend için). */
+  const recs = useMemo(
+    () =>
+      charts
+        .filter((c) => c.qualityScore !== null)
+        .sort(
+          (a, b) =>
+            new Date(a.generatedAt).getTime() - new Date(b.generatedAt).getTime(),
+        )
+        .slice(-30)
+        .map((c) => ({ date: c.shiftDate, score: c.qualityScore as number, status: c.status })),
+    [charts],
+  );
 
-  const stats = useMemo(() => {
-    const valid = charts.filter((c) => c.qualityScore !== null);
-    if (valid.length === 0) return null;
-    const scores = valid.map((c) => c.qualityScore ?? 0);
-    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-    const max = Math.max(...scores);
-    const min = Math.min(...scores);
-    const optimal = charts.filter((c) => c.status === "OPTIMAL").length;
-    const infeasible = charts.filter((c) => c.status === "INFEASIBLE").length;
-    return { avg, max, min, total: charts.length, optimal, infeasible };
-  }, [charts]);
+  const total = recs.length;
+  const avg = total ? recs.reduce((a, r) => a + r.score, 0) / total : 0;
+  const max = total ? Math.max(...recs.map((r) => r.score)) : 0;
+  const optimal = charts.filter((c) => c.status === "OPTIMAL").length;
 
-  const topAssignees = useMemo(() => {
+  // ── dağılımlar ──────────────────────────────────────────
+  const areaDist = useMemo(
+    () => AREAS.map((a) => ({ a, n: staff.filter((p) => p.homeArea === a.id).length })),
+    [staff],
+  );
+  const areaMax = Math.max(1, ...areaDist.map((d) => d.n));
+
+  const tenureDist = useMemo(
+    () => TENURE_LEVELS.map((t) => ({ t, n: staff.filter((p) => p.tenureLevel === t.id).length })),
+    [staff],
+  );
+  const tenureMax = Math.max(1, ...tenureDist.map((d) => d.n));
+
+  // skill coverage: rol başına seviye (1..4) dağılımı + yetkin (≥3)
+  const coverage = useMemo(
+    () =>
+      ROLES.map((role) => {
+        const tiers = [0, 0, 0, 0];
+        for (const p of staff) {
+          const v = p.competencies[role] ?? 0;
+          if (v >= 1 && v <= 4) tiers[v - 1]++;
+        }
+        const rated = tiers.reduce((a, b) => a + b, 0);
+        const yetkin = tiers[2] + tiers[3];
+        return { role, tiers, rated, yetkin };
+      }),
+    [staff],
+  );
+
+  // görev (duty) dağılımı
+  const roleDist = useMemo(() => {
+    const com = staff.filter((p) => p.duty === "COM").length;
+    const coach = staff.filter((p) => p.duty === "COACH").length;
+    const cx = staff.filter((p) => p.duty === "CX").length;
+    const none = staff.filter((p) => !p.duty).length;
+    return [
+      { key: "COM", label: "COM", n: com, color: DUTIES[0].color },
+      { key: "Coach", label: "Coach", n: coach, color: DUTIES[2].color },
+      { key: "CX", label: "CX", n: cx, color: DUTIES[1].color },
+      { key: "none", label: "Görevsiz", n: none, color: "var(--zara-ink-30)" },
+    ];
+  }, [staff]);
+
+  const ftCount = staff.filter((p) => p.employment === "FT").length;
+  const ftptDist = [
+    { label: "Full Time", n: ftCount, color: "var(--zara-ink)" },
+    { label: "Part Time", n: staff.length - ftCount, color: "var(--zara-gold)" },
+  ];
+
+  // en sık atanan (gerçek chartData'dan)
+  const top = useMemo(() => {
     const counter = new Map<string, number>();
     for (const c of charts) {
       if (!Array.isArray(c.chartData)) continue;
       for (const cell of c.chartData as Array<{ persons?: string[] }>) {
-        for (const p of cell.persons ?? []) {
-          counter.set(p, (counter.get(p) ?? 0) + 1);
-        }
+        for (const p of cell.persons ?? []) counter.set(p, (counter.get(p) ?? 0) + 1);
       }
     }
     return [...counter.entries()]
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([name, count]) => ({ name, count }));
+      .slice(0, 8)
+      .map(([name, n]) => ({ name, n }));
   }, [charts]);
-  const roleSummary = useMemo(() => {
-    return ROLES.map((role) => {
-      const counts = [0, 0, 0, 0, 0];
-      for (const p of staff) {
-        const lvl = p.competencies[role] ?? 0;
-        counts[lvl]++;
-      }
-      return {
-        role,
-        Yok: counts[0],
-        Kriz: counts[1],
-        Destek: counts[2],
-        Ana: counts[3],
-        "Tercih+": counts[4],
-        capable: counts[3] + counts[4],
-      };
-    });
-  }, [staff]);
+  const topMax = top[0]?.n || 1;
 
-  const tenureSummary = useMemo(() => {
-    return TENURE_LEVELS.map((t) => ({
-      name: t.label,
-      color: t.color,
-      count: staff.filter((p) => p.tenureLevel === t.id).length,
-    }));
-  }, [staff]);
-
-  const averageCompetencyPerPerson = useMemo(() => {
-    return staff
-      .map((p) => {
-        const vals = ROLES.map((r) => p.competencies[r] ?? 0);
-        const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-        return { name: p.shortName, avg: Math.round(avg * 100) / 100 };
-      })
-      .sort((a, b) => b.avg - a.avg);
-  }, [staff]);
+  // ── trend SVG geometrisi ────────────────────────────────
+  const W = 1000;
+  const H = 240;
+  const pad = { l: 38, r: 16, t: 18, b: 26 };
+  const iw = W - pad.l - pad.r;
+  const ih = H - pad.t - pad.b;
+  const xAt = (i: number) => pad.l + (total <= 1 ? iw / 2 : (i / (total - 1)) * iw);
+  const yAt = (v: number) => pad.t + ih - (v / 100) * ih;
+  const line = recs
+    .map((r, i) => `${i === 0 ? "M" : "L"} ${xAt(i).toFixed(1)} ${yAt(r.score).toFixed(1)}`)
+    .join(" ");
+  const avgY = yAt(avg);
 
   return (
-    <div className="space-y-8">
-      {stats && (
-        <section className="border border-stone-300 p-6">
-          <h3 className="text-lg mb-1" style={{ fontFamily: "Georgia, serif" }}>
-            Chart Üretim Trendleri
-          </h3>
-          <p className="text-xs text-stone-500 mb-4">
-            Geçmiş chart kalite skoru zaman serisi. Son {trendData.length} chart.
-          </p>
+    <div>
+      {/* KPI şeridi */}
+      <StatCards
+        cols={5}
+        stats={[
+          { label: "Toplam Personel", value: staff.length },
+          { label: "Toplam Chart", value: charts.length },
+          { label: "Ortalama Skor", value: total ? avg.toFixed(1) : "—" },
+          { label: "En Yüksek", value: total ? max.toFixed(1) : "—", tone: "up" },
+          { label: "Optimal Oranı", value: charts.length ? "%" + Math.round((optimal / charts.length) * 100) : "—" },
+        ]}
+      />
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-stone-300 border border-stone-300 mb-6">
-            {[
-              { label: "Toplam Chart", value: stats.total },
-              { label: "Ortalama Skor", value: stats.avg.toFixed(1) },
-              { label: "En Yüksek", value: stats.max.toFixed(1), accent: "#10b981" },
-              { label: "En Düşük", value: stats.min.toFixed(1), accent: "#ef4444" },
-            ].map((s, i) => (
-              <div key={i} className="bg-white p-4">
-                <div className="text-[9px] tracking-[0.25em] uppercase text-stone-500 mb-2">
-                  {s.label}
-                </div>
-                <div
-                  className="text-2xl font-light tabular-nums"
-                  style={{ color: s.accent || "#000" }}
-                >
-                  {s.value}
-                </div>
+      {/* trend */}
+      <Panel>
+        <SectionBar idx="01" title="Chart Üretim Trendi" hint="kalite skoru · zaman serisi" />
+        {total > 1 ? (
+          <div className="report-chart">
+            <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: "100%", height: 260 }}>
+              {[0, 25, 50, 75, 100].map((g) => (
+                <g key={g}>
+                  <line x1={pad.l} x2={W - pad.r} y1={yAt(g)} y2={yAt(g)} stroke="var(--zara-line)" strokeWidth="1" />
+                  <text x={pad.l - 8} y={yAt(g) + 4} textAnchor="end" fontSize="11" fill="var(--zara-ink-40)" fontFamily="var(--ff-mono)">{g}</text>
+                </g>
+              ))}
+              <line x1={pad.l} x2={W - pad.r} y1={avgY} y2={avgY} stroke="var(--zara-gold)" strokeWidth="1.4" strokeDasharray="5 4" />
+              <text x={W - pad.r} y={avgY - 6} textAnchor="end" fontSize="11" fill="var(--zara-gold-deep)" fontFamily="var(--ff-mono)">ort {avg.toFixed(1)}</text>
+              <path d={`${line} L ${xAt(total - 1)} ${yAt(0)} L ${xAt(0)} ${yAt(0)} Z`} fill="var(--zara-gold-tint)" stroke="none" />
+              <path d={line} fill="none" stroke="var(--zara-ink)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+              {recs.map((r, i) => (
+                <circle key={i} cx={xAt(i)} cy={yAt(r.score)} r="3" fill="var(--zara-ink)" />
+              ))}
+            </svg>
+            <div className="rc-axis">
+              <span>{recs[0]?.date}</span>
+              <span>{recs[recs.length - 1]?.date}</span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--zara-ink-30)", fontSize: 13 }}>
+            Trend görmek için en az 2 chart üretilmiş olmalı.
+          </div>
+        )}
+      </Panel>
+
+      {/* alan + kıdem dağılımı */}
+      <div className="rep-grid2">
+        <Panel>
+          <SectionBar idx="02" title="Alan Dağılımı" hint="personel sayısı" />
+          <div className="dist">
+            {areaDist.map(({ a, n }) => (
+              <div className="dist-row" key={a.id}>
+                <span className="dl">
+                  <AreaGlyph area={a.id} size={13} />
+                  {a.label}
+                </span>
+                <span className="dt">
+                  <i style={{ width: (n / areaMax) * 100 + "%", background: AREA_VISUAL[a.id].color }} />
+                </span>
+                <span className="dn num">{String(n).padStart(2, "0")}</span>
               </div>
             ))}
           </div>
-
-          {trendData.length > 1 ? (
-            <div className="h-64">
-              <ResponsiveContainer>
-                <LineChart data={trendData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke="#f5f5f4" />
-                  <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{ fontSize: 12, border: "1px solid #000" }}
-                    cursor={{ fill: "#f5f5f4" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#0a0a0a"
-                    strokeWidth={2}
-                    dot={{ r: 3, fill: "#0a0a0a" }}
-                    activeDot={{ r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="p-8 text-center text-stone-400 text-sm">
-              Trend görmek için en az 2 chart üretilmiş olmalı.
-            </div>
-          )}
-        </section>
-      )}
-
-      {topAssignees.length > 0 && (
-        <section className="border border-stone-300 p-6">
-          <h3 className="text-lg mb-1" style={{ fontFamily: "Georgia, serif" }}>
-            En Sık Atanan Kişiler
-          </h3>
-          <p className="text-xs text-stone-500 mb-4">
-            Geçmiş chart'larda en çok role atanan personel (top 10).
-          </p>
-          <div className="h-72">
-            <ResponsiveContainer>
-              <BarChart
-                data={topAssignees}
-                layout="vertical"
-                margin={{ top: 8, right: 24, left: 32, bottom: 8 }}
-              >
-                <XAxis type="number" tick={{ fontSize: 10 }} allowDecimals={false} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={80} />
-                <Tooltip
-                  contentStyle={{ fontSize: 12, border: "1px solid #000" }}
-                  cursor={{ fill: "#f5f5f4" }}
-                />
-                <Bar dataKey="count" fill="#0a0a0a" />
-              </BarChart>
-            </ResponsiveContainer>
+        </Panel>
+        <Panel>
+          <SectionBar idx="03" title="Kıdem Dağılımı" hint="işe başlama süresi" />
+          <div className="dist">
+            {tenureDist.map(({ t, n }) => (
+              <div className="dist-row" key={t.id}>
+                <span className="dl">
+                  <span className="dl-dot" style={{ background: t.color }} />
+                  {t.label}
+                </span>
+                <span className="dt">
+                  <i style={{ width: (n / tenureMax) * 100 + "%", background: t.color }} />
+                </span>
+                <span className="dn num">{String(n).padStart(2, "0")}</span>
+              </div>
+            ))}
           </div>
-        </section>
-      )}
+        </Panel>
+      </div>
 
-      <section className="border border-stone-300 p-6">
-        <h3 className="text-lg mb-1" style={{ fontFamily: "Georgia, serif" }}>
-          Rol Bazında Yetkinlik Dağılımı
-        </h3>
-        <p className="text-xs text-stone-500 mb-4">
-          Her rol için kaç kişi hangi seviyede? "Ana" (★★★) ve üstü çalışabilir sayılır.
-        </p>
-        <div className="h-72">
-          <ResponsiveContainer>
-            <BarChart data={roleSummary} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <XAxis dataKey="role" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-              <Tooltip
-                contentStyle={{ fontSize: 12, border: "1px solid #000" }}
-                cursor={{ fill: "#f5f5f4" }}
-              />
-              {STAR_LEVELS.map((s, idx) => (
-                <Bar
-                  key={s.value}
-                  dataKey={s.name}
-                  stackId="a"
-                  fill={
-                    ["#f5f5f4", "#fecaca", "#fde68a", "#bbf7d0", "#0a0a0a"][idx]
-                  }
-                />
+      {/* yetkinlik kapsamı */}
+      <Panel>
+        <SectionBar idx="04" title="Yetkinlik Kapsamı" hint="rol başına seviye dağılımı" />
+        <div className="cov-head">
+          {["Temel", "Gelişiyor", "Yetkin", "Uzman"].map((l, i) => (
+            <span className="cov-key" key={l}>
+              <i style={{ background: TIER_C[i] }} />
+              {l}
+            </span>
+          ))}
+          <span className="cov-key" style={{ marginLeft: "auto" }}>
+            <b>Yetkin+</b> = ★★★ ve üzeri
+          </span>
+        </div>
+        <div className="cov-list">
+          {coverage.map(({ role, tiers, rated, yetkin }) => (
+            <div className="cov-row" key={role}>
+              <span className="cov-label">{role}</span>
+              <span className="cov-bar">
+                {tiers.map((c, i) =>
+                  c > 0 ? (
+                    <span
+                      key={i}
+                      className="cov-seg"
+                      style={{ width: (c / Math.max(1, staff.length)) * 100 + "%", background: TIER_C[i] }}
+                      title={`${c} kişi`}
+                    />
+                  ) : null,
+                )}
+              </span>
+              <span className="cov-n num">{yetkin}/{rated}</span>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      {/* görev + ft/pt oranları */}
+      <div className="rep-grid2">
+        <Panel>
+          <SectionBar idx="05" title="Görev Dağılımı" hint="yönetim & uzmanlık" />
+          <div className="prop">
+            <div className="prop-bar">
+              {roleDist.map((r) =>
+                r.n > 0 ? (
+                  <span key={r.key} className="prop-seg" style={{ width: (r.n / Math.max(1, staff.length)) * 100 + "%", background: r.color }}>
+                    {r.n}
+                  </span>
+                ) : null,
+              )}
+            </div>
+            <div className="prop-legend">
+              {roleDist.map((r) => (
+                <span key={r.key}>
+                  <i style={{ background: r.color }} />
+                  {r.label} · {r.n}
+                </span>
               ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-2 mt-4 text-[10px] tracking-wider uppercase text-stone-600">
-          {roleSummary.map((r) => (
-            <div key={r.role} className="border border-stone-200 p-2">
-              <div className="font-semibold">{r.role}</div>
-              <div className="text-2xl font-light tabular-nums">{r.capable}</div>
-              <div className="text-stone-400">çalışabilir</div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="border border-stone-300 p-6">
-        <h3 className="text-lg mb-1" style={{ fontFamily: "Georgia, serif" }}>
-          Tenure Dağılımı
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-px bg-stone-300 border border-stone-300 mt-4">
-          {tenureSummary.map((t) => (
-            <div key={t.name} className="bg-white p-4">
-              <div className="text-[9px] tracking-[0.25em] uppercase text-stone-500 mb-1">
-                {t.name}
-              </div>
-              <div className="text-3xl font-light tabular-nums" style={{ color: t.color }}>
-                {String(t.count).padStart(2, "0")}
-              </div>
+          </div>
+        </Panel>
+        <Panel>
+          <SectionBar idx="06" title="Çalışma Tipi" hint="full / part time" />
+          <div className="prop">
+            <div className="prop-bar">
+              {ftptDist.map((r) =>
+                r.n > 0 ? (
+                  <span key={r.label} className="prop-seg" style={{ width: (r.n / Math.max(1, staff.length)) * 100 + "%", background: r.color }}>
+                    {r.n}
+                  </span>
+                ) : null,
+              )}
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="prop-legend">
+              {ftptDist.map((r) => (
+                <span key={r.label}>
+                  <i style={{ background: r.color }} />
+                  {r.label} · {r.n}
+                </span>
+              ))}
+            </div>
+          </div>
+        </Panel>
+      </div>
 
-      <section className="border border-stone-300 p-6">
-        <h3 className="text-lg mb-1" style={{ fontFamily: "Georgia, serif" }}>
-          Personel Bazında Ortalama Yetkinlik
-        </h3>
-        <p className="text-xs text-stone-500 mb-4">
-          Tüm rollerdeki yıldız ortalaması. Yüksek skor → tam joker.
-        </p>
-        <div className="h-72">
-          <ResponsiveContainer>
-            <BarChart
-              data={averageCompetencyPerPerson}
-              layout="vertical"
-              margin={{ top: 8, right: 24, left: 32, bottom: 8 }}
-            >
-              <XAxis type="number" domain={[0, 4]} tick={{ fontSize: 11 }} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={80} />
-              <Tooltip
-                contentStyle={{ fontSize: 12, border: "1px solid #000" }}
-                cursor={{ fill: "#f5f5f4" }}
-              />
-              <Bar dataKey="avg" fill="#0a0a0a">
-                {averageCompetencyPerPerson.map((d, i) => (
-                  <Cell
-                    key={i}
-                    fill={d.avg >= 3 ? "#0a0a0a" : d.avg >= 2 ? "#525252" : "#a8a29e"}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </section>
+      {/* en sık atanan */}
+      <Panel>
+        <SectionBar idx="07" title="En Sık Atanan Kişiler" hint="top 8 · vardiya yoğunluğu" />
+        {top.length > 0 ? (
+          <div className="top-list">
+            {top.map(({ name, n }, i) => (
+              <div className="top-row" key={name}>
+                <span className="tr-rank num">{String(i + 1).padStart(2, "0")}</span>
+                <span className="tr-glyph">
+                  <span className="dl-dot" style={{ background: "var(--zara-gold)", width: 9, height: 9, borderRadius: "50%", display: "inline-block" }} />
+                </span>
+                <span className="tr-name">{name}</span>
+                <span className="tr-bar">
+                  <i style={{ width: (n / topMax) * 100 + "%" }} />
+                </span>
+                <span className="tr-n num">{n}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--zara-ink-30)", fontSize: 13 }}>
+            Henüz chart üretilmedi — atama yoğunluğu burada görünecek.
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }

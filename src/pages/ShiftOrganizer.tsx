@@ -104,60 +104,35 @@ function ShiftOrganizerInner({
   ];
 
   return (
-    <div className="min-h-screen bg-white text-black">
-      <header className="border-b border-stone-300 px-4 sm:px-6 md:px-8 py-4 sm:py-5 flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="font-serif text-xl sm:text-2xl tracking-[-0.02em]">
-              Shift Organizer
-            </div>
-            <div className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-stone-500 mt-1">
-              ZARA · Mağaza 3643
-            </div>
-          </div>
-          {canLogout && (
+    <div className="zt-editorial so-shell">
+      <header className="so-head">
+        <div className="so-brand">
+          <div className="bn">Shift <em>Organizer</em></div>
+          <div className="bs">ZARA · Mağaza 3643</div>
+        </div>
+        <nav className="so-tabs">
+          {TABS.map(({ id, label, icon: Icon, count }) => (
             <button
-              onClick={onLogout}
-              className="text-stone-400 hover:text-black lg:hidden"
-              title="Çıkış"
+              key={id}
+              onClick={() => setTab(id)}
+              className={`so-tab ${tab === id ? "on" : ""}`}
             >
-              <LogOut size={14} strokeWidth={1.5} />
+              <Icon size={13} strokeWidth={1.6} />
+              {label}
+              {count !== undefined && (
+                <span className="tc num">({String(count).padStart(2, "0")})</span>
+              )}
+            </button>
+          ))}
+          {canLogout && (
+            <button onClick={onLogout} className="so-logout" title="Çıkış">
+              <LogOut size={14} strokeWidth={1.6} />
             </button>
           )}
-        </div>
-        <div className="flex items-center gap-2 lg:gap-4 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-          <nav className="flex gap-1 flex-nowrap">
-            {TABS.map(({ id, label, icon: Icon, count }) => (
-              <button
-                key={id}
-                onClick={() => setTab(id)}
-                className={`px-3 sm:px-5 py-2 text-[10px] tracking-[0.2em] uppercase flex items-center gap-2 whitespace-nowrap transition-colors ${
-                  tab === id ? "bg-black text-white" : "text-stone-600 hover:bg-stone-100"
-                }`}
-              >
-                <Icon size={14} strokeWidth={1.5} />
-                {label}
-                {count !== undefined && (
-                  <span className="text-[9px] opacity-70">
-                    ({String(count).padStart(2, "0")})
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-          {canLogout && (
-            <button
-              onClick={onLogout}
-              className="text-stone-400 hover:text-black hidden lg:inline-flex"
-              title="Çıkış"
-            >
-              <LogOut size={14} strokeWidth={1.5} />
-            </button>
-          )}
-        </div>
+        </nav>
       </header>
 
-      <main className="p-4 sm:p-6 md:p-8">
+      <main className="content">
         {tab === "competency" && (
           <CompetencyTab
             loading={staffQuery.isLoading}
