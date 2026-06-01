@@ -13,6 +13,8 @@ export type StaffWithCompetencies = {
   note: string | null;
   // Alan-bazlı v2: sabit çalışma alanı (null = atanmamış). v1 bunu yok sayar.
   homeArea: string | null;
+  duty: string | null;        // COM | CX | COACH
+  employment: string | null;  // FT | PT
   competencies: Record<string, number>;
 };
 
@@ -47,6 +49,8 @@ export async function listStaff(storeId: number): Promise<StaffWithCompetencies[
     isBlacklisted: s.isBlacklisted,
     note: s.note,
     homeArea: s.homeArea,
+    duty: s.duty,
+    employment: s.employment,
     competencies: compByStaff.get(s.id) ?? {},
   }));
 }
@@ -74,6 +78,8 @@ export async function updateStaff(
     isBlacklisted: boolean;
     note: string | null;
     homeArea: string | null;
+    duty: string | null;
+    employment: string | null;
   }>,
 ) {
   const db = getDb();

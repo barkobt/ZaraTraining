@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Crown, Loader2, Users } from "lucide-react";
-import { AREAS, staffLabel, type StaffRow } from "./constants";
+import { AREAS, DUTY_BY_ID, staffLabel, withinAreaRank, type StaffRow } from "./constants";
 
 /**
  * AreasTab — Alan-bazlı (area-based) v2 görünümü.
@@ -30,11 +30,14 @@ export function AreasTab(props: {
       if (bucket) bucket.push(s);
       else unassigned.push(s);
     }
-    // Her grup içinde isimle sırala.
-    const byName = (a: StaffRow, b: StaffRow) =>
-      staffLabel(a, staff).localeCompare(staffLabel(b, staff), "tr");
-    for (const list of byArea.values()) list.sort(byName);
-    unassigned.sort(byName);
+    // Alan-içi sıralama: COM → FT → PT → etiketsiz, her tier'da alfabetik.
+    const byTierThenName = (a: StaffRow, b: StaffRow) => {
+      const t = withinAreaRank(a) - withinAreaRank(b);
+      if (t !== 0) return t;
+      return staffLabel(a, staff).localeCompare(staffLabel(b, staff), "tr");
+    };
+    for (const list of byArea.values()) list.sort(byTierThenName);
+    unassigned.sort(byTierThenName);
     return { byArea, unassigned };
   }, [staff]);
 
@@ -155,7 +158,20 @@ function PersonChip(props: {
         {person.isManager && (
           <Crown size={10} strokeWidth={2} fill="currentColor" className="text-amber-500 shrink-0" />
         )}
-        {staffLabel(person, all)}
+        {person.duty && (
+          <span
+            className="text-[8px] font-semibold tracking-wide px-1 py-px rounded-sm shrink-0 text-white"
+            style={{ background: DUTY_BY_ID[person.duty]?.color ?? "#78716c" }}
+          >
+            {DUTY_BY_ID[person.duty]?.label ?? person.duty}
+          </span>
+        )}
+        {person.employment && (
+          <span className="text-[8px] tracking-wide px-1 py-px rounded-sm shrink-0 border border-stone-300 text-stone-500">
+            {person.employment}
+          </span>
+        )}
+        <span className="truncate">{staffLabel(person, all)}</span>
       </span>
       <select
         value={currentArea ?? ""}

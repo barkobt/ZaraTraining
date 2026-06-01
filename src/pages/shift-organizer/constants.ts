@@ -50,6 +50,36 @@ export const AREA_BY_ID: Record<string, (typeof AREAS)[number]> = Object.fromEnt
   AREAS.map((a) => [a.id, a]),
 );
 
+/** Görev etiketi (duty) — COM/CX/Coach. staff.duty olarak saklanır. */
+export const DUTIES = [
+  { id: "COM", label: "COM", color: "#9333ea" },
+  { id: "CX", label: "CX", color: "#0891b2" },
+  { id: "COACH", label: "Coach", color: "#ca8a04" },
+] as const;
+export type DutyId = (typeof DUTIES)[number]["id"];
+export const DUTY_BY_ID: Record<string, (typeof DUTIES)[number]> = Object.fromEntries(
+  DUTIES.map((d) => [d.id, d]),
+);
+
+/** Çalışma tipi (employment) — Full/Part time. staff.employment olarak saklanır. */
+export const EMPLOYMENTS = [
+  { id: "FT", label: "Full Time" },
+  { id: "PT", label: "Part Time" },
+] as const;
+export type EmploymentId = (typeof EMPLOYMENTS)[number]["id"];
+
+/**
+ * Alan-İÇİ sıralama rütbesi (kullanıcı isteği): COM en üstte → sonra FT → sonra
+ * PT → en sonda etiketsizler. Aynı tier içinde alfabetik (çağıran taraf uygular).
+ * COM görevi, FT/PT'den BAĞIMSIZ olarak en üste çıkar (lider ekip vurgusu).
+ */
+export function withinAreaRank(s: { duty: string | null; employment: string | null }): number {
+  if (s.duty === "COM") return 0;
+  if (s.employment === "FT") return 1;
+  if (s.employment === "PT") return 2;
+  return 3;
+}
+
 export type StaffRow = {
   id: number;
   fullName: string;
@@ -58,6 +88,8 @@ export type StaffRow = {
   isManager: boolean;
   note: string | null;
   homeArea: string | null;
+  duty: string | null;
+  employment: string | null;
   competencies: Record<string, number>;
 };
 

@@ -45,6 +45,11 @@ export const staff = pgTable(
     // bu kolonu hiç okumaz, dolayısıyla null kalması eski sistemi bozmaz.
     // v2 solver çalışırken bu alanı sabit istasyon olarak kullanacak.
     homeArea: varchar("home_area", { length: 20 }),
+    // Görev etiketi: COM | CX | COACH (nullable). Listede sıralama + filtre için.
+    duty: varchar("duty", { length: 10 }),
+    // Çalışma tipi: FT (full-time) | PT (part-time), nullable. Alan-içi sıralama
+    // COM → FT → PT tiers'ında kullanılır.
+    employment: varchar("employment", { length: 2 }),
     isManager: boolean("is_manager").notNull().default(false),
     isBlacklisted: boolean("is_blacklisted").notNull().default(false),
     note: text("note"),

@@ -2,7 +2,10 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   Crown, Plus, Search, Loader2, ArrowUpDown, Filter, Pencil, X as XIcon,
 } from "lucide-react";
-import { AREAS, AREA_BY_ID, ROLES, STAR_LEVELS, TENURE_LEVELS, type Role, type StaffRow } from "./constants";
+import {
+  AREAS, AREA_BY_ID, DUTIES, EMPLOYMENTS, ROLES, STAR_LEVELS, TENURE_LEVELS,
+  withinAreaRank, type Role, type StaffRow,
+} from "./constants";
 
 type SortKey = "area" | "name" | "competency" | "tenure" | "manager";
 
@@ -27,6 +30,8 @@ export function CompetencyTab(props: {
       isManager: boolean;
       note: string | null;
       homeArea: string | null;
+      duty: string | null;
+      employment: string | null;
     }>,
   ) => void;
   onDeleteStaff: (id: number) => void;
@@ -110,8 +115,9 @@ export function CompetencyTab(props: {
       let cmp = 0;
       switch (sortKey) {
         case "area":
-          // Önce alan rütbesi, eşitse grup-içi alfabetik.
+          // Alan rütbesi → alan-içi tier (COM→FT→PT) → alfabetik.
           cmp = areaRank(a.homeArea) - areaRank(b.homeArea);
+          if (cmp === 0) cmp = withinAreaRank(a) - withinAreaRank(b);
           if (cmp === 0) cmp = a.fullName.localeCompare(b.fullName, "tr");
           break;
         case "name":
@@ -316,6 +322,12 @@ export function CompetencyTab(props: {
               <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-36" style={{ background: "white" }}>
                 Alan
               </th>
+              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-28" style={{ background: "white" }}>
+                Görev
+              </th>
+              <th className="text-left p-4 text-[9px] tracking-[0.25em] uppercase text-stone-600 font-normal w-28" style={{ background: "white" }}>
+                FT/PT
+              </th>
               {ROLES.map((role) => (
                 <th
                   key={role}
@@ -334,14 +346,14 @@ export function CompetencyTab(props: {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={ROLES.length + 5} className="p-8 text-center text-stone-400">
+                <td colSpan={ROLES.length + 7} className="p-8 text-center text-stone-400">
                   <Loader2 className="inline-block animate-spin mr-2" size={14} /> Yükleniyor…
                 </td>
               </tr>
             )}
             {!loading && filtered.length === 0 && (
               <tr>
-                <td colSpan={ROLES.length + 5} className="p-8 text-center text-stone-400 text-sm">
+                <td colSpan={ROLES.length + 7} className="p-8 text-center text-stone-400 text-sm">
                   {activeFilterCount > 0
                     ? "Filtreler ile eşleşen personel yok."
                     : "Kayıt yok."}
@@ -365,7 +377,7 @@ export function CompetencyTab(props: {
                 {showGroupHeader && (
                   <tr>
                     <td
-                      colSpan={ROLES.length + 5}
+                      colSpan={ROLES.length + 7}
                       className="px-4 py-2 border-b border-stone-300 bg-stone-100/70"
                     >
                       <span className="flex items-center gap-2 text-[10px] tracking-[0.2em] uppercase font-medium">
@@ -445,6 +457,45 @@ export function CompetencyTab(props: {
                       {AREAS.map((a) => (
                         <option key={a.id} value={a.id}>
                           {a.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="p-4">
+                    {/* Görev etiketi (COM/CX/Coach) — alan-içi sıralamada COM en üste. */}
+                    <select
+                      value={person.duty ?? ""}
+                      onChange={(e) =>
+                        onUpdateStaff(person.id, {
+                          duty: e.target.value === "" ? null : e.target.value,
+                        })
+                      }
+                      className="text-[11px] py-1 px-2 border border-stone-200 bg-transparent outline-none cursor-pointer rounded-sm"
+                      style={{ color: DUTIES.find((d) => d.id === person.duty)?.color }}
+                    >
+                      <option value="">—</option>
+                      {DUTIES.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="p-4">
+                    {/* Çalışma tipi — kullanıcı girer; alan-içi FT→PT sıralaması. */}
+                    <select
+                      value={person.employment ?? ""}
+                      onChange={(e) =>
+                        onUpdateStaff(person.id, {
+                          employment: e.target.value === "" ? null : e.target.value,
+                        })
+                      }
+                      className="text-[11px] py-1 px-2 border border-stone-200 bg-transparent outline-none cursor-pointer rounded-sm"
+                    >
+                      <option value="">—</option>
+                      {EMPLOYMENTS.map((em) => (
+                        <option key={em.id} value={em.id}>
+                          {em.label}
                         </option>
                       ))}
                     </select>

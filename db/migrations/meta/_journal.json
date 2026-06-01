@@ -36,6 +36,13 @@
       "when": 1780294680592,
       "tag": "0004_premium_living_tribunal",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1780296580840,
+      "tag": "0005_absent_living_tribunal",
+      "breakpoints": true
     }
   ]
 }

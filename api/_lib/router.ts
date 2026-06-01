@@ -285,6 +285,8 @@ export const appRouter = createRouter({
           note: z.string().nullable().optional(),
           // Alan-bazlı v2: sabit çalışma alanı. null = atamayı kaldır.
           homeArea: z.string().max(20).nullable().optional(),
+          duty: z.string().max(10).nullable().optional(),        // COM | CX | COACH
+          employment: z.string().max(2).nullable().optional(),   // FT | PT
         }),
       )
       .mutation(async ({ input }) => {
