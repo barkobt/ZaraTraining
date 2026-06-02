@@ -1,6 +1,9 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Link } from "react-router";
-import { ArrowDown, ArrowRight, Upload, Sparkles, Cpu } from "lucide-react";
+import {
+  ArrowDown, ArrowRight, Upload, Sparkles, Cpu,
+  Sunrise, MessageSquare, Activity, Sprout, Repeat, TrendingUp,
+} from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -12,11 +15,8 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 /**
  * ZaraTraining landing — tek sayfa, scroll-triggered (GSAP).
- *
- * Brief (2026-06): italik YOK; hero korunur ama elegant bold serif; eski
- * Eğitim/Operasyon/Yakında tabları kaldırıldı. İşlevsel araçlar (Shift
- * Organizer · Buenas Dias · Zara Brain) üstte; Eğitim (Fitting Room) ayrı
- * section'da; Nasıl Çalışır 3 adım; CTA. Palet korunur (krem/altın/ink).
+ * Round 2: sade serif (Newsreader, italik YOK), "Atelye" wordmark, çarpıcı
+ * animasyonlu hero, Brain özellik pinned scroll anlatımı, düzeltilmiş CTA.
  */
 
 const TOOLS: Project[] = [
@@ -56,8 +56,9 @@ const TOOLS: Project[] = [
       "Mağazanın kendi sonuçlarından öğrenen zekâ katmanı — sabah brifingi, performans ikizi, kapalı döngü. Tahmin et, optimize et, öğren.",
     href: "/brain",
     accent: "#B8935A",
+    // editorial grayscale — koyu degrade overlay ile okunaklı
     image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1517999144091-3d9dca6d1e43?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
     available: true,
     status: "YENİ",
     index: 2,
@@ -87,65 +88,94 @@ const STEPS = [
   { icon: Sparkles, t: "Dağıt & Ölç", d: "PDF/Excel çıktısını paylaş, KPI'lar geri akar, döngü kapanır." },
 ];
 
+const BRAIN_FEATURES = [
+  { n: "01", icon: Sunrise, t: "Sabah Brifingi", d: "Günü okur: tahmini yük, zirve saati, önerilen plan — gerekçesiyle." },
+  { n: "02", icon: MessageSquare, t: "Beyne Sor", d: "Kurumsal hafıza. Her yanıt geçmiş veriye dayanır, kanıtsız konuşmaz." },
+  { n: "03", icon: Activity, t: "Performans İkizi", d: "Mağazanın kendi KPI'ından öğrenen hedef motoru — kâğıt değil, saha." },
+  { n: "04", icon: Sprout, t: "Usta Yolu", d: "Gizli, opt-in gelişim katmanı. Açığı sinerjiyle kapatan mentor eşleşmesi." },
+  { n: "05", icon: Repeat, t: "Kapalı Döngü", d: "Tahmin et → optimize et → uygula → ölç → öğren. Sistem hatasını küçültür." },
+  { n: "06", icon: TrendingUp, t: "Etki", d: "Net plan katkısından per-ticket'e, tek mağazadan zincire ölçeklenir." },
+];
+
+const KICKERS = ["EĞİTİM", "OPERASYON", "ZEKÂ"];
+
 export default function Home() {
   const root = useRef<HTMLDivElement | null>(null);
+  const [kicker, setKicker] = useState(0);
+
+  // Dönen kicker kelimesi (animated text)
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    const id = setInterval(() => setKicker((k) => (k + 1) % KICKERS.length), 2200);
+    return () => clearInterval(id);
+  }, []);
 
   useGSAP(
     () => {
       const ease = "power3.out";
-      // prefers-reduced-motion → animasyon yok
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (reduce) return;
 
-      // Hero intro — logo fade-in, wordmark, başlık slide-up
+      // Hero intro
       gsap.from(".hero-logo", { opacity: 0, scale: 0.85, filter: "blur(8px)", duration: 1.3, ease });
       gsap.from(".hero-wordmark", { opacity: 0, y: 8, duration: 0.9, delay: 0.5, ease });
       gsap.from(".hero-eyebrow", { opacity: 0, y: 12, duration: 0.8, delay: 0.25, ease });
-      gsap.from(".hero-title", { opacity: 0, y: 32, duration: 1.1, delay: 0.35, ease });
-      gsap.from(".hero-sub", { opacity: 0, y: 18, duration: 0.9, delay: 0.6, ease });
-      gsap.from(".hero-cue", { opacity: 0, duration: 1, delay: 1 });
+      // Başlık — kelime kelime maske reveal
+      gsap.from(".hero-word", { yPercent: 115, opacity: 0, duration: 1.05, ease, stagger: 0.12, delay: 0.4 });
+      gsap.from(".hero-rule", { scaleX: 0, transformOrigin: "left center", duration: 1.1, ease, delay: 1.0 });
+      gsap.from(".hero-sub", { opacity: 0, y: 18, duration: 0.9, delay: 1.1, ease });
+      gsap.from(".hero-cue", { opacity: 0, duration: 1, delay: 1.4 });
 
-      // Scroll-triggered: her section başlığı + kartları staggered
-      const sections = gsap.utils.toArray<HTMLElement>("[data-reveal]");
-      sections.forEach((el) => {
-        gsap.from(el, {
-          opacity: 0,
-          y: 40,
-          duration: 0.9,
-          ease,
-          scrollTrigger: { trigger: el, start: "top 85%" },
-        });
+      // Section başlık + kart reveal
+      gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
+        gsap.from(el, { opacity: 0, y: 40, duration: 0.9, ease, scrollTrigger: { trigger: el, start: "top 85%" } });
       });
-
       gsap.utils.toArray<HTMLElement>("[data-stagger]").forEach((group) => {
         gsap.from(group.querySelectorAll("[data-card]"), {
-          opacity: 0,
-          y: 60,
-          duration: 0.9,
-          ease,
-          stagger: 0.12,
+          opacity: 0, y: 60, duration: 0.9, ease, stagger: 0.12,
           scrollTrigger: { trigger: group, start: "top 80%" },
         });
       });
+
+      // ── Brain özellik anlatımı — pinned + scrub (kartlar sırayla birleşir) ──
+      const showcase = root.current?.querySelector<HTMLElement>(".brain-showcase");
+      if (showcase && window.innerWidth >= 768) {
+        const cards = gsap.utils.toArray<HTMLElement>(".bf-card");
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: showcase, start: "top top", end: "+=180%", pin: true, scrub: 1 },
+        });
+        cards.forEach((card, i) => {
+          tl.from(card, {
+            opacity: 0,
+            yPercent: 40,
+            rotate: i % 2 === 0 ? -4 : 4,
+            scale: 0.92,
+            ease: "power2.out",
+          }, i * 0.6);
+          tl.to(".bf-progress-fill", { scaleX: (i + 1) / cards.length, ease: "none" }, i * 0.6);
+          tl.to(".bf-count", { innerText: String(i + 1).padStart(2, "0"), snap: { innerText: 1 } }, i * 0.6);
+        });
+      }
     },
     { scope: root },
   );
 
   return (
     <div ref={root} className="min-h-screen bg-zara text-ink overflow-x-hidden">
-      {/* Header — non-italic elegant serif */}
+      {/* Header — "Atelye" wordmark (italik DEĞİL) */}
       <header
         className="fixed top-0 left-0 right-0 z-40 px-4 sm:px-6 md:px-12 py-5 flex justify-between items-center backdrop-blur-sm bg-zara/80 border-b"
         style={{ borderColor: "var(--zara-line)" }}
       >
         <Link to="/" className="flex items-center gap-3">
           <div
-            className="font-serif font-semibold text-[20px] sm:text-[24px] leading-none tracking-[-0.01em] text-ink pr-3 border-r"
-            style={{ borderColor: "var(--zara-line-strong)" }}
+            className="font-serif text-[22px] sm:text-[26px] leading-none tracking-[-0.01em] text-ink pr-3 border-r"
+            style={{ borderColor: "var(--zara-line-strong)", fontWeight: 500 }}
           >
-            ZARA Training
+            Atelye
           </div>
-          <div className="hidden md:block text-[10px] tracking-[0.32em] font-mono uppercase text-ink/55">
+          <div className="hidden md:block text-[10px] tracking-[0.34em] font-mono uppercase text-ink/55">
             The Atelier
           </div>
         </Link>
@@ -157,7 +187,6 @@ export default function Home() {
 
       {/* ─────────── HERO ─────────── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 sm:px-6 md:px-12 pt-24">
-        {/* warm radial glow */}
         <div
           aria-hidden
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[140vw] max-w-[1200px] max-h-[1200px] pointer-events-none rounded-full"
@@ -167,9 +196,9 @@ export default function Home() {
           <CornerVignette color="var(--zara-ink)" opacity={0.45} />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <div className="hero-logo flex flex-col items-center mb-8 gap-3">
-            <ZMark size={170} variant="gold" className="select-none" style={{ filter: "drop-shadow(0 18px 30px rgba(184,147,90,0.18))" }} />
+        <div className="relative z-10 max-w-5xl mx-auto text-center">
+          <div className="hero-logo flex flex-col items-center mb-7 gap-3">
+            <ZMark size={150} variant="gold" className="select-none" style={{ filter: "drop-shadow(0 18px 30px rgba(184,147,90,0.18))" }} />
             <div className="hero-wordmark flex items-center gap-3">
               <span className="w-6 h-px" style={{ background: "var(--zara-line-strong)" }} />
               <span className="font-mono tracking-[0.42em] uppercase text-[11px] sm:text-[12px] text-ink/70">ZARA Training</span>
@@ -177,29 +206,56 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="hero-eyebrow flex items-center justify-center gap-3 mb-8">
-            <span className="hidden sm:block w-12 h-px" style={{ background: "var(--zara-line-strong)" }} />
-            <span className="text-[10px] font-mono tracking-[0.32em] uppercase text-ink/50">ZARA · Atelier · MMXXVI</span>
-            <span className="hidden sm:block w-12 h-px" style={{ background: "var(--zara-line-strong)" }} />
+          {/* dönen kicker + sabit etiket (animated text) */}
+          <div className="hero-eyebrow flex items-center justify-center gap-3 mb-7">
+            <span className="hidden sm:block w-10 h-px" style={{ background: "var(--zara-line-strong)" }} />
+            <span className="text-[10px] font-mono tracking-[0.32em] uppercase text-ink/45">ZARA · ATELIER ·</span>
+            <span className="relative inline-block min-w-[90px] text-left">
+              {KICKERS.map((w, i) => (
+                <span
+                  key={w}
+                  className="text-[10px] font-mono tracking-[0.32em] uppercase"
+                  style={{
+                    color: "var(--zara-gold)",
+                    position: i === kicker ? "relative" : "absolute",
+                    left: 0,
+                    opacity: i === kicker ? 1 : 0,
+                    transform: i === kicker ? "translateY(0)" : "translateY(6px)",
+                    transition: "opacity 500ms var(--ease-atelier), transform 500ms var(--ease-atelier)",
+                  }}
+                >
+                  {w}
+                </span>
+              ))}
+            </span>
+            <span className="hidden sm:block w-10 h-px" style={{ background: "var(--zara-line-strong)" }} />
           </div>
 
-          {/* Başlık — İTALİK YOK, elegant bold serif */}
-          <h1 className="hero-title font-serif font-semibold text-[13vw] sm:text-[9vw] md:text-[7.5vw] lg:text-[6.5vw] leading-[0.95] tracking-[-0.03em] text-ink">
-            Atelye, in residence.
+          {/* Başlık — İTALİK YOK, sade serif, kelime-maske reveal */}
+          <h1 className="font-serif text-[15vw] sm:text-[11vw] md:text-[9vw] lg:text-[8vw] leading-[0.92] tracking-[-0.035em] text-ink" style={{ fontWeight: 600 }}>
+            <span className="block overflow-hidden">
+              <span className="hero-word inline-block">Atelye,</span>
+            </span>
+            <span className="block overflow-hidden">
+              <span className="hero-word inline-block">in&nbsp;</span>
+              <span className="hero-word inline-block">residence.</span>
+            </span>
           </h1>
 
-          <p className="hero-sub mt-8 max-w-xl mx-auto text-[15px] sm:text-base leading-[1.6] text-ink/65 font-sans px-4">
+          <div className="hero-rule mx-auto mt-6 h-px w-40" style={{ background: "linear-gradient(90deg, transparent, var(--zara-gold), transparent)" }} />
+
+          <p className="hero-sub mt-7 max-w-xl mx-auto text-[15px] sm:text-base leading-[1.6] text-ink/65 font-sans px-4">
             Mağaza içi eğitim ve operasyon araçlarının ev sahibi. Bir koleksiyondaki parçalar gibi düşünülmüş — her biri bağımsız, beraber bir bütün.
           </p>
 
-          <div className="hero-cue mt-14 flex flex-col items-center gap-3">
+          <div className="hero-cue mt-12 flex flex-col items-center gap-3">
             <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/40">Aşağı</span>
             <ArrowDown size={16} strokeWidth={1.5} className="text-ink/40 animate-bounce" />
           </div>
         </div>
       </section>
 
-      {/* ─────────── ARAÇLAR (işlevsel — aktif) ─────────── */}
+      {/* ─────────── ARAÇLAR ─────────── */}
       <section className="relative z-10 px-4 sm:px-6 md:px-12 py-20 md:py-28">
         <div className="max-w-7xl mx-auto">
           <div data-reveal className="mb-14">
@@ -208,49 +264,83 @@ export default function Home() {
               <div className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
               <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">OPERASYON</div>
             </div>
-            <h2 className="font-serif font-semibold text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink">
-              Araçlar.
-            </h2>
-            <p className="mt-5 max-w-xl text-sm sm:text-base text-ink/60 font-sans leading-relaxed">
-              Günlük operasyonu çeviren üç araç. Tıkla, çalışmaya git.
-            </p>
+            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Araçlar.</h2>
+            <p className="mt-5 max-w-xl text-sm sm:text-base text-ink/60 font-sans leading-relaxed">Günlük operasyonu çeviren üç araç. Tıkla, çalışmaya git.</p>
           </div>
-
           <div data-stagger className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {TOOLS.map((p, i) => (
-              <div data-card key={p.id}>
-                <ProjectCard project={p} idx={i} />
-              </div>
+              <div data-card key={p.id}><ProjectCard project={p} idx={i} /></div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─────────── ATELYE EĞİTİM (ayrı section) ─────────── */}
-      <section
-        className="relative z-10 px-4 sm:px-6 md:px-12 py-20 md:py-28 border-y"
-        style={{ background: "var(--zara-bg-alt)", borderColor: "var(--zara-line-strong)" }}
-      >
+      {/* ─────────── ZARA BRAIN · İÇERİDEN (pinned scroll) ─────────── */}
+      <section className="brain-showcase relative z-10 overflow-hidden" style={{ background: "var(--zara-ink)", color: "var(--zara-bg)" }}>
+        <div aria-hidden className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(120% 80% at 80% 0%, rgba(184,147,90,0.18), transparent 60%)" }} />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-20 md:py-24">
+          <div className="flex items-end justify-between gap-6 flex-wrap mb-10">
+            <div>
+              <div className="text-[10px] font-mono tracking-[0.3em] uppercase" style={{ color: "var(--zara-gold-soft)" }}>BÖLÜM 02 · YAPAY ZEKÂ</div>
+              <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] mt-3" style={{ fontWeight: 600 }}>ZARA Brain, içeriden.</h2>
+              <p className="mt-4 max-w-lg text-sm sm:text-base font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.72)" }}>
+                Altı yetenek, tek bir öğrenen döngüde birleşir. Kaydır — parçalar yerine otursun.
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="font-serif leading-none" style={{ fontSize: 56, fontWeight: 600 }}>
+                <span className="bf-count">00</span><span style={{ color: "var(--zara-gold-soft)" }}>/06</span>
+              </div>
+              <div className="mt-3 h-[3px] w-40 ml-auto" style={{ background: "rgba(245,241,234,0.15)" }}>
+                <div className="bf-progress-fill h-full" style={{ background: "var(--zara-gold)", transformOrigin: "left center", transform: "scaleX(0)" }} />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {BRAIN_FEATURES.map((f) => (
+              <div
+                key={f.n}
+                className="bf-card relative p-6 md:p-7"
+                style={{ background: "rgba(245,241,234,0.04)", border: "1px solid rgba(184,147,90,0.25)" }}
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <span className="font-mono text-[11px] tracking-[0.24em]" style={{ color: "var(--zara-gold-soft)" }}>{f.n}</span>
+                  <f.icon size={18} strokeWidth={1.5} style={{ color: "var(--zara-gold)" }} />
+                </div>
+                <h3 className="font-serif text-2xl mb-2" style={{ fontWeight: 500 }}>{f.t}</h3>
+                <p className="text-sm font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.7)" }}>{f.d}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 flex justify-center">
+            <Link
+              to="/brain"
+              className="inline-flex items-center gap-2 px-7 py-3.5 font-mono text-[11px] tracking-[0.22em] uppercase rounded-[5px]"
+              style={{ background: "var(--zara-gold)", color: "var(--zara-ink)" }}
+            >
+              Brain'i Keşfet <ArrowRight size={14} strokeWidth={1.8} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────── ATELYE EĞİTİM ─────────── */}
+      <section className="relative z-10 px-4 sm:px-6 md:px-12 py-20 md:py-28 border-y" style={{ background: "var(--zara-bg-alt)", borderColor: "var(--zara-line-strong)" }}>
         <div className="max-w-7xl mx-auto">
           <div data-reveal className="mb-14">
             <div className="flex items-center gap-4 mb-6">
-              <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">BÖLÜM 02</div>
+              <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">BÖLÜM 03</div>
               <div className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
               <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">EĞİTİM</div>
             </div>
-            <h2 className="font-serif font-semibold text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink">
-              Atelye Eğitim.
-            </h2>
-            <p className="mt-5 max-w-xl text-sm sm:text-base text-ink/60 font-sans leading-relaxed">
-              Sahaya çıkmadan önce — senaryolarla öğren, kabinini bul.
-            </p>
+            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Atelye Eğitim.</h2>
+            <p className="mt-5 max-w-xl text-sm sm:text-base text-ink/60 font-sans leading-relaxed">Sahaya çıkmadan önce — senaryolarla öğren, kabinini bul.</p>
           </div>
-
           <div data-stagger className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {EDUCATION.map((p, i) => (
-              <div data-card key={p.id}>
-                <ProjectCard project={p} idx={i} />
-              </div>
+              <div data-card key={p.id}><ProjectCard project={p} idx={i} /></div>
             ))}
           </div>
         </div>
@@ -261,15 +351,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div data-reveal className="mb-14">
             <div className="flex items-center gap-4 mb-6">
-              <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">BÖLÜM 03</div>
+              <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">BÖLÜM 04</div>
               <div className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
               <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">AKIŞ</div>
             </div>
-            <h2 className="font-serif font-semibold text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink">
-              Nasıl çalışır?
-            </h2>
+            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Nasıl çalışır?</h2>
           </div>
-
           <div data-stagger className="grid grid-cols-1 md:grid-cols-3 gap-px" style={{ background: "var(--zara-line-strong)" }}>
             {STEPS.map((s, i) => (
               <div data-card key={s.t} className="bg-zara p-8 md:p-10">
@@ -278,7 +365,7 @@ export default function Home() {
                   <span className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
                   <s.icon size={18} strokeWidth={1.5} style={{ color: "var(--zara-gold)" }} />
                 </div>
-                <h3 className="font-serif font-medium text-2xl text-ink mb-3">{s.t}</h3>
+                <h3 className="font-serif text-2xl text-ink mb-3" style={{ fontWeight: 500 }}>{s.t}</h3>
                 <p className="text-sm text-ink/60 font-sans leading-relaxed">{s.d}</p>
               </div>
             ))}
@@ -288,27 +375,24 @@ export default function Home() {
 
       {/* ─────────── CTA ─────────── */}
       <section className="relative z-10 px-4 sm:px-6 md:px-12 py-24 md:py-32 text-center overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[60vw] max-w-[900px] pointer-events-none rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(184,147,90,0.12) 0%, transparent 65%)" }}
-        />
+        <div aria-hidden className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[60vw] max-w-[900px] pointer-events-none rounded-full" style={{ background: "radial-gradient(circle, rgba(184,147,90,0.12) 0%, transparent 65%)" }} />
         <div data-reveal className="relative max-w-2xl mx-auto">
-          <h2 className="font-serif font-semibold text-4xl sm:text-5xl md:text-6xl leading-[1.0] tracking-[-0.02em] text-ink">
-            Hazır olduğunda, başla.
-          </h2>
+          <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.0] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Hazır olduğunda, başla.</h2>
           <p className="mt-5 text-sm sm:text-base text-ink/60 font-sans">Operasyonun ev sahibi seni bekliyor.</p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/shift-organizer"
-              className="inline-flex items-center gap-2 px-7 py-3.5 bg-ink text-zara font-mono text-[11px] tracking-[0.22em] uppercase rounded-[5px] hover:opacity-90 transition-opacity"
+              className="inline-flex items-center gap-2 px-7 py-3.5 font-mono text-[11px] tracking-[0.22em] uppercase rounded-[5px] hover:opacity-90 transition-opacity"
+              style={{ background: "var(--zara-ink)", color: "var(--zara-bg)" }}
             >
               Hemen Başla <ArrowRight size={14} strokeWidth={1.8} />
             </Link>
             <Link
               to="/brain"
-              className="inline-flex items-center gap-2 px-7 py-3.5 border font-mono text-[11px] tracking-[0.22em] uppercase rounded-[5px] text-ink hover:bg-ink hover:text-zara transition-colors"
+              className="inline-flex items-center gap-2 px-7 py-3.5 border font-mono text-[11px] tracking-[0.22em] uppercase rounded-[5px] text-ink hover:bg-ink transition-colors"
               style={{ borderColor: "var(--zara-line-strong)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--zara-bg)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--zara-ink)")}
             >
               Zara Brain'i Keşfet <Sparkles size={14} strokeWidth={1.8} />
             </Link>
@@ -320,7 +404,7 @@ export default function Home() {
       <footer className="relative z-10 border-t px-4 sm:px-6 md:px-12 py-8" style={{ borderColor: "var(--zara-line)" }}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="font-serif font-semibold text-lg leading-none text-ink">ZARA Training</div>
+            <div className="font-serif text-lg leading-none text-ink" style={{ fontWeight: 500 }}>Atelye</div>
             <div className="w-px h-4" style={{ background: "var(--zara-line-strong)" }} />
             <div className="text-[10px] tracking-[0.3em] font-mono uppercase text-ink/50">© 2026 · ZARA</div>
           </div>
