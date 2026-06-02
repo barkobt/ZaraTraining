@@ -3,7 +3,7 @@ import {
   Crown, Plus, Search, Loader2, ArrowUpDown, Filter, Pencil, X as XIcon,
 } from "lucide-react";
 import {
-  AREAS, AREA_BY_ID, DUTIES, EMPLOYMENTS, ROLES, STAR_LEVELS, TENURE_LEVELS,
+  AREAS, AREA_BY_ID, DUTIES, ROLES, STAR_LEVELS, TENURE_LEVELS,
   withinAreaRank, type Role, type StaffRow,
 } from "./constants";
 import { StatCards, AreaGlyph } from "@/components/atelier";
@@ -337,16 +337,20 @@ export function CompetencyTab(props: {
                         </select>
                       </td>
                       <td>
-                        {/* Alan-bazlı v2: sabit çalışma alanı. v1 chart'ı etkilemez. */}
-                        <span className="area-select" style={{ justifyContent: "center" }}>
+                        {/* Alan-bazlı v2: pill seçici (renkli çerçeve). v1 chart'ı etkilemez. */}
+                        <span
+                          className="mx-pill"
+                          style={{
+                            borderColor: person.homeArea ? areaVisual(person.homeArea).color : "var(--zara-line-strong)",
+                            color: person.homeArea ? areaVisual(person.homeArea).color : "var(--zara-ink-40)",
+                          }}
+                        >
                           <AreaGlyph area={person.homeArea} size={12} />
                           <select
                             value={person.homeArea ?? ""}
                             onChange={(e) => onUpdateStaff(person.id, { homeArea: e.target.value === "" ? null : e.target.value })}
-                            className="mx-sel"
-                            style={{ border: "none", background: "transparent" }}
                           >
-                            <option value="">—</option>
+                            <option value="">— Alan</option>
                             {AREAS.map((a) => (
                               <option key={a.id} value={a.id}>{a.label}</option>
                             ))}
@@ -354,31 +358,43 @@ export function CompetencyTab(props: {
                         </span>
                       </td>
                       <td>
-                        {/* Görev (COM/CX/Coach) — alan-içi sıralamada COM en üste. */}
-                        <select
-                          value={person.duty ?? ""}
-                          onChange={(e) => onUpdateStaff(person.id, { duty: e.target.value === "" ? null : e.target.value })}
-                          className="mx-sel"
-                          style={{ color: DUTIES.find((d) => d.id === person.duty)?.color }}
+                        {/* Görev (COM/CX/Coach) — pill. Alan-içi sıralamada COM en üste. */}
+                        <span
+                          className="mx-pill"
+                          style={{
+                            borderColor: DUTIES.find((d) => d.id === person.duty)?.color ?? "var(--zara-line-strong)",
+                            color: DUTIES.find((d) => d.id === person.duty)?.color ?? "var(--zara-ink-40)",
+                          }}
                         >
-                          <option value="">—</option>
-                          {DUTIES.map((d) => (
-                            <option key={d.id} value={d.id}>{d.label}</option>
-                          ))}
-                        </select>
+                          <select
+                            value={person.duty ?? ""}
+                            onChange={(e) => onUpdateStaff(person.id, { duty: e.target.value === "" ? null : e.target.value })}
+                          >
+                            <option value="">— Görev</option>
+                            {DUTIES.map((d) => (
+                              <option key={d.id} value={d.id}>{d.label}</option>
+                            ))}
+                          </select>
+                        </span>
                       </td>
                       <td>
-                        {/* Çalışma tipi — alan-içi FT→PT sıralaması. */}
-                        <select
-                          value={person.employment ?? ""}
-                          onChange={(e) => onUpdateStaff(person.id, { employment: e.target.value === "" ? null : e.target.value })}
-                          className="mx-sel"
-                        >
-                          <option value="">—</option>
-                          {EMPLOYMENTS.map((em) => (
-                            <option key={em.id} value={em.id}>{em.label}</option>
-                          ))}
-                        </select>
+                        {/* Çalışma tipi — tıklanabilir FT/PT toggle (buton). Aktife basınca temizler. */}
+                        <span className={`ftpt ${person.employment === "FT" ? "full" : person.employment === "PT" ? "part" : ""}`}>
+                          <button
+                            type="button"
+                            className={`ftpt-seg ${person.employment === "FT" ? "on" : ""}`}
+                            onClick={() => onUpdateStaff(person.id, { employment: person.employment === "FT" ? null : "FT" })}
+                          >
+                            FT
+                          </button>
+                          <button
+                            type="button"
+                            className={`ftpt-seg ${person.employment === "PT" ? "on" : ""}`}
+                            onClick={() => onUpdateStaff(person.id, { employment: person.employment === "PT" ? null : "PT" })}
+                          >
+                            PT
+                          </button>
+                        </span>
                       </td>
                       {ROLES.map((role) => {
                         const level = person.competencies[role] ?? 0;
