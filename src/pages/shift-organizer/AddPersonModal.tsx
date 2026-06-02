@@ -35,7 +35,7 @@ export function AddPersonModal(props: {
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-8">
       <div className="bg-white border-2 border-black p-8 w-full max-w-md">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg" style={{ fontFamily: "Georgia, serif", fontStyle: "italic" }}>
+          <h3 className="text-lg" style={{ fontFamily: "var(--ff-display)" }}>
             {isEdit ? "Personeli Düzenle" : "Yeni Personel"}
           </h3>
           <button onClick={props.onClose} className="text-stone-400 hover:text-black">

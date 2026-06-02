@@ -13,12 +13,13 @@ import { ROSTER, CHEMISTRY, ZONE_SIGNAL } from "../data";
 const GOLD = "var(--zara-gold)";
 
 type Spot = { zone: Zone; x: number; y: number; icon: string };
+// Konumlar gerçek mağaza krokisi (public/store-plan.png) üzerindeki alanlara denk gelir.
 const SPOTS: Spot[] = [
-  { zone: "DEPO", x: 17, y: 22, icon: "package" },
-  { zone: "KABIN", x: 78, y: 19, icon: "shirt" },
-  { zone: "SALON", x: 45, y: 47, icon: "layout-grid" },
-  { zone: "KASA", x: 71, y: 58, icon: "shopping-bag" },
-  { zone: "GIRIS", x: 46, y: 84, icon: "log-in" },
+  { zone: "DEPO", x: 16, y: 34, icon: "package" },
+  { zone: "KABIN", x: 84, y: 11, icon: "shirt" },
+  { zone: "SALON", x: 44, y: 56, icon: "layout-grid" },
+  { zone: "KASA", x: 60, y: 24, icon: "shopping-bag" },
+  { zone: "GIRIS", x: 78, y: 84, icon: "log-in" },
 ];
 
 function level(load: number) {
@@ -46,22 +47,9 @@ export function StoreMap() {
 
   return (
     <div className="zmap-wrap">
-      {/* kroki sahnesi */}
+      {/* kroki sahnesi — gerçek mağaza planı görseli */}
       <div className="zmap-stage">
-        <svg className="zmap-svg" viewBox="0 0 760 560" preserveAspectRatio="xMidYMid slice" aria-hidden>
-          {/* dış sınır */}
-          <rect x="24" y="24" width="712" height="512" fill="none" stroke="rgba(26,22,20,0.18)" strokeWidth="2" />
-          {/* iç bölmeler (soft) */}
-          {[
-            [40, 40, 240, 150], [300, 40, 200, 120], [520, 40, 196, 170],
-            [40, 210, 200, 300], [560, 240, 156, 130], [300, 360, 220, 150],
-          ].map((r, i) => (
-            <rect key={i} x={r[0]} y={r[1]} width={r[2]} height={r[3]} fill="rgba(26,22,20,0.03)" stroke="rgba(26,22,20,0.08)" strokeWidth="1" />
-          ))}
-          {/* giriş çizgisi */}
-          <line x1="300" y1="536" x2="500" y2="536" stroke="rgba(184,147,90,0.5)" strokeWidth="2" strokeDasharray="4 5" />
-        </svg>
-
+        <img src="/store-plan.png" alt="Mağaza krokisi" className="zmap-plan" />
         {SPOTS.map((s) => {
           const z = ZONE_SIGNAL[s.zone];
           const size = dotSize(z.load);

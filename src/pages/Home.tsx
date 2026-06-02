@@ -138,23 +138,25 @@ export default function Home() {
         });
       });
 
-      // ── Brain özellik anlatımı — pinned + scrub (kartlar sırayla birleşir) ──
+      // ── Brain özellik anlatımı — kartlar sırayla belirir + ilerleme dolar
+      //    (pin YOK: pin layout'u kaydırıp hero'yu gizliyordu — sağlam sürüm) ──
       const showcase = root.current?.querySelector<HTMLElement>(".brain-showcase");
-      if (showcase && window.innerWidth >= 768) {
-        const cards = gsap.utils.toArray<HTMLElement>(".bf-card");
-        const tl = gsap.timeline({
-          scrollTrigger: { trigger: showcase, start: "top top", end: "+=180%", pin: true, scrub: 1 },
+      if (showcase) {
+        gsap.from(showcase.querySelectorAll<HTMLElement>(".bf-card"), {
+          opacity: 0, yPercent: 16, scale: 0.96, duration: 0.8, ease, stagger: 0.14,
+          scrollTrigger: { trigger: showcase, start: "top 72%" },
         });
-        cards.forEach((card, i) => {
-          tl.from(card, {
-            opacity: 0,
-            yPercent: 40,
-            rotate: i % 2 === 0 ? -4 : 4,
-            scale: 0.92,
-            ease: "power2.out",
-          }, i * 0.6);
-          tl.to(".bf-progress-fill", { scaleX: (i + 1) / cards.length, ease: "none" }, i * 0.6);
-          tl.to(".bf-count", { innerText: String(i + 1).padStart(2, "0"), snap: { innerText: 1 } }, i * 0.6);
+        const fill = showcase.querySelector<HTMLElement>(".bf-progress-fill");
+        const count = showcase.querySelector<HTMLElement>(".bf-count");
+        ScrollTrigger.create({
+          trigger: showcase,
+          start: "top 70%",
+          end: "bottom 65%",
+          scrub: true,
+          onUpdate: (self) => {
+            if (fill) fill.style.transform = `scaleX(${self.progress})`;
+            if (count) count.textContent = String(Math.round(self.progress * 6)).padStart(2, "0");
+          },
         });
       }
     },

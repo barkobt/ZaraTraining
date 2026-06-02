@@ -1037,3 +1037,7 @@
 .ftpt-seg + .ftpt-seg { border-left: 1px solid var(--zara-line); }
 .mx-pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--zara-line-strong); border-radius: 999px; padding: 4px 10px; background: var(--zara-bg-white); max-width: 100%; }
 .mx-pill select { border: none; background: transparent; outline: none; cursor: pointer; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: inherit; -webkit-appearance: none; appearance: none; }
+
+/* StoreMap: gerçek kroki görseli */
+.zmap-stage { min-height: 0; background: var(--zara-bg-white); display: block; }
+.zmap-plan { display: block; width: 100%; height: auto; }

@@ -477,7 +477,7 @@ export function GenerateTab({
   return (
     <div className="space-y-6">
       <div className="border border-stone-300 p-4 sm:p-6 md:p-8">
-        <h3 className="text-lg mb-2" style={{ fontFamily: "Georgia, serif" }}>
+        <h3 className="text-lg mb-2" style={{ fontFamily: "var(--ff-display)" }}>
           Chart Üretimi
         </h3>
         <p className="text-sm text-stone-500 mb-6">

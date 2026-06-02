@@ -169,7 +169,7 @@ function ChartDetailModal({
             </div>
             <h3
               className="text-xl sm:text-2xl"
-              style={{ fontFamily: "Georgia, serif", fontStyle: "italic" }}
+              style={{ fontFamily: "var(--ff-display)" }}
             >
               {chart.shiftDate}
             </h3>
