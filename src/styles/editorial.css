@@ -984,3 +984,7 @@
   .brain-foot { display: none; }
   .brain-main { padding: 24px 16px 80px; }
 }
+
+/* ── ZARA Brain: editorial fashion serif (Bodoni) — referans estetiği.
+   Tablo/rapor sade Newsreader kalır; Brain'in büyük display'i Bodoni + italic-roman. */
+.brain-shell { --ff-display: "Bodoni Moda", "Playfair Display", "Didot", serif; --ff-editorial: "Bodoni Moda", "Playfair Display", serif; }

@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import {
-  Activity, ArrowRight, ArrowUp, ArrowUpRight, Brain as BrainIcon, Calendar, Check, CloudSun,
-  Equal, GitBranch, Hand, LayoutGrid, Lock, MessageSquare, Minus, Plus, Quote, Repeat,
+  Activity, ArrowRight, ArrowUp, ArrowUpRight, Bell, Brain as BrainIcon, Calendar, Check, Clock, CloudSun,
+  Equal, GitBranch, Hand, LayoutGrid, Leaf, Lock, MessageSquare, Minus, Plus, Quote, Repeat,
   ShieldCheck, SlidersHorizontal, Sprout, Store, Sunrise, Target, TrendingUp, Users, X,
   type LucideIcon,
 } from "lucide-react";
@@ -10,7 +10,7 @@ import type { Person } from "./model";
 /* kebab-case ad → lucide bileşeni (kit.jsx data-lucide adlarıyla aynı). */
 const ICONS: Record<string, LucideIcon> = {
   activity: Activity, "arrow-right": ArrowRight, "arrow-up": ArrowUp, "arrow-up-right": ArrowUpRight,
-  brain: BrainIcon, calendar: Calendar, check: Check, "cloud-sun": CloudSun, equal: Equal,
+  bell: Bell, brain: BrainIcon, calendar: Calendar, check: Check, clock: Clock, "cloud-sun": CloudSun, equal: Equal, leaf: Leaf,
   "git-branch": GitBranch, hand: Hand, "layout-grid": LayoutGrid, lock: Lock,
   "message-square": MessageSquare, minus: Minus, plus: Plus, quote: Quote, repeat: Repeat,
   "shield-check": ShieldCheck, "sliders-horizontal": SlidersHorizontal, sprout: Sprout,
