@@ -63,16 +63,19 @@ export function BuenasDiasForm({
   const status = day.status as "TASLAK" | "ONAYLANDI" | "GERCEKLESTI";
 
   return (
-    <div className="bg-white border rounded-lg overflow-hidden">
-      {/* 1. Başlık */}
-      <div className="bg-neutral-900 text-white py-3 text-center text-sm font-semibold tracking-widest">
-        BUENOS DIAS MEETING · {formatTrDate(today)}
+    <div className="panel">
+      {/* 1. Başlık — editorial ink masthead + gold rule */}
+      <div style={{ position: "relative", background: "var(--zara-ink)", color: "var(--zara-bg)", padding: "16px 20px", textAlign: "center" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, var(--zara-gold), var(--zara-gold-soft) 30%, transparent 75%)" }} />
+        <span style={{ fontFamily: "var(--ff-mono)", fontSize: 11, letterSpacing: "0.3em", textTransform: "uppercase", color: "var(--zara-gold-soft)" }}>
+          Buenas Dias Meeting · {formatTrDate(today)}
+        </span>
       </div>
 
       {/* Status badge */}
-      <div className="px-4 py-2 border-b flex items-center justify-between text-xs">
+      <div className="px-4 py-2.5 flex items-center justify-between text-xs" style={{ borderBottom: "1px solid var(--zara-line)" }}>
         <StatusBadge status={status} />
-        <div className="text-neutral-500">storeId={day.storeId} · {day.dayType}</div>
+        <div style={{ fontFamily: "var(--ff-mono)", fontSize: 10, letterSpacing: "0.06em", color: "var(--zara-ink-40)" }}>storeId={day.storeId} · {day.dayType}</div>
       </div>
 
       {/* 2. Bağlam şeridi */}
@@ -93,7 +96,7 @@ export function BuenasDiasForm({
       <SectionHeader
         title={editable ? "REYON HEDEF · ref hücrelerini tıkla düzenle" : "REYON HEDEF"}
       />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-px bg-neutral-100">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-px bg-paper-alt">
         <div className="md:col-span-2 bg-white p-3">
           <ReyonTable
             target={(day.targetReyon as ReyonGrid | null) ?? null}
@@ -120,7 +123,7 @@ export function BuenasDiasForm({
       <ResponsibilitiesBlock />
 
       {/* 7. Dear Team + Günün Sözü */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-neutral-100 border-t">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-paper-alt border-t">
         <FreeTextBlock title="DEAR TEAM KONUSU" content={day.dearTeamKonusu} />
         <FreeTextBlock title="GÜNÜN SÖZÜ" content={day.gununSozu} italic />
       </div>
@@ -162,30 +165,29 @@ function ContextStrip({
   const dayName = new Date(day.date + "T00:00:00").toLocaleDateString("tr-TR", {
     weekday: "long",
   });
-  const weatherIcon = day.weather === "sunny" ? "☀️" : day.weather === "bad" ? "🌧️" : "⛅";
   const weatherLabel =
-    day.weather === "sunny" ? "Açık (×1.15)" : day.weather === "bad" ? "Kötü (×0.85)" : "Normal (×1.00)";
+    day.weather === "sunny" ? "Açık ×1.15" : day.weather === "bad" ? "Kötü ×0.85" : "Normal ×1.00";
   const stretch = settings ? `+%${Math.round(settings.defaultStretch * 100)}` : "+%3";
 
   return (
-    <div className="px-4 py-2 border-b bg-neutral-50 text-xs text-neutral-700 flex flex-wrap gap-x-4 gap-y-1">
-      <span>📅 {capitalize(dayName)}</span>
-      <span>
-        {weatherIcon} {weatherLabel}
-        {weather?.temperatureC != null ? ` · ${weather.temperatureC.toFixed(1)}°C` : ""}
-      </span>
-      <span>{day.isSpecialDay ? "🎉 Özel gün" : "Özel gün yok"}</span>
+    <div
+      className="px-4 py-2.5 flex flex-wrap gap-x-5 gap-y-1"
+      style={{ borderBottom: "1px solid var(--zara-line)", background: "var(--zara-bg-warm)", fontFamily: "var(--ff-mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--zara-ink-50)" }}
+    >
+      <span>{capitalize(dayName)}</span>
+      <span>{weatherLabel}{weather?.temperatureC != null ? ` · ${weather.temperatureC.toFixed(1)}°C` : ""}</span>
+      <span>{day.isSpecialDay ? "Özel gün" : "Özel gün yok"}</span>
       <span>stretch {stretch}</span>
-      {weather?.source === "fallback" && (
-        <span className="text-amber-700">⚠ hava fallback</span>
-      )}
+      {weather?.source === "fallback" && <span style={{ color: "var(--zara-gold-deep)" }}>hava fallback</span>}
     </div>
   );
 }
 
 function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="border-t border-b bg-neutral-100 px-4 py-1.5 text-xs font-semibold tracking-widest text-neutral-700">
+    <div
+      style={{ borderTop: "1px solid var(--zara-line)", borderBottom: "1px solid var(--zara-line)", background: "var(--zara-bg-warm)", padding: "11px 16px", fontFamily: "var(--ff-mono)", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--zara-ink-50)" }}
+    >
       {title}
     </div>
   );
@@ -214,7 +216,7 @@ function StoreTargetsBlock({
       : null;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-neutral-100">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-paper-alt">
       <KPI
         label="Compran Hedef"
         value={settings ? pct(settings.compranTarget) : "—"}
@@ -425,7 +427,7 @@ function Cell({
           <EditableNumber
             value={refValue ?? 0}
             onCommit={onRefCommit}
-            className="text-neutral-700 underline decoration-dotted underline-offset-2 hover:bg-neutral-100"
+            className="text-neutral-700 underline decoration-dotted underline-offset-2 hover:bg-paper-alt"
           />
         </span>
       ) : refValue != null ? (
@@ -606,7 +608,7 @@ function ResponsibilitiesBlock() {
   return (
     <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
       {rows.map((r) => (
-        <div key={r.label} className="border rounded px-3 py-2 bg-neutral-50">
+        <div key={r.label} className="border rounded px-3 py-2 bg-paper-warm">
           <div className="text-[10px] uppercase tracking-wider text-neutral-500">{r.label}</div>
           <div className="text-neutral-700">{r.value}</div>
         </div>

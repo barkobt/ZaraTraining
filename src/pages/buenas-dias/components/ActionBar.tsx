@@ -43,8 +43,8 @@ export function ActionBar({ status, date, hasActuals, onChanged, pdfPayload }: A
   }
 
   return (
-    <div className="bg-white border rounded-lg p-3 flex flex-wrap items-center gap-2 sticky top-0 z-10">
-      <div className="text-xs text-neutral-500 mr-2">Durum:</div>
+    <div className="panel p-3 flex flex-wrap items-center gap-2 sticky top-0 z-10">
+      <div className="mr-2" style={{ fontFamily: "var(--ff-mono)", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--zara-ink-50)" }}>Durum:</div>
 
       {status === "TASLAK" && (
         <button
@@ -62,7 +62,7 @@ export function ActionBar({ status, date, hasActuals, onChanged, pdfPayload }: A
           <button
             onClick={() => run(unapprove)}
             disabled={pending}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-neutral-300 text-neutral-700 rounded hover:bg-neutral-50 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-neutral-300 text-neutral-700 rounded hover:bg-paper-warm disabled:opacity-50"
           >
             <Unlock className="h-4 w-4" />
             Onayı Geri Al
@@ -71,7 +71,8 @@ export function ActionBar({ status, date, hasActuals, onChanged, pdfPayload }: A
             onClick={() => run(close)}
             disabled={pending || !hasActuals}
             title={!hasActuals ? "Önce akşam verilerini gir" : "Günü kapat"}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-neutral-900 text-white rounded hover:bg-neutral-800 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-white rounded hover:opacity-90 disabled:opacity-40"
+            style={{ background: "var(--zara-ink)" }}
           >
             <Lock className="h-4 w-4" />
             Günü Kapat
@@ -83,7 +84,7 @@ export function ActionBar({ status, date, hasActuals, onChanged, pdfPayload }: A
         <button
           onClick={() => run(reopen)}
           disabled={pending}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-neutral-300 text-neutral-700 rounded hover:bg-neutral-50 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-neutral-300 text-neutral-700 rounded hover:bg-paper-warm disabled:opacity-50"
         >
           <ChevronUp className="h-4 w-4" />
           Yeniden Aç
@@ -94,7 +95,7 @@ export function ActionBar({ status, date, hasActuals, onChanged, pdfPayload }: A
       {(status === "ONAYLANDI" || status === "GERCEKLESTI") && pdfPayload && (
         <button
           onClick={() => exportBuenasDiasPdf(pdfPayload)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-neutral-300 text-neutral-700 rounded hover:bg-neutral-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-neutral-300 text-neutral-700 rounded hover:bg-paper-warm"
         >
           <FileDown className="h-4 w-4" />
           PDF İndir
