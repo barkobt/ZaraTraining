@@ -147,6 +147,19 @@ export const OBJECTIVE_LABEL: Record<Objective, { tr: string; en: string }> = {
   entranceTill: { tr: "Giriş & kasa kapsama", en: "Entrance & till coverage" },
 };
 
+/**
+ * Mağaza krokisi sinyali — alan başına anlık tahmini trafik (0–100) + satış
+ * endeksi (0–100). Kabin yükü predictLoad zirvesiyle tutarlı (97). Gerçekte
+ * sensör/POS verisinden gelir; tavsiyeler model.rankForZone'dan türetilir.
+ */
+export const ZONE_SIGNAL: Record<Zone, { load: number; sales: number }> = {
+  KABIN: { load: 97, sales: 88 },
+  KASA: { load: 64, sales: 95 },
+  SALON: { load: 72, sales: 70 },
+  GIRIS: { load: 58, sales: 38 },
+  DEPO: { load: 28, sales: 18 },
+};
+
 export const personByShort = (short: string): Person | undefined =>
   ROSTER.find((p) => p.short === short);
 
