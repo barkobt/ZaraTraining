@@ -271,12 +271,12 @@ function KPI({
       ? "bg-rose-50"
       : "bg-white";
   return (
-    <div className={`p-3 ${bg}`}>
-      <div className="text-[10px] uppercase tracking-wider text-neutral-500">{label}</div>
+    <div className={`px-4 py-3.5 ${bg}`}>
+      <div style={{ fontFamily: "var(--ff-mono)", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--zara-ink-50)" }}>{label}</div>
       {editable && onEdit ? (
         <EditableLargeNumber value={editValue ?? 0} onCommit={onEdit} />
       ) : (
-        <div className="text-lg font-medium text-neutral-900 tabular-nums">{value}</div>
+        <div className="num" style={{ fontFamily: "var(--ff-display)", fontSize: 24, fontWeight: 500, letterSpacing: "-0.01em", marginTop: 5, lineHeight: 1 }}>{value}</div>
       )}
     </div>
   );
@@ -314,7 +314,8 @@ function EditableLargeNumber({
           (e.target as HTMLInputElement).blur();
         }
       }}
-      className="w-full text-lg font-medium text-neutral-900 tabular-nums bg-transparent outline-none focus:bg-amber-50 px-0.5 rounded"
+      className="w-full num bg-transparent outline-none focus:bg-amber-50 px-0.5 rounded"
+      style={{ fontFamily: "var(--ff-display)", fontSize: 24, fontWeight: 500, color: "var(--zara-ink)", marginTop: 5, lineHeight: 1 }}
     />
   );
 }
@@ -345,17 +346,17 @@ function ReyonTable({
 
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">HEDEF (UDS)</div>
+      <div style={{ fontFamily: "var(--ff-mono)", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--zara-ink-50)", marginBottom: 8 }}>HEDEF (UDS)</div>
       <table className="w-full text-sm tabular-nums">
         <thead>
-          <tr className="text-xs text-neutral-500 border-b">
-            <th className="text-left font-normal py-1"> </th>
+          <tr style={{ borderBottom: "1px solid var(--zara-line-strong)" }}>
+            <th className="text-left py-1.5"> </th>
             {URUN_GRUBU.map((u) => (
-              <th key={u} className="text-right font-normal py-1">
+              <th key={u} className="text-right py-1.5" style={{ fontFamily: "var(--ff-mono)", fontSize: 8.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--zara-ink-40)" }}>
                 {urunNames[u]}
               </th>
             ))}
-            <th className="text-right font-normal py-1">TOPLAM</th>
+            <th className="text-right py-1.5" style={{ fontFamily: "var(--ff-mono)", fontSize: 8.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--zara-ink-40)" }}>TOPLAM</th>
           </tr>
         </thead>
         <tbody>
@@ -496,7 +497,7 @@ function IpodTable({ target }: { target: IpodGrid | null }) {
   const total = target ? labels.reduce((s, l) => s + (target[l.key] ?? 0), 0) : null;
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">IPOD HEDEF</div>
+      <div style={{ fontFamily: "var(--ff-mono)", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--zara-ink-50)", marginBottom: 8 }}>IPOD HEDEF</div>
       <table className="w-full text-sm tabular-nums">
         <tbody>
           {labels.map((l) => (
