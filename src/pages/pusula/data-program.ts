@@ -117,6 +117,56 @@ export function pusulaReading(emp: Employee): string {
   return `${fn} — ${parts.join("; ")}. ${tail}`;
 }
 
+export interface Persona {
+  label: string; // "Yaklaşan · Approacher"
+  energy: string; // "sakin & yön veren"
+  cx: string; // CX davranışı bağlantısı
+  action: string; // bu personadan çıkan aksiyon
+}
+
+/**
+ * Satış personası + enerji — kişiyi GERÇEKTEN anlatır (yetkinlik deseninden + CX).
+ * mix&match (stilist) / approacher (yaklaşan) / welcomer (karşılayan) / closer (kapatan).
+ * Analize ve aksiyona girdi olur (nereye konumlandırılır, nasıl gelişir).
+ */
+export function sellingPersona(emp: Employee): Persona {
+  const c = (STAFF_COMP[emp.id] ?? {}) as Record<string, number>;
+  const zoneAvg = Math.round(((c["Zone 2"] ?? 0) + (c["Zone 3"] ?? 0) + (c["Zone 4"] ?? 0) + (c["Zone 5"] ?? 0)) / 4);
+  let label: string;
+  let cx: string;
+  let action: string;
+  if ((c["Welcome"] ?? 0) >= 3) {
+    label = "Yaklaşan · Approacher";
+    cx = "İlk teması güçlü — 'karşılama → ilgilenme' dönüşümü yüksek; müşteriyi açar.";
+    action = "Welcome/Giriş'te konumlandır; conversion'ın başını o tutar.";
+  } else if ((c["Kabin"] ?? 0) >= 3) {
+    label = "Kapatan · Closer";
+    cx = "Kabinde alternatif beden/ürün önerisiyle kararsızı satışa çevirir.";
+    action = "Tepe-saat kabinine; FR→satış dönüşümünü yükseltir.";
+  } else if (zoneAvg >= 3) {
+    label = "Stilist · Mix&Match";
+    cx = "Kombin önerisiyle UPT/ATV'yi (çapraz/üst satış) büyütür.";
+    action = "Reyon + kombin köşesinde; sepet derinliğini artırır.";
+  } else if ((c["Kabin Welcomer"] ?? 0) >= 3) {
+    label = "Karşılayan · Welcomer";
+    cx = "Sıcak karşılama; bekleme stresini düşürür, düşen ürünü akışa geri kazandırır.";
+    action = "Kabin Welcomer / kayıp önleme hattında değerli.";
+  } else {
+    label = "Gelişen · temel akış";
+    cx = "Persona henüz netleşiyor — farklı alanlarda keşifle ortaya çıkacak.";
+    action = "Rotasyonla persona keşfi; nerede parladığını ölç.";
+  }
+  const energy =
+    emp.level === MasteryLevel.Coach
+      ? "ekip enerjisini dengeleyen · yön veren"
+      : emp.level === MasteryLevel.Master
+        ? "sakin · yoğunlukta istikrarlı"
+        : emp.level === MasteryLevel.Competent
+          ? "istikrarlı · özgüveni artan"
+          : "öğrenmeye aç · hareketli";
+  return { label, energy, cx, action };
+}
+
 /** Final/dönem raporu — güçlü yönler · gelişim alanları · sonuç. */
 export function finalReport(emp: Employee): FinalReport {
   const c = (STAFF_COMP[emp.id] ?? {}) as Record<string, number>;

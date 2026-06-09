@@ -7,7 +7,7 @@ import { ConfidenceDots } from "../components/ConfidenceDots";
 import { AreaSignals } from "../components/AreaSignals";
 import { SkillMatrix } from "../components/SkillMatrix";
 import { TendencyCurve } from "../components/TendencyCurve";
-import { areaSignals, pusulaReading } from "../data-program";
+import { areaSignals, pusulaReading, sellingPersona } from "../data-program";
 
 /**
  * Profil görünümü — seçili kişinin tam derin profili. Sol şerit kişi seçici.
@@ -22,6 +22,7 @@ export function Profil({
 }) {
   const active = person ?? employees[0];
   const showTeaching = active.id === teachingCard.masterId;
+  const pa = sellingPersona(active);
 
   return (
     <div className="pusula-profile">
@@ -55,6 +56,22 @@ export function Profil({
               <span className="pusula-reading-eb">Pusula okuması</span>
               {pusulaReading(active).replace(/\*\*/g, "")}
             </div>
+          </div>
+        </div>
+
+        <div className="pusula-persona">
+          <div className="pusula-persona-main">
+            <span className="pusula-persona-eb">Satış personası · enerji</span>
+            <div className="pusula-persona-label">{pa.label}</div>
+            <div className="pusula-persona-energy">{pa.energy}</div>
+          </div>
+          <div className="pusula-persona-block">
+            <span className="pusula-persona-k">CX davranışı</span>
+            <p>{pa.cx}</p>
+          </div>
+          <div className="pusula-persona-block">
+            <span className="pusula-persona-k">Pusula aksiyonu</span>
+            <p>{pa.action}</p>
           </div>
         </div>
 

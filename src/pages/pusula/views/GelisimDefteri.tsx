@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, StickyNote, Plus } from "lucide-react";
+import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, Sparkles } from "lucide-react";
 import { Headline } from "../../brain/primitives";
 import { employees } from "../data";
 import {
@@ -11,7 +11,7 @@ import {
   sectionFor,
 } from "../data-gelisim";
 import { competencyEval, finalReport, periodActions } from "../data-program";
-import { COMPETENCY_SCALE, type GuidebookLevel, type GuidebookRole, type TopicStatus } from "../types-gelisim";
+import { COMPETENCY_SCALE, type GuidebookLevel, type GuidebookRole, type GuidebookSection, type TopicStatus } from "../types-gelisim";
 import { StatusToggle } from "../components/StatusToggle";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
@@ -39,6 +39,19 @@ function scaleInk(level: number): string {
 
 const PERIOD_HEADS = ["Hafta 2", "Hafta 4", "Hafta 6", "Hafta 8"];
 
+type Mark = { status: Exclude<TopicStatus, "Boş">; date: string; note: string };
+const TODAY = new Date().toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit" });
+const CAT_ORDER = ["Müşteri", "Ürün", "Satış", "Süreçler", "Kasa", "Depo", "Sistem"];
+
+function groupByCat(topics: GuidebookSection["topics"]): Array<[string, GuidebookSection["topics"]]> {
+  const m = new Map<string, GuidebookSection["topics"]>();
+  for (const t of topics) {
+    if (!m.has(t.category)) m.set(t.category, []);
+    m.get(t.category)!.push(t);
+  }
+  return [...m.entries()].sort((a, b) => CAT_ORDER.indexOf(a[0]) - CAT_ORDER.indexOf(b[0]));
+}
+
 /**
  * Gelişim Defteri — dijital takip kitapçığı (gerçek 3 kitapçıktan). 5 sekme:
  * Takip (4-durum işaretleme) · Yetkinlik (5 davranışsal, 0–5 NİTEL) · Dönem
@@ -50,9 +63,7 @@ export function GelisimDefteri() {
   const [role, setRole] = useState<GuidebookRole>("Satış Danışmanı");
   const [level, setLevel] = useState<GuidebookLevel>("Başlangıç");
   const [empId, setEmpId] = useState(employees[2]?.id ?? employees[0].id); // Asya (yeni) varsayılan
-  const [overrides, setOverrides] = useState<Record<string, TopicStatus>>({});
-  const [notes, setNotes] = useState<Record<string, string>>({});
-  const [openNote, setOpenNote] = useState<string | null>(null);
+  const [history, setHistory] = useState<Record<string, Mark[]>>({});
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
 
@@ -62,10 +73,27 @@ export function GelisimDefteri() {
   const section = sectionFor(role, level);
   const emp = employees.find((e) => e.id === empId) ?? employees[0];
 
-  const statusOf = (id: string, base: TopicStatus): TopicStatus => overrides[id] ?? base;
-  const pick = (id: string, s: Exclude<TopicStatus, "Boş">, base: TopicStatus) =>
-    setOverrides((prev) => ({ ...prev, [id]: statusOf(id, base) === s ? "Boş" : s }));
-  const marked = section ? section.topics.filter((t) => statusOf(t.id, t.status) !== "Boş").length : 0;
+  // history modeli: her tik bir mark (durum + tarih + not) → per-pill not + tarih + ilerleme
+  const curStatus = (id: string, base: TopicStatus): TopicStatus => {
+    const h = history[id];
+    return h && h.length ? h[h.length - 1].status : base;
+  };
+  const pick = (id: string, s: Exclude<TopicStatus, "Boş">) =>
+    setHistory((prev) => {
+      const h = prev[id] ? [...prev[id]] : [];
+      if (h.length && h[h.length - 1].status === s) h.pop();
+      else h.push({ status: s, date: TODAY, note: "" });
+      return { ...prev, [id]: h };
+    });
+  const setMarkNote = (id: string, idx: number, note: string) =>
+    setHistory((prev) => {
+      const h = [...(prev[id] ?? [])];
+      if (h[idx]) h[idx] = { ...h[idx], note };
+      return { ...prev, [id]: h };
+    });
+  const marked = section ? section.topics.filter((t) => curStatus(t.id, t.status) !== "Boş").length : 0;
+  const teachable = section ? section.topics.filter((t) => curStatus(t.id, t.status) === "Öğretebilir").length : 0;
+  const groups = groupByCat(section?.topics ?? []);
 
   const comp = useMemo(() => competencyEval(emp), [emp]);
   const actions = useMemo(() => periodActions(emp), [emp]);
@@ -142,66 +170,71 @@ export function GelisimDefteri() {
               </div>
               <div className="pusula-book-legend">
                 <span>{section?.topics.length} konu · {role} · {section?.weeks}</span>
-                <span className="pusula-book-legend-stats">Her tik'e not düşülebilir — Pusula buradan öğrenir</span>
+                <span className="pusula-book-legend-stats">
+                  Plan <em>{emp.level}</em> seviyesine göre uyarlanır · her tik tarih + nota düşülür
+                </span>
               </div>
-              <div className="pusula-topics">
-                {section?.topics.map((t, i) => {
-                  const st = statusOf(t.id, t.status);
-                  const isMarked = st !== "Boş";
-                  const note = notes[t.id] ?? "";
-                  const editing = openNote === t.id;
-                  return (
-                    <motion.div
-                      key={t.id}
-                      className={`pusula-topic ${isMarked ? "marked" : ""}`}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: Math.min(i * 0.02, 0.25), ease: EASE }}
-                    >
-                      <div className="pusula-topic-main">
-                        <div className="pusula-topic-id">
-                          <span className="pusula-topic-cat">{t.category}</span>
-                          <span className="pusula-topic-title">
-                            <span className="pusula-topic-no">{t.no}.</span> {t.title}
-                          </span>
-                        </div>
-                        <StatusToggle status={st} onPick={(s) => pick(t.id, s, t.status)} />
-                      </div>
 
-                      {isMarked && (
-                        <div className="pusula-topic-note">
-                          {editing ? (
-                            <div className="pusula-note-edit">
-                              <StickyNote size={13} strokeWidth={1.6} />
-                              <textarea
-                                autoFocus
-                                rows={2}
-                                placeholder="Bu adımda ne yaptın? (örn. '2 gölge seansı, sıra-yönetimi yöntemiyle') — Pusula buradan öğrenir"
-                                value={note}
-                                onChange={(e) => setNotes((p) => ({ ...p, [t.id]: e.target.value }))}
-                              />
-                              <button className="pusula-note-save" onClick={() => setOpenNote(null)}>
-                                Kaydet
-                              </button>
+              <div className="pusula-topics">
+                {groups.map(([cat, topics]) => (
+                  <div key={cat} className="pusula-catgroup">
+                    <div className="pusula-cathead">{cat}</div>
+                    {topics.map((t, i) => {
+                      const cur = curStatus(t.id, t.status);
+                      const isMarked = cur !== "Boş";
+                      const isTeach = cur === "Öğretebilir";
+                      const marks = history[t.id] ?? [];
+                      return (
+                        <motion.div
+                          key={t.id}
+                          className={`pusula-topic ${isMarked ? "marked" : ""} ${isTeach ? "teach" : ""}`}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: Math.min(i * 0.015, 0.18), ease: EASE }}
+                        >
+                          <div className="pusula-topic-main">
+                            <span className="pusula-topic-title">
+                              <span className="pusula-topic-no">{t.no}.</span> {t.title}
+                            </span>
+                            <StatusToggle status={cur} onPick={(s) => pick(t.id, s)} />
+                          </div>
+
+                          {isTeach && (
+                            <div className="pusula-teach-moment">
+                              <Sparkles size={13} strokeWidth={1.7} />
+                              <span>
+                                <strong>Öğretebilir!</strong> {emp.name.split(" ")[0]} bu konuda artık mentor adayı —
+                                Usta Aktarımına aday, Usta Yolu'na eklenebilir.
+                              </span>
                             </div>
-                          ) : note ? (
-                            <button className="pusula-note-show" onClick={() => setOpenNote(t.id)}>
-                              <StickyNote size={12} strokeWidth={1.6} /> {note}
-                            </button>
-                          ) : (
-                            <button className="pusula-note-add" onClick={() => setOpenNote(t.id)}>
-                              <Plus size={12} strokeWidth={2} /> koçluk notu ekle
-                            </button>
                           )}
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
+
+                          {marks.length > 0 && (
+                            <div className="pusula-marks">
+                              {marks.map((m, mi) => (
+                                <div key={mi} className={`pusula-mark ${mi === marks.length - 1 ? "cur" : ""}`}>
+                                  <span className="pusula-mark-status">{m.status}</span>
+                                  <span className="pusula-mark-date">{m.date}</span>
+                                  <input
+                                    className="pusula-mark-note"
+                                    placeholder="bu adımda ne yaptın? (opsiyonel not)"
+                                    value={m.note}
+                                    onChange={(e) => setMarkNote(t.id, mi, e.target.value)}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
+
               <div className="pusula-book-foot">
                 <span className="pusula-book-count">
-                  {marked} / {section?.topics.length} işaretli · {Object.values(notes).filter(Boolean).length} not — sistem sıradaki revizyonu buna göre verir
+                  {marked} / {section?.topics.length} işaretli · {teachable} öğretebilir · tik notları Pusula'ya sinyal
                 </span>
                 <button className="pusula-apply"><Target size={15} /> Durumu Kaydet</button>
               </div>

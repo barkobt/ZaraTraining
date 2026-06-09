@@ -8,6 +8,7 @@ import { PocketMeter } from "../components/PocketMeter";
 import { HourlySpark } from "../components/HourlySpark";
 import { RecommendationCard } from "../components/Recommendation";
 import { DemandPanel } from "../components/DemandPanel";
+import { SurplusPanel } from "../components/SurplusPanel";
 import { AdjacencyNote } from "../components/AdjacencyNote";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
@@ -67,6 +68,7 @@ export function Yerlestirme({
       </div>
 
       <DemandPanel />
+      <SurplusPanel />
 
       <div className="pusula-place-grid">
         <div className="pusula-place-chart">
