@@ -65,6 +65,15 @@ export interface FinalReport {
   result: string;
 }
 
+// ── Dinamik alan sinyali (alanın GERÇEK çıktısından güncellenir) ──
+// "none" = o alanda bulunmamış → veri yok → YARGI DEĞİL, keşif önerilir.
+export interface AreaSignal {
+  area: string; // "Tepe-saat kapatma"
+  source: string; // "Kabin → kasada satın alınan ürün"
+  level: "strong" | "developing" | "neutral" | "none";
+  evidence: string; // "n≈14" | "veri yok"
+}
+
 // ── Öğrenen Hafıza (koçluk gözlem arşivi) ──────────────────
 export type NoteKind = "Gözlem" | "Koçluk" | "Değerlendirme";
 
@@ -91,6 +100,8 @@ export interface MentorMatch {
   focus: string;
   reason: string;
   shift: string;
+  /** Müsait (slack) saat — önceki günden trafikten bilinir, eğitim fırsatı. */
+  slot: string;
   /** Soft güven — match-score yüzdesinin yerine. */
   confidence: MentorConfidence;
   aiSuggested: boolean;

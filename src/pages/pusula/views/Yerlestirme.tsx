@@ -7,6 +7,8 @@ import { ShiftChart } from "../components/ShiftChart";
 import { PocketMeter } from "../components/PocketMeter";
 import { HourlySpark } from "../components/HourlySpark";
 import { RecommendationCard } from "../components/Recommendation";
+import { DemandPanel } from "../components/DemandPanel";
+import { AdjacencyNote } from "../components/AdjacencyNote";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
@@ -64,6 +66,8 @@ export function Yerlestirme({
         </div>
       </div>
 
+      <DemandPanel />
+
       <div className="pusula-place-grid">
         <div className="pusula-place-chart">
           <ShiftChart chart={chart} />
@@ -94,6 +98,8 @@ export function Yerlestirme({
               </motion.div>
             ))}
           </div>
+
+          <AdjacencyNote />
 
           <div className="pusula-assure">
             <span>Sert kısıtlar korundu: mola · kapasite · yetkinlik</span>

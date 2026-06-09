@@ -4,9 +4,10 @@ import { MasteryLevel, type Employee } from "../types";
 import { PersonAvatar } from "../components/PersonAvatar";
 import { MasteryChip } from "../components/MasteryChip";
 import { ConfidenceDots } from "../components/ConfidenceDots";
-import { AsaBar } from "../components/AsaBar";
+import { AreaSignals } from "../components/AreaSignals";
 import { SkillMatrix } from "../components/SkillMatrix";
 import { TendencyCurve } from "../components/TendencyCurve";
+import { areaSignals, pusulaReading } from "../data-program";
 
 /**
  * Profil görünümü — seçili kişinin tam derin profili. Sol şerit kişi seçici.
@@ -50,7 +51,10 @@ export function Profil({
               <ConfidenceDots level={active.confidence} />
               <span className="pusula-card-tenure">{active.tenure}</span>
             </div>
-            <div className="pusula-profile-strong">{active.strongPoint}</div>
+            <div className="pusula-reading">
+              <span className="pusula-reading-eb">Pusula okuması</span>
+              {pusulaReading(active).replace(/\*\*/g, "")}
+            </div>
           </div>
         </div>
 
@@ -58,12 +62,8 @@ export function Profil({
           {/* Sol kolon: ASA (+ kanıt) ve gelişim eğrisi */}
           <div className="pusula-profile-col">
             <section className="pusula-profile-block">
-              <Eyebrow>Sorumluluk alanı · ASA</Eyebrow>
-              <div className="pusula-profile-asa">
-                {active.asaMap.map((a) => (
-                  <AsaBar key={a.label} asa={a} />
-                ))}
-              </div>
+              <Eyebrow>Alan sinyalleri · dinamik</Eyebrow>
+              <AreaSignals signals={areaSignals(active)} />
             </section>
 
             <section className="pusula-profile-block">

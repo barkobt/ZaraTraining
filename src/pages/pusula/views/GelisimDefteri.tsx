@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText } from "lucide-react";
+import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, StickyNote, Plus } from "lucide-react";
 import { Headline } from "../../brain/primitives";
 import { employees } from "../data";
 import {
@@ -51,7 +51,13 @@ export function GelisimDefteri() {
   const [level, setLevel] = useState<GuidebookLevel>("Başlangıç");
   const [empId, setEmpId] = useState(employees[2]?.id ?? employees[0].id); // Asya (yeni) varsayılan
   const [overrides, setOverrides] = useState<Record<string, TopicStatus>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [openNote, setOpenNote] = useState<string | null>(null);
+  const [edits, setEdits] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
+
+  const eVal = (key: string, fallback: string) => edits[key] ?? fallback;
+  const setE = (key: string, v: string) => setEdits((p) => ({ ...p, [key]: v }));
 
   const section = sectionFor(role, level);
   const emp = employees.find((e) => e.id === empId) ?? employees[0];
@@ -136,29 +142,67 @@ export function GelisimDefteri() {
               </div>
               <div className="pusula-book-legend">
                 <span>{section?.topics.length} konu · {role} · {section?.weeks}</span>
-                <span className="pusula-book-legend-stats">Teorik · Uyguluyor · Gelişmeli · Öğretir</span>
+                <span className="pusula-book-legend-stats">Her tik'e not düşülebilir — Pusula buradan öğrenir</span>
               </div>
               <div className="pusula-topics">
-                {section?.topics.map((t, i) => (
-                  <motion.div
-                    key={t.id}
-                    className="pusula-topic"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(i * 0.025, 0.3), ease: EASE }}
-                  >
-                    <div className="pusula-topic-id">
-                      <span className="pusula-topic-cat">{t.category}</span>
-                      <span className="pusula-topic-title">
-                        <span className="pusula-topic-no">{t.no}.</span> {t.title}
-                      </span>
-                    </div>
-                    <StatusToggle status={statusOf(t.id, t.status)} onPick={(s) => pick(t.id, s, t.status)} />
-                  </motion.div>
-                ))}
+                {section?.topics.map((t, i) => {
+                  const st = statusOf(t.id, t.status);
+                  const isMarked = st !== "Boş";
+                  const note = notes[t.id] ?? "";
+                  const editing = openNote === t.id;
+                  return (
+                    <motion.div
+                      key={t.id}
+                      className={`pusula-topic ${isMarked ? "marked" : ""}`}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(i * 0.02, 0.25), ease: EASE }}
+                    >
+                      <div className="pusula-topic-main">
+                        <div className="pusula-topic-id">
+                          <span className="pusula-topic-cat">{t.category}</span>
+                          <span className="pusula-topic-title">
+                            <span className="pusula-topic-no">{t.no}.</span> {t.title}
+                          </span>
+                        </div>
+                        <StatusToggle status={st} onPick={(s) => pick(t.id, s, t.status)} />
+                      </div>
+
+                      {isMarked && (
+                        <div className="pusula-topic-note">
+                          {editing ? (
+                            <div className="pusula-note-edit">
+                              <StickyNote size={13} strokeWidth={1.6} />
+                              <textarea
+                                autoFocus
+                                rows={2}
+                                placeholder="Bu adımda ne yaptın? (örn. '2 gölge seansı, sıra-yönetimi yöntemiyle') — Pusula buradan öğrenir"
+                                value={note}
+                                onChange={(e) => setNotes((p) => ({ ...p, [t.id]: e.target.value }))}
+                              />
+                              <button className="pusula-note-save" onClick={() => setOpenNote(null)}>
+                                Kaydet
+                              </button>
+                            </div>
+                          ) : note ? (
+                            <button className="pusula-note-show" onClick={() => setOpenNote(t.id)}>
+                              <StickyNote size={12} strokeWidth={1.6} /> {note}
+                            </button>
+                          ) : (
+                            <button className="pusula-note-add" onClick={() => setOpenNote(t.id)}>
+                              <Plus size={12} strokeWidth={2} /> koçluk notu ekle
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
               <div className="pusula-book-foot">
-                <span className="pusula-book-count">{marked} / {section?.topics.length} konu işaretli</span>
+                <span className="pusula-book-count">
+                  {marked} / {section?.topics.length} işaretli · {Object.values(notes).filter(Boolean).length} not — sistem sıradaki revizyonu buna göre verir
+                </span>
                 <button className="pusula-apply"><Target size={15} /> Durumu Kaydet</button>
               </div>
             </>
@@ -197,42 +241,60 @@ export function GelisimDefteri() {
             </div>
           )}
 
-          {/* ── DÖNEM AKSİYONU (Hafta 2/4/6/8) ── */}
+          {/* ── DÖNEM AKSİYONU (Hafta 2/4/6/8) — AI önerisi, düzenlenebilir ── */}
           {mode === "donem" && (
-            <div className="pusula-period-grid">
-              {actions.map((a, i) => (
-                <motion.div
-                  key={a.week}
-                  className="pusula-period"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06, ease: EASE }}
-                >
-                  <div className="pusula-period-week">{a.week}</div>
-                  <div className="pusula-period-block">
-                    <span className="pusula-period-key">Öncelikler</span>
-                    <ul>
-                      {a.priorities.map((p) => (
-                        <li key={p}>{p}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="pusula-period-block">
-                    <span className="pusula-period-key">Hedef</span>
-                    <p>{a.goal}</p>
-                  </div>
-                  <div className="pusula-period-block">
-                    <span className="pusula-period-key">Aksiyon</span>
-                    <p>{a.action}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            <>
+              <div className="pusula-edit-hint">
+                <span className="pusula-ai-badge">AI önerisi</span> Pusula profile göre taslak verir — koç düzenleyebilir, üzerine yazabilir.
+              </div>
+              <div className="pusula-period-grid">
+                {actions.map((a, i) => (
+                  <motion.div
+                    key={a.week}
+                    className="pusula-period"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.06, ease: EASE }}
+                  >
+                    <div className="pusula-period-week">{a.week}</div>
+                    <div className="pusula-period-block">
+                      <span className="pusula-period-key">Öncelikler</span>
+                      <ul>
+                        {a.priorities.map((p) => (
+                          <li key={p}>{p}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="pusula-period-block">
+                      <span className="pusula-period-key">Hedef</span>
+                      <textarea
+                        className="pusula-edit"
+                        rows={2}
+                        value={eVal(`act:${empId}:${a.week}:goal`, a.goal)}
+                        onChange={(e) => setE(`act:${empId}:${a.week}:goal`, e.target.value)}
+                      />
+                    </div>
+                    <div className="pusula-period-block">
+                      <span className="pusula-period-key">Aksiyon</span>
+                      <textarea
+                        className="pusula-edit"
+                        rows={2}
+                        value={eVal(`act:${empId}:${a.week}:action`, a.action)}
+                        onChange={(e) => setE(`act:${empId}:${a.week}:action`, e.target.value)}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </>
           )}
 
-          {/* ── DÖNEM RAPORU ── */}
+          {/* ── DÖNEM RAPORU — AI önerisi, düzenlenebilir ── */}
           {mode === "rapor" && (
             <div className="pusula-report">
+              <div className="pusula-edit-hint">
+                <span className="pusula-ai-badge">AI önerisi</span> Kanıttan türetilmiş taslak — koç sonucu kendi sözleriyle yazabilir.
+              </div>
               <div className="pusula-report-cols">
                 <section>
                   <span className="pusula-period-key">Güçlü Yönler</span>
@@ -252,11 +314,16 @@ export function GelisimDefteri() {
                 </section>
               </div>
               <div className="pusula-report-result">
-                <span className="pusula-period-key">Sonuç</span>
-                <p>{report.result}</p>
+                <span className="pusula-period-key">Sonuç · Koç değerlendirmesi</span>
+                <textarea
+                  className="pusula-edit big"
+                  rows={3}
+                  value={eVal(`rep:${empId}:result`, report.result)}
+                  onChange={(e) => setE(`rep:${empId}:result`, e.target.value)}
+                />
               </div>
               <div className="pusula-assure pusula-assure-row">
-                <span>Değerlendirme = gelişim için, değerlendirme/ceza için değil</span>
+                <span>Değerlendirme = gelişim için, ceza için değil</span>
                 <span>Bu raporu çalışan da görür</span>
               </div>
             </div>

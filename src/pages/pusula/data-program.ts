@@ -6,7 +6,7 @@
 import { COMPETENCIES } from "./data-gelisim";
 import { STAFF_COMP, STAFF_ROLES } from "./data-staff";
 import { MasteryLevel, type Employee } from "./types";
-import type { CompetencyRow, FinalReport, PeriodAction } from "./types-gelisim";
+import type { AreaSignal, CompetencyRow, FinalReport, PeriodAction } from "./types-gelisim";
 
 const clamp = (v: number) => Math.max(0, Math.min(5, v));
 const hash = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -72,6 +72,49 @@ export function periodActions(emp: Employee): PeriodAction[] {
       action: "Değerlendirme + sonraki dönem aksiyon planı.",
     },
   ];
+}
+
+function lvl(v: number): AreaSignal["level"] {
+  return v >= 3 ? "strong" : v === 2 ? "developing" : v === 1 ? "neutral" : "none";
+}
+function evid(v: number): string {
+  return v === 0 ? "veri yok" : v >= 3 ? "n≈14" : v === 2 ? "n≈6" : "n≈2";
+}
+
+/**
+ * Alan-spesifik dinamik sinyaller — her alanın GERÇEK çıktısından güncellenir.
+ * Yetkinlik 0 → o alanda bulunmamış → veri yok → keşif (yargı değil).
+ */
+export function areaSignals(emp: Employee): AreaSignal[] {
+  const c = (STAFF_COMP[emp.id] ?? {}) as Record<string, number>;
+  const zoneAvg = Math.round(((c["Zone 2"] ?? 0) + (c["Zone 3"] ?? 0) + (c["Zone 4"] ?? 0) + (c["Zone 5"] ?? 0)) / 4);
+  return [
+    { area: "Tepe-saat kapatma", source: "Kabin → kasada satın alınan ürün", level: lvl(c["Kabin"] ?? 0), evidence: evid(c["Kabin"] ?? 0) },
+    { area: "Karşılama & yönlendirme", source: "Welcome → ilgilenme + QR yönlendirme", level: lvl(c["Welcome"] ?? 0), evidence: evid(c["Welcome"] ?? 0) },
+    { area: "Reyon hakimiyeti", source: "Zone → vardiya-içi sell-through", level: lvl(zoneAvg), evidence: evid(zoneAvg) },
+    { area: "Kayıp önleme", source: "Kabin Welcomer → düşen ürün geri kazanımı", level: lvl(c["Kabin Welcomer"] ?? 0), evidence: evid(c["Kabin Welcomer"] ?? 0) },
+  ];
+}
+
+/** Pusula'nın üretilmiş okuması — kanıta dayalı, belirsizlik-farkında, kişi hakkında. */
+export function pusulaReading(emp: Employee): string {
+  const sig = areaSignals(emp);
+  const strong = sig.find((s) => s.level === "strong");
+  const none = sig.find((s) => s.level === "none");
+  const fn = emp.name.split(" ")[0];
+  const parts: string[] = [];
+  if (strong) parts.push(`${strong.area.toLowerCase()} kanıtlı (güçlü, ${strong.evidence})`);
+  else parts.push(`temel akışlar oturuyor`);
+  if (none) parts.push(`${none.area.toLowerCase()} alanında veri yok — yargı değil, **keşif** öneriliyor`);
+  const tail =
+    emp.level === MasteryLevel.Coach
+      ? "Koç: kendi gelişimi mentee lifti üzerinden okunuyor."
+      : emp.level === MasteryLevel.Master
+        ? "Usta: aktarıma hazır."
+        : emp.level === MasteryLevel.Competent
+          ? "Yetkin: tepe-saat dayanıklılığı evresinde."
+          : "Yeni: gelişim eğrisi yukarı, kıdemli eşliğinde.";
+  return `${fn} — ${parts.join("; ")}. ${tail}`;
 }
 
 /** Final/dönem raporu — güçlü yönler · gelişim alanları · sonuç. */

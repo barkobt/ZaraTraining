@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, BrainCircuit, Calendar, RefreshCw, Zap } from "lucide-react";
+import { ArrowRight, BrainCircuit, Clock, RefreshCw, Sparkles } from "lucide-react";
 import { Headline } from "../../brain/primitives";
 import { byId } from "../data";
 import { MENTOR_MATCHES, MENTOR_MATCHES_OPTIMIZED } from "../data-mentor";
@@ -12,13 +12,17 @@ import { ConfidenceDots } from "../components/ConfidenceDots";
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 const DAYS = ["Dün", "Bugün", "Yarın"];
 
+/** Yarının müsait (düşük trafik) saatleri — önceki günden bilinir, eğitim fırsatı. */
+const SLACK_WINDOWS = ["15:00–16:00 · sakin açılış", "12:30–13:30 · öğle düşüşü", "20:00–21:00 · kapanış öncesi"];
+
 /**
- * Usta Yolu — mentor↔mentee eşleştirme. Yetkinlik boşluğu + vardiya çakışması →
- * gerekçeli eşleşme; koç onaylar/düzenler. "Yeniden optimize" model öğrenmesini
- * canlandırır. Eğitimcinin eğitimi: koç da mentee olabilir. MATCH-SCORE % YOK.
+ * Usta Yolu — animasyonlu mentor↔mentee EŞLEŞME TABLOSU. Müsait saatler (slack)
+ * "eğitim fırsatı" olarak önceki günden bilinir ve eşleşmeye slot olur. "Yeniden
+ * optimize" satırları akıtarak yeniden dizer (model öğrenir). Koç da mentee olur.
+ * Match-score yüzdesi YOK — güven SOFT.
  */
 export function UstaYolu() {
-  const [day, setDay] = useState("Bugün");
+  const [day, setDay] = useState("Yarın");
   const [matches, setMatches] = useState<MentorMatch[]>(MENTOR_MATCHES);
   const [optimizing, setOptimizing] = useState(false);
 
@@ -27,7 +31,7 @@ export function UstaYolu() {
     setTimeout(() => {
       setMatches(MENTOR_MATCHES_OPTIMIZED);
       setOptimizing(false);
-    }, 1300);
+    }, 1200);
   };
 
   return (
@@ -36,7 +40,7 @@ export function UstaYolu() {
         <div>
           <Headline ital="Usta" roman="Yolu" size={32} />
           <div className="pusula-sub">
-            Yetkinlik boşluğu + o günkü vardiya çakışması → gerekçeli mentor eşleşmesi. Model zamanla öğrenir.
+            Müsait saatler eğitim fırsatıdır — önceki günden bilinir, koç↔kişi eşleştirilir. Model öğrenir.
           </div>
         </div>
         <div className="pusula-usta-controls">
@@ -54,58 +58,61 @@ export function UstaYolu() {
         </div>
       </div>
 
-      <div className="pusula-usta-grid">
+      {/* müsait saat şeridi */}
+      <div className="pusula-slack">
+        <span className="pusula-slack-eb"><Sparkles size={12} /> Yarının eğitim pencereleri</span>
+        {SLACK_WINDOWS.map((w) => (
+          <span key={w} className="pusula-slack-chip">{w}</span>
+        ))}
+        <span className="pusula-slack-note">düşük trafik = sahada koçluk zamanı</span>
+      </div>
+
+      {/* animasyonlu eşleşme tablosu */}
+      <div className="pusula-matchtable">
+        <div className="pusula-matchrow head">
+          <span>Eşleşme</span>
+          <span>Odak</span>
+          <span>Eğitim slotu</span>
+          <span>Güven</span>
+          <span />
+        </div>
         <AnimatePresence mode="popLayout">
-          {matches.map((m, i) => {
+          {matches.map((m) => {
             const mentor = byId(m.mentorId);
             const mentee = byId(m.menteeId);
             return (
               <motion.div
                 key={m.id}
                 layout
-                className="pusula-match"
-                initial={{ opacity: 0, scale: 0.96, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ delay: i * 0.08, ease: EASE }}
+                className="pusula-matchrow"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.5, ease: EASE }}
               >
-                <div className="pusula-match-head">
-                  <div>
-                    <span className="pusula-match-shift">
-                      <Calendar size={12} /> {m.shift}
-                    </span>
-                    <div className="pusula-match-focus">{m.focus}</div>
+                <div className="pusula-match-pair2">
+                  <PersonAvatar name={mentor?.name ?? "?"} dark={mentor?.level === MasteryLevel.Coach} size={28} />
+                  <div className="pusula-match-names">
+                    <strong>{mentor?.name?.split(" ")[0] ?? "—"}</strong>
+                    <span className="pusula-match-r">mentor</span>
                   </div>
-                  {m.aiSuggested && (
-                    <span className="pusula-match-ai">
-                      <BrainCircuit size={12} /> Model önerisi
-                      <ConfidenceDots level={m.confidence} />
-                    </span>
-                  )}
-                </div>
-
-                <div className="pusula-match-pair">
-                  <PersonAvatar name={mentor?.name ?? "?"} dark={mentor?.level === MasteryLevel.Coach} size={34} />
-                  <div className="pusula-match-who">
-                    <span>Mentor</span>
-                    <strong>{mentor?.name ?? "—"}</strong>
+                  <ArrowRight size={14} className="pusula-match-arrow" />
+                  <PersonAvatar name={mentee?.name ?? "?"} dark={mentee?.level === MasteryLevel.Coach} size={28} />
+                  <div className="pusula-match-names">
+                    <strong>{mentee?.name?.split(" ")[0] ?? "—"}</strong>
+                    <span className="pusula-match-r">öğrenen</span>
                   </div>
-                  <ArrowRight size={16} className="pusula-match-arrow" />
-                  <div className="pusula-match-who right">
-                    <span>Öğrenen</span>
-                    <strong>{mentee?.name ?? "—"}</strong>
-                  </div>
-                  <PersonAvatar name={mentee?.name ?? "?"} dark={mentee?.level === MasteryLevel.Coach} size={34} />
                 </div>
-
-                <div className="pusula-match-reason">
-                  <Zap size={14} strokeWidth={1.6} />
-                  <p>{m.reason}</p>
+                <div className="pusula-match-focus2">{m.focus}</div>
+                <div className="pusula-match-slot">
+                  <Clock size={12} strokeWidth={1.7} /> {m.slot}
                 </div>
-
-                <div className="pusula-match-actions">
-                  <button className="pusula-match-yes">Eşleşmeyi onayla</button>
-                  <button className="pusula-match-edit">Düzenle / değiştir</button>
+                <div className="pusula-match-conf">
+                  <ConfidenceDots level={m.confidence} />
+                </div>
+                <div className="pusula-match-act2">
+                  <button className="pusula-match-yes">Onayla</button>
+                  <button className="pusula-match-edit">Düzenle</button>
                 </div>
               </motion.div>
             );
@@ -118,9 +125,9 @@ export function UstaYolu() {
         <div>
           <strong>Model nasıl öğreniyor?</strong>
           <p>
-            Her onay veya revizyonda Pusula saha dinamiklerini (kimin kiminle uyumlu çalıştığı, yetkinlik artışı,
-            vardiya yoğunluğu) biraz daha iyi öğrenir; sonraki eşleşmelerin <em>güveni</em> yükselir. Kanıt birikimi
-            soft güven göstergesine yansır — sert skor değil.
+            Her onay/revizyonda Pusula saha dinamiklerini (kim kiminle uyumlu, yetkinlik artışı, müsait-saat doluluğu)
+            biraz daha iyi öğrenir; eşleşmelerin <em>güveni</em> yükselir. Koçluk sahada gerçekleştikçe — takvimde
+            görünmek değil, <em>birlikte geçen zaman + lift</em> — sinyal güçlenir.
           </p>
         </div>
       </div>
