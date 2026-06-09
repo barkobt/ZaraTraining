@@ -1041,3 +1041,414 @@
 /* StoreMap: gerçek kroki görseli */
 .zmap-stage { min-height: 0; background: var(--zara-bg-white); display: block; }
 .zmap-plan { display: block; width: 100%; height: auto; }
+
+/* ============================================================
+   PUSULA — insan ana sahne; yerleşim onun sonucu.
+   Token'lar .zt-editorial'dan miras. Bodoni display (brain ile aynı his),
+   düz/gölgesiz/ferah. Skor/sıralama/sert rakam YOK.
+   ============================================================ */
+.pusula-shell {
+  --ff-display: "Bodoni Moda", "Playfair Display", "Didot", serif;
+  --ff-editorial: "Bodoni Moda", "Playfair Display", serif;
+  --zara-sage: rgba(122, 148, 110, 0.55);
+  --zara-sage-ink: #5e7350;
+  min-height: 100vh; background: var(--zara-bg); color: var(--zara-ink);
+  display: flex; flex-direction: column;
+}
+.pusula-sub { font-family: var(--ff-sans); font-size: 13px; color: var(--zara-ink-50); margin-top: 8px; font-style: italic; }
+
+/* ── üst bar: marka · nav · canlı ──────────────────────── */
+.pusula-top {
+  display: flex; align-items: center; gap: 28px;
+  padding: 20px 40px; border-bottom: 1px solid var(--zara-line-strong);
+  position: sticky; top: 0; z-index: 30; background: var(--zara-bg);
+}
+.pusula-brand { display: flex; align-items: center; gap: 13px; }
+.pusula-brand-back {
+  width: 32px; height: 32px; flex-shrink: 0; border: 1px solid var(--zara-line-strong);
+  border-radius: 50%; display: grid; place-items: center; color: var(--zara-ink);
+  transition: background 240ms var(--ease-atelier), color 240ms;
+}
+.pusula-brand-back:hover { background: var(--zara-ink); color: var(--zara-bg); }
+.pusula-brand-name { font-family: var(--ff-display); font-size: 22px; line-height: 1; }
+.pusula-brand-name em { font-style: italic; font-weight: 400; }
+.pusula-brand-sub { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--zara-gold-deep); margin-top: 4px; }
+
+.pusula-nav { display: flex; gap: 18px; margin: 0 auto; align-items: stretch; flex-wrap: wrap; }
+.pusula-navgroup { display: flex; flex-direction: column; gap: 5px; position: relative; padding-left: 18px; }
+.pusula-navgroup + .pusula-navgroup::before {
+  content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 1px; background: var(--zara-line-strong);
+}
+.pusula-navgroup-label { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--zara-gold-deep); padding-left: 4px; }
+.pusula-navgroup-items { display: flex; gap: 3px; }
+.pusula-navitem {
+  border: none; background: transparent; cursor: pointer; text-align: left;
+  padding: 6px 13px; border-radius: 5px; color: var(--zara-ink-2);
+  font-family: var(--ff-sans); font-size: 13px; font-weight: 500;
+  transition: background 220ms var(--ease-atelier), color 220ms;
+}
+.pusula-navitem:hover { background: var(--zara-bg-alt); }
+.pusula-navitem.on { background: var(--zara-ink); color: var(--zara-bg); }
+
+.pusula-main { flex: 1; min-width: 0; padding: 34px 40px 80px; max-width: 1180px; width: 100%; margin: 0 auto; }
+
+/* ── güvence ibareleri ─────────────────────────────────── */
+.pusula-assure {
+  display: flex; flex-direction: column; gap: 6px; margin-top: 26px;
+  font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--zara-ink-40);
+}
+.pusula-assure span { display: flex; align-items: center; gap: 8px; }
+.pusula-assure span::before { content: "·"; color: var(--zara-gold); }
+.pusula-assure-row { flex-direction: row; flex-wrap: wrap; gap: 8px 28px; }
+
+/* ── EKİP: roster kartları ─────────────────────────────── */
+.pusula-team-head { margin-bottom: 26px; }
+.pusula-team-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 14px;
+}
+.pusula-card {
+  text-align: left; cursor: pointer; background: var(--zara-bg-white);
+  border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius);
+  padding: 18px; display: flex; flex-direction: column; gap: 14px;
+  transition: transform 280ms var(--ease-atelier), box-shadow 280ms;
+}
+.pusula-card:hover { transform: translateY(-3px); box-shadow: var(--panel-shadow-soft); }
+.pusula-card-top { display: flex; align-items: center; gap: 12px; }
+.pusula-card-id { display: flex; flex-direction: column; gap: 6px; }
+.pusula-card-name { font-family: var(--ff-display); font-size: 18px; line-height: 1; }
+.pusula-card-tenure { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-card-lines { display: flex; flex-direction: column; gap: 7px; }
+.pusula-card-line { display: flex; gap: 10px; font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-2); align-items: baseline; }
+.pusula-card-key { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; flex-shrink: 0; width: 58px; }
+.pusula-card-key.strong { color: var(--zara-gold-deep); }
+.pusula-card-key.growing { color: var(--zara-ink-40); }
+.pusula-card-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--zara-line); }
+.pusula-card-peek { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-card:hover .pusula-card-peek { color: var(--zara-ink); }
+
+/* ── DRAWER: sağ peek ──────────────────────────────────── */
+.pusula-scrim { position: fixed; inset: 0; background: rgba(26,22,20,0.28); z-index: 50; }
+.pusula-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(380px, 90vw); z-index: 60;
+  background: var(--zara-bg-warm); border-left: 1px solid var(--zara-line-strong);
+  box-shadow: -20px 0 50px -30px rgba(26,22,20,0.5);
+  padding: 26px 24px; display: flex; flex-direction: column; gap: 22px; overflow-y: auto;
+}
+.pusula-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.pusula-drawer-id { display: flex; gap: 13px; align-items: center; }
+.pusula-drawer-name { font-family: var(--ff-display); font-size: 22px; line-height: 1.1; margin-bottom: 7px; }
+.pusula-drawer-x { border: none; background: transparent; cursor: pointer; color: var(--zara-ink-50); padding: 4px; border-radius: 4px; transition: color 200ms, background 200ms; }
+.pusula-drawer-x:hover { color: var(--zara-ink); background: var(--zara-bg-alt); }
+.pusula-drawer-strong { font-family: var(--ff-sans); font-size: 13px; font-style: italic; color: var(--zara-ink-2); line-height: 1.55; }
+.pusula-drawer-conf { display: flex; align-items: center; gap: 12px; font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-50); padding-bottom: 18px; border-bottom: 1px solid var(--zara-line); }
+.pusula-drawer-asa { display: flex; flex-direction: column; gap: 16px; flex: 1; }
+.pusula-drawer-foot { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid var(--zara-line); }
+.pusula-fulllink { align-self: flex-start; border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 10px 18px; border-radius: 5px; font-family: var(--ff-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink); transition: all 320ms var(--ease-atelier); }
+.pusula-fulllink:hover { background: var(--zara-ink); color: var(--zara-bg); }
+.pusula-drawer-note { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-40); }
+
+/* ── ASA çubuğu ────────────────────────────────────────── */
+.pusula-asa-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 7px; }
+.pusula-asa-label { font-family: var(--ff-sans); font-size: 13px; color: var(--zara-ink-2); }
+.pusula-asa-word { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-asa-track { height: 5px; background: var(--zara-bg-alt); border-radius: 4px; overflow: hidden; }
+.pusula-asa-fill { display: block; height: 100%; border-radius: 4px; transition: width 600ms var(--ease-atelier); }
+.pusula-asa-proven { font-family: var(--ff-sans); font-size: 11px; font-style: italic; color: var(--zara-ink-40); margin-top: 5px; }
+.pusula-asa-proven::before { content: "kanıt · "; font-style: normal; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); }
+
+/* ── PROFİL ────────────────────────────────────────────── */
+.pusula-profile { display: grid; grid-template-columns: 150px 1fr; gap: 32px; }
+.pusula-profile-rail { display: flex; flex-direction: column; gap: 12px; }
+.pusula-profile-list { display: flex; flex-direction: column; gap: 3px; }
+.pusula-profile-pick { display: flex; align-items: center; gap: 10px; border: none; background: transparent; cursor: pointer; padding: 8px 10px; border-radius: 5px; font-family: var(--ff-sans); font-size: 13px; color: var(--zara-ink-2); text-align: left; transition: background 200ms; }
+.pusula-profile-pick:hover { background: var(--zara-bg-alt); }
+.pusula-profile-pick.on { background: var(--zara-bg-alt); font-weight: 600; }
+.pusula-profile-head { display: flex; align-items: center; gap: 18px; padding-bottom: 22px; margin-bottom: 24px; border-bottom: 1px solid var(--zara-line-strong); }
+.pusula-profile-meta { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+.pusula-profile-strong { font-family: var(--ff-sans); font-size: 13.5px; font-style: italic; color: var(--zara-ink-2); line-height: 1.55; margin-top: 10px; max-width: 560px; }
+.pusula-profile-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 30px 44px; align-items: start; }
+.pusula-profile-col { display: flex; flex-direction: column; gap: 30px; min-width: 0; }
+.pusula-profile-block { display: flex; flex-direction: column; gap: 14px; }
+.pusula-profile-asa { display: flex; flex-direction: column; gap: 16px; }
+.pusula-profile-curveword { font-family: var(--ff-sans); font-size: 12.5px; font-style: italic; color: var(--zara-ink-50); }
+
+/* ── KPI çipleri (ASA → KPI köprüsü, #2) ───────────────── */
+.pusula-kpis { display: flex; flex-direction: column; gap: 8px; }
+.pusula-kpi { display: flex; align-items: baseline; gap: 10px; }
+.pusula-kpi-label { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-2); flex: 1; }
+.pusula-kpi-val { font-family: var(--ff-display); font-style: italic; font-size: 15px; color: var(--zara-gold-deep); }
+.pusula-kpi-ev { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); }
+
+/* ── beceri matrisi ────────────────────────────────────── */
+.pusula-skills { display: flex; flex-direction: column; gap: 6px; }
+.pusula-skill-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pusula-skill-role { font-family: var(--ff-sans); font-size: 13px; color: var(--zara-ink-2); }
+.pusula-skill-chip { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; padding: 4px 9px; border-radius: 3px; white-space: nowrap; }
+
+/* ── gelişim eğrisi ────────────────────────────────────── */
+.pusula-curve { display: block; }
+
+/* ── Usta Aktarımı (teaching) kartı ────────────────────── */
+.pusula-teach { border: 1px solid var(--zara-gold-soft); border-radius: var(--panel-radius); background: var(--zara-gold-tint); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.pusula-teach-topic { font-family: var(--ff-display); font-style: italic; font-size: 17px; color: var(--zara-gold-deep); }
+.pusula-teach-method { font-family: var(--ff-sans); font-size: 12.5px; line-height: 1.55; color: var(--zara-ink-2); }
+.pusula-teach-confirm { font-family: var(--ff-sans); font-size: 12px; font-style: italic; color: var(--zara-ink-50); padding-top: 8px; border-top: 1px solid var(--zara-line); }
+.pusula-teach-confirm::before { content: "çıkar → onayla · "; font-style: normal; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); }
+
+/* ── YERLEŞTİRME: demo kalbi ───────────────────────────── */
+.pusula-place-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 26px; flex-wrap: wrap; }
+.pusula-apply {
+  border: 1px solid var(--zara-ink); background: var(--zara-ink); color: var(--zara-bg);
+  cursor: pointer; padding: 13px 28px; border-radius: 5px; font-family: var(--ff-sans);
+  font-size: 11px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+  transition: all 320ms var(--ease-atelier);
+}
+.pusula-apply:hover { background: var(--zara-ink-soft); }
+.pusula-apply[data-applied] { background: transparent; color: var(--zara-ink); }
+.pusula-apply[data-applied]:hover { background: var(--zara-bg-alt); }
+
+.pusula-place-grid { display: grid; grid-template-columns: 1fr 320px; gap: 28px; align-items: start; }
+.pusula-place-chart { display: flex; flex-direction: column; gap: 20px; }
+
+/* chart grid */
+.pusula-chart { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); overflow: hidden; }
+.pusula-chart-grid { display: grid; }
+.pusula-chart-corner { background: var(--zara-bg-warm); border-bottom: 1px solid var(--zara-line-strong); }
+.pusula-chart-hour {
+  display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 8px;
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.08em; color: var(--zara-ink-50);
+  background: var(--zara-bg-warm); border-bottom: 1px solid var(--zara-line-strong); border-left: 1px solid var(--zara-line);
+}
+.pusula-chart-hour.peak { color: var(--zara-gold-deep); background: var(--zara-gold-tint); }
+.pusula-chart-peaktag { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; padding: 2px 5px; border: 1px solid var(--zara-gold-soft); border-radius: 2px; color: var(--zara-gold-deep); }
+.pusula-chart-role {
+  display: flex; align-items: center; padding: 12px; font-family: var(--ff-sans); font-size: 12.5px;
+  font-weight: 500; color: var(--zara-ink-2); background: var(--zara-bg-warm);
+  border-bottom: 1px solid var(--zara-line);
+}
+.pusula-chart-cell {
+  min-height: 46px; padding: 8px; display: flex; flex-wrap: wrap; gap: 5px; align-content: flex-start;
+  border-bottom: 1px solid var(--zara-line); border-left: 1px solid var(--zara-line);
+}
+.pusula-chart-cell.peak { background: rgba(191,149,80, 0.05); }
+.pusula-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 8px; border-radius: 999px;
+  font-family: var(--ff-sans); font-size: 11.5px; font-weight: 500; white-space: nowrap;
+  background: var(--zara-bg-alt); color: var(--zara-ink-2); border: 1px solid var(--zara-line-strong);
+}
+.pusula-chip.strong { border-color: var(--zara-gold-soft); background: var(--zara-gold-tint); color: var(--zara-gold-deep); }
+.pusula-chip.mgr { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
+.pusula-chip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.55; }
+
+/* akşam cebi göstergesi */
+.pusula-pocket { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 18px 20px; }
+.pusula-pocket-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.pusula-pocket-eb { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-pocket-state { font-family: var(--ff-display); font-size: 16px; font-style: italic; }
+.pusula-pocket-state.tense { color: var(--zara-gold-deep); }
+.pusula-pocket-state.eased { color: var(--zara-sage-ink); }
+.pusula-pocket-track { height: 8px; border-radius: 6px; overflow: hidden; }
+.pusula-pocket-fill { display: block; height: 100%; border-radius: 6px; }
+.pusula-pocket-foot { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-50); margin-top: 12px; }
+.pusula-pocket-foot em { font-style: italic; color: var(--zara-ink-2); }
+
+/* öneri kenarı */
+.pusula-place-side { display: flex; flex-direction: column; gap: 16px; }
+.pusula-recs { display: flex; flex-direction: column; gap: 12px; min-height: 80px; }
+.pusula-recs-empty { font-family: var(--ff-sans); font-size: 13px; font-style: italic; color: var(--zara-ink-50); line-height: 1.6; }
+.pusula-recs-empty em { color: var(--zara-ink-2); }
+.pusula-rec { display: flex; gap: 12px; padding: 14px; background: var(--zara-bg-white); border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); }
+.pusula-rec-avatars { display: flex; flex-shrink: 0; }
+.pusula-rec-with { margin-left: -12px; }
+.pusula-rec-body { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.pusula-rec-head { display: flex; flex-direction: column; gap: 5px; }
+.pusula-rec-kind { align-self: flex-start; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; background: var(--zara-bg-alt); color: var(--zara-ink-50); }
+.pusula-rec-kind.strength { background: var(--zara-gold-tint); color: var(--zara-gold-deep); }
+.pusula-rec-kind.growth { background: rgba(122,148,110,0.16); color: var(--zara-sage-ink); }
+.pusula-rec-kind.synergy { background: var(--zara-ink); color: var(--zara-bg); }
+.pusula-rec-kind.teaching { background: transparent; color: var(--zara-gold-deep); border: 1px solid var(--zara-gold-soft); }
+.pusula-rec-route { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--zara-ink-2); }
+.pusula-rec-why { margin: 0; font-family: var(--ff-sans); font-size: 12.5px; line-height: 1.55; color: var(--zara-ink-50); }
+.pusula-rec-ev { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); }
+
+/* ── responsive ────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .pusula-top { flex-wrap: wrap; gap: 16px; padding: 16px 20px; }
+  .pusula-nav { margin: 0; order: 3; width: 100%; }
+  .pusula-main { padding: 24px 16px 64px; }
+  .pusula-place-grid { grid-template-columns: 1fr; }
+  .pusula-profile { grid-template-columns: 1fr; }
+  .pusula-profile-cols { grid-template-columns: 1fr; }
+  .pusula-profile-list { flex-direction: row; flex-wrap: wrap; }
+  .pusula-mem-grid { grid-template-columns: 1fr; }
+  .pusula-usta-grid { grid-template-columns: 1fr; }
+  .pusula-nav { gap: 12px; }
+}
+
+/* ============================================================
+   PUSULA · GELİŞİM bölümü — Defter · Öğrenen Hafıza · Usta Yolu
+   ============================================================ */
+
+/* ortak: segment + pill + spin */
+.pusula-seg { display: inline-flex; gap: 2px; border: 1px solid var(--zara-line-strong); border-radius: 6px; padding: 3px; background: var(--zara-bg-white); }
+.pusula-seg button { border: none; background: transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 4px; font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-2); transition: background 200ms var(--ease-atelier), color 200ms; }
+.pusula-seg button.on { background: var(--zara-ink); color: var(--zara-bg); }
+.pusula-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pusula-pill { border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 7px 14px; border-radius: 999px; font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-2); transition: all 220ms var(--ease-atelier); }
+.pusula-pill:hover { border-color: var(--zara-ink); }
+.pusula-pill.on { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
+.pusula-spin { animation: pusula-rot 1s linear infinite; }
+@keyframes pusula-rot { to { transform: rotate(360deg); } }
+
+/* ── GELİŞİM DEFTERİ ───────────────────────────────────── */
+.pusula-book-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+.pusula-book-emp { display: flex; align-items: center; gap: 10px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-book-emp select { border: 1px solid var(--zara-line-strong); background: var(--zara-bg-white); border-radius: 5px; padding: 8px 12px; font-family: var(--ff-sans); font-size: 13px; color: var(--zara-ink); cursor: pointer; }
+.pusula-asa-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px 16px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-warm); margin-bottom: 18px; }
+.pusula-asa-strip-eb { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-gold-deep); margin-right: 6px; }
+.pusula-asa-chip { font-family: var(--ff-sans); font-size: 12px; color: var(--zara-ink-2); padding: 4px 10px; border: 1px solid var(--zara-line-strong); border-radius: 999px; }
+.pusula-asa-chip em { font-style: normal; font-family: var(--ff-mono); font-size: 9px; color: var(--zara-ink-40); margin-left: 4px; }
+.pusula-level-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); overflow: hidden; margin-bottom: 22px; }
+.pusula-level-tab { border: none; background: var(--zara-bg-white); cursor: pointer; padding: 14px 12px; display: flex; flex-direction: column; gap: 3px; transition: background 220ms var(--ease-atelier); }
+.pusula-level-tab:hover { background: var(--zara-bg-alt); }
+.pusula-level-tab.on { background: var(--zara-ink); }
+.pusula-level-name { font-family: var(--ff-display); font-style: italic; font-size: 17px; color: var(--zara-ink); }
+.pusula-level-tab.on .pusula-level-name { color: var(--zara-bg); }
+.pusula-level-week { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-level-tab.on .pusula-level-week { color: rgba(245,241,234,0.55); }
+.pusula-book-legend { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 4px 12px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); border-bottom: 1px solid var(--zara-line); margin-bottom: 8px; }
+.pusula-book-legend-stats { display: none; }
+.pusula-topics { display: flex; flex-direction: column; gap: 8px; }
+.pusula-topic { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-white); transition: border-color 200ms; }
+.pusula-topic:hover { border-color: var(--zara-line-strong); }
+.pusula-topic-id { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pusula-topic-cat { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-gold-deep); }
+.pusula-topic-title { font-family: var(--ff-sans); font-size: 13.5px; color: var(--zara-ink); }
+.pusula-topic-no { color: var(--zara-ink-40); font-family: var(--ff-mono); font-size: 11px; }
+.pusula-statustoggle { display: inline-flex; gap: 8px; flex-shrink: 0; }
+.pusula-status-dot { width: 30px; height: 30px; border-radius: 50%; border: 1px dashed var(--dot); background: transparent; color: var(--dot); display: grid; place-items: center; cursor: pointer; opacity: 0.4; transition: all 220ms var(--ease-atelier); }
+.pusula-status-dot:hover { opacity: 0.75; }
+.pusula-status-dot.on { opacity: 1; border-style: solid; transform: scale(1.06); }
+.pusula-status-dot.on.fill { background: var(--dot); color: var(--zara-bg); }
+.pusula-book-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
+.pusula-book-count { font-family: var(--ff-sans); font-size: 12.5px; font-style: italic; color: var(--zara-ink-50); }
+.pusula-apply .pusula-spin, .pusula-apply svg { vertical-align: middle; }
+.pusula-apply { display: inline-flex; align-items: center; gap: 8px; }
+
+/* sözlük */
+.pusula-glossary-search { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--zara-line-strong); padding-bottom: 14px; margin-bottom: 24px; color: var(--zara-ink-40); }
+.pusula-glossary-search input { flex: 1; border: none; background: transparent; outline: none; font-family: var(--ff-display); font-style: italic; font-size: 22px; color: var(--zara-ink); }
+.pusula-glossary-search input::placeholder { color: var(--zara-ink-30); }
+.pusula-glossary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.pusula-glossary-card { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 18px; }
+.pusula-glossary-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.pusula-glossary-head h3 { margin: 0; font-family: var(--ff-display); font-size: 22px; font-weight: 500; }
+.pusula-glossary-type { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); background: var(--zara-bg-alt); padding: 3px 7px; border-radius: 3px; }
+.pusula-glossary-card p { margin: 0; font-family: var(--ff-sans); font-size: 12.5px; line-height: 1.6; color: var(--zara-ink-50); }
+.pusula-glossary-empty { grid-column: 1 / -1; padding: 40px; text-align: center; font-family: var(--ff-display); font-style: italic; color: var(--zara-ink-40); }
+
+/* ── ÖĞRENEN HAFIZA ────────────────────────────────────── */
+.pusula-mem-people { margin-bottom: 22px; }
+.pusula-mem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+.pusula-mem-left { display: flex; flex-direction: column; gap: 16px; }
+.pusula-mem-trend { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); }
+.pusula-mem-trend-dots { display: flex; align-items: flex-end; gap: 4px; flex: 1; height: 28px; }
+.pusula-mem-trend-dot { width: 8px; border-radius: 2px; background: var(--zara-gold); display: block; }
+.pusula-mem-trend-word { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-50); white-space: nowrap; }
+.pusula-mem-trend-word em { color: var(--zara-gold-deep); }
+.pusula-mem-timeline { display: flex; flex-direction: column; gap: 8px; }
+.pusula-mem-item { text-align: left; cursor: pointer; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 13px 15px; transition: border-color 200ms, background 200ms; }
+.pusula-mem-item:hover { border-color: var(--zara-line-strong); }
+.pusula-mem-item.on { border-color: var(--zara-ink); background: var(--zara-bg-warm); }
+.pusula-mem-item-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.pusula-mem-date { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.1em; color: var(--zara-ink-50); }
+.pusula-mem-kind { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-gold-deep); }
+.pusula-mem-topic { font-family: var(--ff-display); font-size: 16px; margin-bottom: 4px; }
+.pusula-mem-snippet { font-family: var(--ff-sans); font-size: 12px; line-height: 1.5; color: var(--zara-ink-50); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* kağıt-form */
+.pusula-mem-right { position: sticky; top: 100px; }
+.pusula-paper { position: relative; overflow: hidden; background: #FBF8F1; border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); padding: 30px 32px; box-shadow: var(--panel-shadow-soft); }
+.pusula-paper-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--zara-ink); padding-bottom: 16px; margin-bottom: 22px; }
+.pusula-paper-eb { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-40); margin-bottom: 6px; }
+.pusula-paper-head h3 { margin: 0; font-family: var(--ff-display); font-size: 24px; font-weight: 500; line-height: 1.1; }
+.pusula-paper-date { font-family: var(--ff-mono); font-size: 11px; color: var(--zara-ink-2); white-space: nowrap; }
+.pusula-paper-row { margin-bottom: 18px; }
+.pusula-paper-key { display: block; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); margin-bottom: 4px; }
+.pusula-paper-val { font-family: var(--ff-display); font-size: 18px; border-bottom: 1px solid var(--zara-line); display: inline-block; padding-bottom: 2px; }
+.pusula-paper-note { font-family: var(--ff-display); font-size: 16px; line-height: 1.7; font-style: italic; color: var(--zara-ink); margin-bottom: 28px; }
+.pusula-paper-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-top: 16px; border-top: 1px solid var(--zara-line); }
+.pusula-paper-author { font-family: var(--ff-display); font-size: 16px; }
+.pusula-paper-sign { font-family: "Bodoni Moda", "Playfair Display", serif; font-style: italic; font-size: 24px; color: var(--zara-ink-40); }
+.pusula-paper-mark { position: absolute; right: -10px; bottom: -16px; font-family: var(--ff-display); font-size: 96px; letter-spacing: 0.1em; color: rgba(26,22,20,0.04); pointer-events: none; transform: rotate(-8deg); }
+.pusula-paper-empty { min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; border: 1px dashed var(--zara-line-strong); border-radius: var(--panel-radius); color: var(--zara-ink-30); text-align: center; }
+.pusula-paper-empty p { font-family: var(--ff-display); font-style: italic; color: var(--zara-ink-40); max-width: 240px; }
+
+/* koçluk anı */
+.pusula-coach { margin-top: 28px; border: 1px solid var(--zara-gold-soft); border-radius: var(--panel-radius); background: var(--zara-gold-tint); padding: 20px 22px; }
+.pusula-coach-row { display: flex; gap: 12px; margin-top: 12px; align-items: stretch; }
+.pusula-coach-input { flex: 1; resize: none; border: 1px solid var(--zara-line-strong); border-radius: 6px; background: var(--zara-bg-white); padding: 12px 14px; font-family: var(--ff-sans); font-size: 13px; color: var(--zara-ink); outline: none; }
+.pusula-coach-input:focus { border-color: var(--zara-gold); }
+.pusula-coach-btn { flex-shrink: 0; align-self: flex-start; border: 1px solid var(--zara-ink); background: var(--zara-ink); color: var(--zara-bg); cursor: pointer; padding: 11px 16px; border-radius: 6px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 7px; transition: opacity 200ms; }
+.pusula-coach-btn:disabled { opacity: 0.4; cursor: default; }
+.pusula-coach-confirm { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--zara-gold-soft); }
+.pusula-coach-confirm p { margin: 0 0 12px; font-family: var(--ff-display); font-size: 16px; color: var(--zara-ink); }
+.pusula-coach-confirm em { color: var(--zara-gold-deep); }
+.pusula-coach-actions { display: flex; gap: 10px; }
+.pusula-coach-yes, .pusula-coach-no { border: 1px solid var(--zara-line-strong); background: var(--zara-bg-white); cursor: pointer; padding: 9px 16px; border-radius: 5px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); display: inline-flex; align-items: center; gap: 7px; transition: all 200ms; }
+.pusula-coach-yes:hover { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
+.pusula-coach-no:hover { border-color: var(--zara-ink); }
+.pusula-coach-done { font-family: var(--ff-sans); font-size: 13px; font-style: italic; color: var(--zara-sage-ink); display: flex; align-items: center; gap: 8px; }
+
+/* ── USTA YOLU ─────────────────────────────────────────── */
+.pusula-usta-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pusula-usta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 22px; }
+.pusula-match { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+.pusula-match-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.pusula-match-shift { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); display: inline-flex; align-items: center; gap: 5px; }
+.pusula-match-focus { font-family: var(--ff-display); font-size: 18px; margin-top: 5px; }
+.pusula-match-ai { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-gold-deep); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.pusula-match-pair { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-warm); }
+.pusula-match-who { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.pusula-match-who.right { text-align: right; }
+.pusula-match-who span { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-match-who strong { font-family: var(--ff-sans); font-size: 14px; font-weight: 600; color: var(--zara-ink); }
+.pusula-match-arrow { color: var(--zara-ink-30); flex-shrink: 0; }
+.pusula-match-reason { display: flex; gap: 10px; padding: 12px 14px; background: var(--zara-bg-alt); border-radius: var(--panel-radius); }
+.pusula-match-reason svg { flex-shrink: 0; margin-top: 2px; color: var(--zara-ink-40); }
+.pusula-match-reason p { margin: 0; font-family: var(--ff-sans); font-size: 12.5px; font-style: italic; line-height: 1.55; color: var(--zara-ink-2); }
+.pusula-match-actions { display: flex; gap: 10px; }
+.pusula-match-yes, .pusula-match-edit { flex: 1; border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 9px; border-radius: 5px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); transition: all 200ms; }
+.pusula-match-yes:hover, .pusula-match-edit:hover { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
+.pusula-usta-learn { display: flex; gap: 14px; padding: 18px 20px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-warm); margin-bottom: 8px; }
+.pusula-usta-learn svg { flex-shrink: 0; color: var(--zara-ink-40); margin-top: 2px; }
+.pusula-usta-learn strong { font-family: var(--ff-display); font-size: 16px; display: block; margin-bottom: 5px; }
+.pusula-usta-learn p { margin: 0; font-family: var(--ff-sans); font-size: 12.5px; line-height: 1.6; color: var(--zara-ink-50); }
+.pusula-usta-learn em { font-style: italic; color: var(--zara-gold-deep); }
+
+/* ── Yerleştirme: kademeli öneri (onayla/reddet) ───────── */
+.pusula-recs-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pusula-recs-count { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); }
+.pusula-rec.on { border-color: var(--zara-gold-soft); background: var(--zara-gold-tint); }
+.pusula-rec-act { align-self: flex-start; margin-top: 4px; border: 1px solid var(--zara-line-strong); background: var(--zara-bg-white); cursor: pointer; padding: 6px 12px; border-radius: 5px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); display: inline-flex; align-items: center; gap: 6px; transition: all 200ms var(--ease-atelier); }
+.pusula-rec-act:hover { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
+.pusula-rec-act.on { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
+
+/* ── Hourly sparkline (#4) ─────────────────────────────── */
+.pusula-spark { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 16px 18px; }
+.pusula-spark-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.pusula-spark-legend { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-ink-40); display: inline-flex; align-items: center; gap: 5px; }
+.pusula-spark-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
+.pusula-spark-legend i.t { background: var(--zara-line-strong); }
+.pusula-spark-legend i.c { background: var(--zara-gold); border-radius: 50%; }
+.pusula-spark-svg { display: block; }
+.pusula-spark-x { font-family: var(--ff-mono); font-size: 7px; fill: var(--zara-ink-40); }
+.pusula-spark-foot { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-50); margin-top: 8px; }
+
+/* ── ASA → KPI köprüsü (Profil, #4) ────────────────────── */
+.pusula-asakpi { display: flex; flex-direction: column; gap: 9px; }
+.pusula-asakpi-row { display: grid; grid-template-columns: auto 14px 1fr; align-items: baseline; gap: 8px; }
+.pusula-asakpi-asa { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink); font-weight: 500; }
+.pusula-asakpi-arrow { font-family: var(--ff-mono); color: var(--zara-gold-deep); }
+.pusula-asakpi-kpi { font-family: var(--ff-sans); font-size: 11.5px; line-height: 1.45; color: var(--zara-ink-50); font-style: italic; }

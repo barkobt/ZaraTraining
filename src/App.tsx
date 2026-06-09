@@ -6,6 +6,7 @@ import AdminPage from './pages/AdminPage'
 import ShowPage from './pages/ShowPage'
 import ShiftOrganizer from './pages/ShiftOrganizer'
 import Brain from './pages/brain/Brain'
+import Pusula from './pages/pusula/Pusula'
 import FittingRoom from './pages/FittingRoom'
 import BuenasDiasToday from './pages/buenas-dias/Today'
 import BuenasDiasSetup from './pages/buenas-dias/Setup'
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/show" element={<ShowPage />} />
         <Route path="/shift-organizer" element={<ShiftOrganizer />} />
         <Route path="/brain" element={<Brain />} />
+        <Route path="/pusula" element={<Pusula />} />
         <Route
           path="/buenas-dias"
           element={
