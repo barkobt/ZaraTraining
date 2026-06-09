@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { FileText, Sparkles, Check, RotateCcw } from "lucide-react";
 import { Eyebrow, Headline } from "../../brain/primitives";
 import { employees } from "../data";
-import { notesFor } from "../data-hafiza";
+import { NOTED_IDS, notesFor } from "../data-hafiza";
 import type { ArchiveNote } from "../types-gelisim";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
@@ -21,7 +21,7 @@ const TONE_LEVEL: Record<ArchiveNote["tone"], number> = { developing: 1, steady:
  * Pusula yöntemi çıkarır → koç onaylar (extract-then-confirm). Sentiment % YOK.
  */
 export function OgrenenHafiza() {
-  const [empId, setEmpId] = useState(employees[3]?.id ?? employees[0].id);
+  const [empId, setEmpId] = useState(NOTED_IDS[0] ?? employees[0].id);
   const emp = employees.find((e) => e.id === empId) ?? employees[0];
   const notes = notesFor(empId);
   const [selected, setSelected] = useState<ArchiveNote | null>(notes[0] ?? null);

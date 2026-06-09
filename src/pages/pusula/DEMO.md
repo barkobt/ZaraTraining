@@ -1,52 +1,54 @@
 # Pusula — demo senaryosu
 
-> İnsan ana sahne; operasyonel verim onun **sonucu** (geçiş değil, **genişleme** —
-> "aynı uzman, genişleyen bakış"). Pusula tek motor: Tanı → Geliştir → Yerleştir.
-> Hiçbir yerde sert skor/sıralama yok; her şey nitel + insan onaylı. Demo MOCK.
+> İnsan ana sahne; operasyonel verim onun **sonucu** (geçiş değil **genişleme** —
+> "aynı uzman, genişleyen bakış"). Tek motor: Tanı → Geliştir → Yerleştir.
+> Roster + yetkinlikler GERÇEK (ShiftOrganizer seed'i, 30 kişi). Sert skor/sıralama YOK.
 
-Rota: **`/pusula`** (üst soldaki ok ile `/brain`'e döner). Üst nav gruplu:
-**İNSAN · GELİŞİM · SONUÇ**.
+Rota: **`/pusula`**. Üst nav **hover-click dropdown**: İNSAN · GELİŞİM · SONUÇ.
 
-## Modüller (neye tıklanır)
+## İNSAN
+1. **Ekip** — 30 gerçek personel (Ada·Baran[koç]·Begüm·Fatma[Kabin ★★★★]·Şeyma…).
+   Her kart: ustalık çipi, güçlü/gelişen yan, soluk güven (●●●○). Profili yetkinlik
+   + tenure'dan NİTEL türetilir. Karta tıkla → drawer.
+2. **Profil** — derin okuma: ASA(+kanıt) · gelişim eğrisi · ASA→KPI köprüsü · beceri
+   matrisi (gerçek rol yetkinliklerinden) · (usta ise) Usta Aktarımı.
 
-### İNSAN
-1. **Ekip** — 6 kişi (Selin·Ayşe·Mert·Ece·Kerem·Deniz): ustalık çipi, güçlü/gelişen yan,
-   soluk güven (●●●○, rakam yok). Karta tıkla → sağ **drawer** (ASA + kanıt).
-2. **Profil** — derin okuma: ASA(+kanıt) · gelişim eğrisi · **ASA→KPI köprüsü** ·
-   kanıtlanan güç (KPI) · beceri matrisi · (usta ise) **Usta Aktarımı**.
+## GELİŞİM (kişilerin eğitimi · öğrenen hafıza · eğitimcinin eğitimi)
+3. **Gelişim Defteri** — gerçek 3 kitapçıktan, **5 sekme**:
+   - **Takip**: rol (Satış/Kasa/Operasyon) + seviye (Başlangıç/Orta/İleri) + 4-durum
+     işaretleme (Teorik/Yapabiliyor/Geliştirilmeli/Öğretebilir). Gerçek topic'ler.
+   - **Yetkinlik**: 5 davranışsal yetkinlik × 4 dönem (Hafta 2/4/6/8) — 0–5 ölçeği
+     ETİKETLE (Gözlemlenmedi→Çok Güçlü), sayı basılmaz. Eğitim önceliği işaretli.
+   - **Dönem Aksiyonu**: Hafta 2/4/6/8 öncelik → hedef → aksiyon (profilden türetilir).
+   - **Dönem Raporu**: Güçlü Yönler / Gelişim Alanları / Sonuç.
+   - **Sözlük**: aranabilir terim sözlüğü.
+4. **Öğrenen Hafıza** — koçluk gözlem arşivi (haftalık notlar burada birikir): zaman
+   çizelgesi + editöryal kağıt-form + nitel gidişat. **Koçluk anı**: gözlem yaz →
+   Pusula yöntemi çıkarır → koç onaylar (extract-then-confirm). Bilgi kaybolmaz.
+5. **Usta Yolu** — mentor↔mentee: yetkinlik boşluğu + vardiya çakışması → gerekçeli
+   eşleşme + onayla/düzenle + "Yeniden optimize" (model öğrenir). Koç da mentee olur
+   (eğitimcinin eğitimi). Güven SOFT, yüzde yok.
 
-### GELİŞİM (asıl amaç — kişilerin eğitimi, öğrenen hafıza, eğitimcinin eğitimi)
-3. **Defter** — dijital **Gelişim Takip Kitapçığı** (gerçek 3 kitapçıktan zeminlendi):
-   rol (Satış/Kasa/Operasyon) + seviye sekmeleri (Başlangıç/Orta/İleri) + her konuda
-   **4-durum işaretleme** (Teorik/Yapabiliyor/Geliştirilmeli/Öğretebilir) + Sözlük.
-   İşaretleme, "neyi ne zaman işaretledim" öğrenme pattern'inin sinyalidir.
-4. **Hafıza** — **Öğrenen Hafıza**: koçluk gözlem zaman çizelgesi + editöryal kağıt-form
-   (filigran/imza) + nitel gidişat. Altta **koçluk anı**: yeni gözlem yaz → Pusula
-   yöntemi çıkarır → *"Yöntemini şöyle anladım — doğru mu?"* koç onaylar
-   (**extract-then-confirm**). Aktarılan bilgi kaybolmaz.
-5. **Usta Yolu** — mentor↔mentee eşleştirme: yetkinlik boşluğu + vardiya çakışması →
-   gerekçeli eşleşme + onayla/düzenle + **"Yeniden optimize"** (model öğrenir). Koç da
-   mentee olabilir (**eğitimcinin eğitimi**). Güven SOFT, match-score yüzdesi yok.
-
-### SONUÇ
-6. **Yerleştirme (kalp)** — Pusula önerir, koç **tek tek uygular** (kademeli, human-in-loop).
-   Her "Uygula" kişiyi chart'ta yerine **akıtır** (layoutId morph) ve **akşam cebini**
-   (kilitli 17:00–19:00) biraz daha rahatlatır (soluk amber→sage, sert kırmızı→yeşil yok).
-   "Geri al" ile tersine. **Hepsini uygula / Sıfırla**. Altta **gerçek saatlik eğri**
-   (Export.xlsx 2025: tepe trafik · dip conversion). Kanıt öneride, kişide değil.
+## SONUÇ
+6. **Yerleştirme (kalp)** — GERÇEK akşam chart'ı (15–20, gerçek 8 kişilik ekip, roller
+   operasyonel sırada). **ÖNCE**: ustalar (Fatma·Şeyma ★★★★) arka zone/Sprinter'da boşa,
+   tepe kabin yeni ellerde (Asya·Gamze) → cep gergin. **Uygula** (tek tek, kademeli):
+   Pusula yetkinliğe göre ustaları **tepe kabine akıtır** (layoutId morph), yeniler sakin
+   zone'a; akşam cebi (kilitli 17–19) yumuşakça rahatlar. Gerçek saatlik eğri (Export.xlsx
+   2025: tepe trafik · dip conversion). Kanıt öneride. "Hepsini uygula / Sıfırla".
 
 ## His & sınır
-Sakin/editöryel/sıcak (Bodoni serif · porselen kâğıt · pirinç). Görünür güvenceler:
-"Karar sizde — öneri, dayatma değil" · "Sert kısıtlar korundu: mola·kapasite·yetkinlik" ·
-"Bu profili çalışan da görür" · "Herkes gelişir — koç da dahil". **Skor-tablosu değil.**
+Sakin/editöryel/sıcak (Bodoni serif · porselen · pirinç). Güvenceler görünür: "Karar
+sizde", "Sert kısıtlar korundu", "Bu profili/raporu çalışan da görür", "Değerlendirme =
+gelişim için". Skor-tablosu değil.
 
-## Mimari & sınır
-- **Kaynak veri:** `data.ts` (6 kişi, chart/öneri/cep — kullanıcı authored) + additive
-  `data-gelisim.ts` / `data-hafiza.ts` / `data-mentor.ts` (gerçek kitapçık + koçluk + mentor).
-- **Köprü:** `placement.ts` — kademeli morph motoru + **tRPC seam** (gerçekte
-  `chart.generate` → `SolveResponse.chart`; UI değişmez).
-- **Mock.** `main`, Python solver, `brain/` dokunulmadı (yalnız `brain/primitives` atom'ları
-  yeniden kullanıldı). Skor/sıralama/sert rakam yok.
+## Mimari
+- `data-staff.ts`: 30 gerçek personel (seed) + yetkinlikten türetilen profiller + `STAFF_COMP`.
+- `placement.ts`: gerçek-his chart motoru (disjoint swap'lar, kademeli) + tRPC seam
+  (gerçekte `chart.generate` → `SolveResponse.chart`; UI değişmez).
+- `data-gelisim.ts` / `data-program.ts`: gerçek kitapçık topic'leri + dönem/yetkinlik/rapor türetimi.
+- `data-hafiza.ts` / `data-mentor.ts`: gerçek roster id'leri.
+- **Mock.** `main`, Python solver, `brain/` dokunulmadı. Skor/sıralama/sert rakam yok.
 
 ## Çalıştırma
 ```

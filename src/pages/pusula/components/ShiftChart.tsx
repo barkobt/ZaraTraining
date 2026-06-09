@@ -67,7 +67,7 @@ function RoleRow({ role, chart }: { role: string; chart: ChartState }) {
                   transition={{ duration: 0.5, ease: EASE, delay: i * 0.06 }}
                 >
                   <span className="pusula-chip-dot" />
-                  {p?.name ?? id}
+                  {p?.name.split(" ")[0] ?? id}
                 </motion.div>
               );
             })}

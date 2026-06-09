@@ -1074,21 +1074,38 @@
 .pusula-brand-name em { font-style: italic; font-weight: 400; }
 .pusula-brand-sub { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--zara-gold-deep); margin-top: 4px; }
 
-.pusula-nav { display: flex; gap: 18px; margin: 0 auto; align-items: stretch; flex-wrap: wrap; }
-.pusula-navgroup { display: flex; flex-direction: column; gap: 5px; position: relative; padding-left: 18px; }
-.pusula-navgroup + .pusula-navgroup::before {
-  content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 1px; background: var(--zara-line-strong);
+/* hover-click dropdown nav: İnsan · Gelişim · Sonuç */
+.pusula-nav { display: flex; gap: 6px; margin: 0 auto; align-items: stretch; }
+.pusula-navdrop { position: relative; }
+.pusula-navtrigger {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  border: 1px solid transparent; background: transparent; cursor: pointer;
+  padding: 7px 30px 7px 14px; border-radius: 6px; position: relative;
+  transition: background 200ms var(--ease-atelier), border-color 200ms;
 }
-.pusula-navgroup-label { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--zara-gold-deep); padding-left: 4px; }
-.pusula-navgroup-items { display: flex; gap: 3px; }
-.pusula-navitem {
+.pusula-navtrigger:hover, .pusula-navtrigger.open { background: var(--zara-bg-alt); }
+.pusula-navtrigger.active { border-color: var(--zara-line-strong); }
+.pusula-navtrigger-g { font-family: var(--ff-display); font-size: 16px; line-height: 1; color: var(--zara-ink); }
+.pusula-navtrigger.active .pusula-navtrigger-g { font-style: italic; }
+.pusula-navtrigger-h { font-family: var(--ff-mono); font-size: 7px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-gold-deep); }
+.pusula-navchev { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); color: var(--zara-ink-40); transition: transform 200ms var(--ease-atelier); }
+.pusula-navtrigger.open .pusula-navchev { transform: translateY(-50%) rotate(180deg); }
+.pusula-navmenu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 40; min-width: 210px;
+  background: var(--zara-bg-white); border: 1px solid var(--zara-line-strong); border-radius: 8px;
+  box-shadow: var(--panel-shadow-soft); padding: 6px; display: flex; flex-direction: column; gap: 2px;
+}
+.pusula-navmenu-item {
   border: none; background: transparent; cursor: pointer; text-align: left;
-  padding: 6px 13px; border-radius: 5px; color: var(--zara-ink-2);
-  font-family: var(--ff-sans); font-size: 13px; font-weight: 500;
-  transition: background 220ms var(--ease-atelier), color 220ms;
+  display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border-radius: 5px;
+  transition: background 180ms var(--ease-atelier);
 }
-.pusula-navitem:hover { background: var(--zara-bg-alt); }
-.pusula-navitem.on { background: var(--zara-ink); color: var(--zara-bg); }
+.pusula-navmenu-item:hover { background: var(--zara-bg-alt); }
+.pusula-navmenu-item.on { background: var(--zara-ink); }
+.pusula-navmenu-label { font-family: var(--ff-sans); font-size: 13.5px; font-weight: 500; color: var(--zara-ink); }
+.pusula-navmenu-item.on .pusula-navmenu-label { color: var(--zara-bg); }
+.pusula-navmenu-sub { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-navmenu-item.on .pusula-navmenu-sub { color: rgba(245,241,234,0.5); }
 
 .pusula-main { flex: 1; min-width: 0; padding: 34px 40px 80px; max-width: 1180px; width: 100%; margin: 0 auto; }
 
@@ -1452,3 +1469,45 @@
 .pusula-asakpi-asa { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink); font-weight: 500; }
 .pusula-asakpi-arrow { font-family: var(--ff-mono); color: var(--zara-gold-deep); }
 .pusula-asakpi-kpi { font-family: var(--ff-sans); font-size: 11.5px; line-height: 1.45; color: var(--zara-ink-50); font-style: italic; }
+
+/* ── Defter: 5-sekme bar ───────────────────────────────── */
+.pusula-book-tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--zara-line-strong); padding-bottom: 12px; margin-bottom: 22px; }
+.pusula-book-tab { border: 1px solid transparent; background: transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 6px; font-family: var(--ff-sans); font-size: 12.5px; font-weight: 500; color: var(--zara-ink-2); transition: all 200ms var(--ease-atelier); }
+.pusula-book-tab:hover { background: var(--zara-bg-alt); }
+.pusula-book-tab.on { background: var(--zara-ink); color: var(--zara-bg); }
+
+/* ── Yetkinlik tablosu (5 davranışsal × 4 dönem) ───────── */
+.pusula-comp { display: flex; flex-direction: column; gap: 6px; }
+.pusula-comp-head { display: grid; grid-template-columns: minmax(180px, 1.4fr) repeat(4, 1fr); gap: 8px; padding: 0 4px 8px; }
+.pusula-comp-period { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); text-align: center; }
+.pusula-comp-row { display: grid; grid-template-columns: minmax(180px, 1.4fr) repeat(4, 1fr); gap: 8px; align-items: center; padding: 8px 4px; border-bottom: 1px solid var(--zara-line); }
+.pusula-comp-name { font-family: var(--ff-sans); font-size: 13px; color: var(--zara-ink); display: flex; flex-direction: column; gap: 4px; }
+.pusula-comp-prio { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); align-self: flex-start; }
+.pusula-comp-cell { text-align: center; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 6px; border-radius: 4px; transition: background 400ms var(--ease-atelier); }
+
+/* ── Dönem aksiyonu (Hafta 2/4/6/8) ────────────────────── */
+.pusula-period-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.pusula-period { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.pusula-period-week { font-family: var(--ff-display); font-style: italic; font-size: 20px; color: var(--zara-gold-deep); padding-bottom: 8px; border-bottom: 1px solid var(--zara-line); }
+.pusula-period-block { display: flex; flex-direction: column; gap: 6px; }
+.pusula-period-key { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-period-block ul { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 3px; }
+.pusula-period-block li { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-2); }
+.pusula-period-block p { margin: 0; font-family: var(--ff-sans); font-size: 12.5px; line-height: 1.5; color: var(--zara-ink-2); }
+
+/* ── Dönem raporu ──────────────────────────────────────── */
+.pusula-report { display: flex; flex-direction: column; gap: 22px; }
+.pusula-report-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.pusula-report-list { margin: 8px 0 0; padding-left: 16px; display: flex; flex-direction: column; gap: 6px; }
+.pusula-report-list li { font-family: var(--ff-sans); font-size: 13.5px; color: var(--zara-ink); }
+.pusula-report-list.strong li::marker { color: var(--zara-gold); }
+.pusula-report-list.growth li::marker { color: var(--zara-sage-ink); }
+.pusula-report-result { border-top: 1px solid var(--zara-line-strong); padding-top: 18px; }
+.pusula-report-result p { margin: 8px 0 0; font-family: var(--ff-display); font-size: 18px; font-style: italic; line-height: 1.5; color: var(--zara-ink); max-width: 640px; }
+
+@media (max-width: 900px) {
+  .pusula-report-cols { grid-template-columns: 1fr; gap: 18px; }
+  .pusula-comp-head, .pusula-comp-row { grid-template-columns: 1fr; }
+  .pusula-comp-head { display: none; }
+  .pusula-comp-cell::before { content: attr(data-p) " "; }
+}

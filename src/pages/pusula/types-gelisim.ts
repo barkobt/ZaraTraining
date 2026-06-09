@@ -33,6 +33,38 @@ export interface GlossaryTerm {
   definition: string;
 }
 
+// ── Yetkinlik değerlendirmesi (5 davranışsal · 0–5 · 4 dönem) ──
+// 0–5'in kendi NİTEL etiketleri var; ekranda sayı değil etiket gösterilir.
+export const COMPETENCY_SCALE = [
+  "Gözlemlenmedi",
+  "Çok Gelişmeli",
+  "Gelişmeli",
+  "Yapabilir",
+  "Güçlü",
+  "Çok Güçlü",
+] as const;
+
+export interface CompetencyRow {
+  name: string;
+  priority: boolean; // "Eğitim Önceliği"
+  periods: number[]; // 4 dönem (Hafta 2/4/6/8), her biri 0–5
+}
+
+// ── Dönem aksiyon planı (Hafta 2/4/6/8) ──
+export interface PeriodAction {
+  week: string;
+  priorities: string[];
+  goal: string;
+  action: string;
+}
+
+// ── Dönem / final raporu ──
+export interface FinalReport {
+  strengths: string[];
+  growth: string[];
+  result: string;
+}
+
 // ── Öğrenen Hafıza (koçluk gözlem arşivi) ──────────────────
 export type NoteKind = "Gözlem" | "Koçluk" | "Değerlendirme";
 
