@@ -1,4 +1,5 @@
 import { MasteryLevel, type Employee } from "../types";
+import { jobTypeOf } from "../data";
 import { PersonAvatar } from "./PersonAvatar";
 import { MasteryChip } from "./MasteryChip";
 import { ConfidenceDots } from "./ConfidenceDots";
@@ -15,7 +16,7 @@ export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () =>
         <PersonAvatar name={person.name} dark={dark} size={38} />
         <div className="pusula-card-id">
           <div className="pusula-card-name">{person.name}</div>
-          <span className="pusula-card-tenure">{person.tenure}</span>
+          <span className="pusula-card-tenure">{jobTypeOf(person.id)} · {person.tenure}</span>
         </div>
         <span style={{ marginLeft: "auto" }}>
           <MasteryChip level={person.level} />

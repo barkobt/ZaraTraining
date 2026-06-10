@@ -191,6 +191,17 @@ function buildEmployee(row: Row): Employee {
 export const employees: Employee[] = ROWS.map(buildEmployee);
 export const byId = (id: string): Employee | undefined => employees.find((e) => e.id === id);
 
+// ── İş tipi (Müdür / Commercial / Satış Danışmanı) ─────────
+// ShiftOrganizer Rapor'undaki görev dağılımına sadık: Müdür 1, Commercial (COM) birkaç,
+// gerisi Satış Danışmanı. Herkesin gelişim planı buna + yaşam evresine göre değişir.
+export type JobType = "Müdür" | "Commercial" | "Satış Danışmanı";
+const COMMERCIAL = new Set(["Şeyma", "Begüm", "Ecem", "Sevim"]);
+export function jobTypeOf(id: string): JobType {
+  if (id === "Baran") return "Müdür";
+  if (COMMERCIAL.has(id)) return "Commercial";
+  return "Satış Danışmanı";
+}
+
 /** Bir role en yetkin kişiler (chart yerleşimi + öneri için). */
 export function rankForRole(role: ZoneRole, excludeIds: string[] = []): string[] {
   return ROWS.map((r) => r.id)

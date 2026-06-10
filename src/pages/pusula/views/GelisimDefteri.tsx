@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, Sparkles } from "lucide-react";
 import { Headline } from "../../brain/primitives";
@@ -11,7 +11,13 @@ import {
   sectionFor,
 } from "../data-gelisim";
 import { competencyEval, finalReport, periodActions } from "../data-program";
+import { MasteryLevel } from "../types";
 import { COMPETENCY_SCALE, type GuidebookLevel, type GuidebookRole, type GuidebookSection, type TopicStatus } from "../types-gelisim";
+
+/** Yaşam evresi → önerilen plan seviyesi (herkesin eğitim planı farklı). */
+function planLevelFor(level: MasteryLevel): GuidebookLevel {
+  return level === MasteryLevel.New ? "Başlangıç" : level === MasteryLevel.Competent ? "Orta" : "İleri";
+}
 import { StatusToggle } from "../components/StatusToggle";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
@@ -94,6 +100,13 @@ export function GelisimDefteri() {
   const marked = section ? section.topics.filter((t) => curStatus(t.id, t.status) !== "Boş").length : 0;
   const teachable = section ? section.topics.filter((t) => curStatus(t.id, t.status) === "Öğretebilir").length : 0;
   const groups = groupByCat(section?.topics ?? []);
+  const recLevel = planLevelFor(emp.level);
+
+  // aday değişince planı yaşam evresine göre uyarla (herkesin planı farklı)
+  useEffect(() => {
+    setLevel(planLevelFor(emp.level));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [empId]);
 
   const comp = useMemo(() => competencyEval(emp), [emp]);
   const actions = useMemo(() => periodActions(emp), [emp]);
@@ -160,8 +173,11 @@ export function GelisimDefteri() {
               </div>
               <div className="pusula-level-tabs">
                 {GUIDEBOOK_LEVELS.map((lv) => (
-                  <button key={lv} className={`pusula-level-tab ${level === lv ? "on" : ""}`} onClick={() => setLevel(lv)}>
-                    <span className="pusula-level-name">{lv}</span>
+                  <button key={lv} className={`pusula-level-tab ${level === lv ? "on" : ""} ${lv === recLevel ? "rec" : ""}`} onClick={() => setLevel(lv)}>
+                    <span className="pusula-level-name">
+                      {lv}
+                      {lv === recLevel && <span className="pusula-level-rec">{emp.level} için</span>}
+                    </span>
                     <span className="pusula-level-week">
                       {lv === "Başlangıç" ? "1–4 Hafta" : lv === "Orta" ? "5–6 Hafta" : "7–8 Hafta"}
                     </span>

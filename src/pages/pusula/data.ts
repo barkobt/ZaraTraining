@@ -7,7 +7,8 @@ import { SWAPS } from "./placement";
 import type { HourPoint, PocketState, Recommendation, TeachingCard } from "./types";
 
 // ── Gerçek roster (30 kişi + türetilen nitel profiller) ────
-export { employees, byId } from "./data-staff";
+export { employees, byId, jobTypeOf } from "./data-staff";
+export type { JobType } from "./data-staff";
 
 // ── Chart köprüsü (placement) ──────────────────────────────
 export { CHART_HOURS as chartHours, CHART_ROLES as chartRoles } from "./placement";
