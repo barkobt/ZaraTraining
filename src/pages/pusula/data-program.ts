@@ -133,36 +133,34 @@ export interface Persona {
 export function sellingPersona(emp: Employee): Persona {
   const c = (STAFF_COMP[emp.id] ?? {}) as Record<string, number>;
   const zoneAvg = Math.round(((c["Zone 2"] ?? 0) + (c["Zone 3"] ?? 0) + (c["Zone 4"] ?? 0) + (c["Zone 5"] ?? 0)) / 4);
-  let label: string;
-  let cx: string;
-  let action: string;
-  let live: string;
-  if ((c["Welcome"] ?? 0) >= 3) {
-    label = "Yaklaşan · Approacher";
-    cx = "İlk teması güçlü — 'karşılama → ilgilenme' dönüşümü yüksek; müşteriyi açar.";
-    action = "Welcome/Giriş'te konumlandır; conversion'ın başını o tutar.";
-    live = "Welcome'da ilgilenme→satış dönüşümü (CX) ile güncellenir.";
-  } else if ((c["Kabin"] ?? 0) >= 3) {
-    label = "Kapatan · Closer";
-    cx = "Kabinde alternatif beden/ürün önerisiyle kararsızı satışa çevirir.";
-    action = "Tepe-saat kabinine; FR→satış dönüşümünü yükseltir.";
-    live = "FR'de denenip kasada satın alınan oranı ile güncellenir.";
-  } else if (zoneAvg >= 3) {
-    label = "Stilist · Mix&Match";
-    cx = "Kombin önerisiyle UPT/ATV'yi (çapraz/üst satış) büyütür.";
-    action = "Reyon + kombin köşesinde; sepet derinliğini artırır.";
-    live = "Sepet UPT/ATV ve zone sell-through ile güncellenir.";
-  } else if ((c["Kabin Welcomer"] ?? 0) >= 3) {
-    label = "Karşılayan · Welcomer";
-    cx = "Sıcak karşılama; bekleme stresini düşürür, düşen ürünü akışa geri kazandırır.";
-    action = "Kabin Welcomer / kayıp önleme hattında değerli.";
-    live = "Karşılama→ilgilenme + düşen ürün geri kazanımı ile güncellenir.";
-  } else {
-    label = "Gelişen · temel akış";
-    cx = "Persona henüz netleşiyor — farklı alanlarda keşifle ortaya çıkacak.";
-    action = "Rotasyonla persona keşfi; nerede parladığını ölç.";
-    live = "Rotasyon sinyalleri biriktikçe netleşir (henüz az veri).";
-  }
+  // Herkesin enerjisi 3'ten biri: Approacher / Welcomer / Mix&Match (argmax).
+  const scores: Record<"approacher" | "welcomer" | "mixmatch", number> = {
+    approacher: c["Welcome"] ?? 0,
+    welcomer: c["Kabin Welcomer"] ?? 0,
+    mixmatch: Math.max(zoneAvg, c["Kabin"] ?? 0),
+  };
+  const winner = (Object.keys(scores) as Array<keyof typeof scores>).sort((a, b) => scores[b] - scores[a])[0];
+  const MAP: Record<keyof typeof scores, { label: string; cx: string; action: string; live: string }> = {
+    approacher: {
+      label: "Approacher · Yaklaşan",
+      cx: "İlk teması güçlü — proaktif yaklaşır, 'karşılama → ilgilenme' dönüşümünü açar.",
+      action: "Welcome/Giriş'te konumlandır; conversion'ın başını o tutar.",
+      live: "Welcome'da ilgilenme→satış dönüşümü (CX) ile güncellenir.",
+    },
+    welcomer: {
+      label: "Welcomer · Karşılayan",
+      cx: "Sıcak, sakin karşılama; bekleme stresini düşürür, düşen ürünü akışa geri kazandırır.",
+      action: "Kabin Welcomer / kayıp önleme hattında en değerli.",
+      live: "Karşılama→ilgilenme + düşen ürün geri kazanımı ile güncellenir.",
+    },
+    mixmatch: {
+      label: "Mix&Match · Stilist",
+      cx: "Kombin ve alternatif önerisiyle UPT/ATV'yi büyütür; kararsızı kabinde kapatır.",
+      action: "Reyon + kombin köşesi ve tepe-saat kabininde; sepeti derinleştirir.",
+      live: "Sepet UPT/ATV + FR→satış dönüşümü ile güncellenir.",
+    },
+  };
+  const { label, cx, action, live } = MAP[winner];
   const energy =
     emp.level === MasteryLevel.Coach
       ? "ekip enerjisini dengeleyen · yön veren"

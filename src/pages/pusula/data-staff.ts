@@ -40,7 +40,7 @@ type Row = {
 // Kaynak: db/seed.ts STAFF (2026-05-18 yetkinlik tablosu).
 const ROWS: Row[] = [
   { id: "Ada", name: "Ada Özaşçı", tenure: "NEW_3_6", mgr: false, note: "", c: [2, 2, 3, 1, 2, 2, 2, 2] },
-  { id: "Baran", name: "Baran Bozkurt", tenure: "EXPERT", mgr: true, note: "Saha yöneticisi", c: [1, 1, 2, 2, 1, 3, 3, 2] },
+  { id: "Baran", name: "Baran Bozkurt", tenure: "EXPERT", mgr: false, note: "", c: [1, 1, 2, 2, 1, 3, 3, 2] },
   { id: "Asya", name: "Asya Güner", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 2, 2, 1, 0, 0, 0, 0] },
   { id: "Aysu", name: "Aysu Öztürk", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 2, 2, 1, 3, 3, 3, 1] },
   { id: "Begüm", name: "Begüm Akar", tenure: "EXPERT", mgr: false, note: "", c: [3, 3, 2, 1, 3, 3, 3, 2] },
@@ -66,7 +66,7 @@ const ROWS: Row[] = [
   { id: "Saliha", name: "Saliha Kılıç", tenure: "NEW_1_3", mgr: false, note: "", c: [1, 1, 1, 1, 1, 2, 2, 3] },
   { id: "Selin", name: "Selin Varlıoğlu", tenure: "NEW_3_6", mgr: false, note: "Güvenli yeni", c: [2, 2, 4, 1, 2, 2, 2, 1] },
   { id: "Sevilay", name: "Sevilay Çelik", tenure: "NEW_3_6", mgr: false, note: "", c: [1, 2, 4, 1, 1, 2, 2, 1] },
-  { id: "Sevim", name: "Sevim Yalçın", tenure: "EXPERT", mgr: false, note: "", c: [2, 4, 3, 1, 2, 2, 2, 3] },
+  { id: "Sevim", name: "Sevim Yalçın", tenure: "EXPERT", mgr: true, note: "Saha yöneticisi", c: [2, 4, 3, 1, 2, 2, 2, 3] },
   { id: "Şeyma", name: "Şeyma Şemşit", tenure: "EXPERT", mgr: false, note: "", c: [3, 4, 4, 1, 3, 2, 2, 2] },
   { id: "Sude", name: "Sude Yeni", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 4, 2, 1, 3, 2, 2, 1] },
 ];
@@ -132,14 +132,17 @@ function skillsOf(c: Record<ZoneRole, number>): Skill[] {
 }
 
 function kpisOf(c: Record<ZoneRole, number>): KPI[] {
+  const zoneAvg = Math.round((c["Zone 2"] + c["Zone 3"] + c["Zone 4"] + c["Zone 5"]) / 4);
   const out: KPI[] = [];
-  if (c["Kabin"] >= 3) out.push({ label: "Yoğunlukta kapatma", value: "güçlü", trend: "up", evidence: "tepe-saat gözlemlerinden" });
-  if (c["Welcome"] >= 3) out.push({ label: "Sıcak karşılama", value: "güçlü", trend: "up" });
-  if (out.length === 0) {
-    const best = [...STAFF_ROLES].sort((a, b) => c[b] - c[a])[0];
-    out.push({ label: `${best} akışı`, value: c[best] >= 2 ? "gelişiyor" : "yeni", trend: "up" });
-  }
-  return out.slice(0, 2);
+  if (c["Kabin"] >= 3)
+    out.push({ label: "Yoğunlukta kapatma (FR→satış)", value: c["Kabin"] >= 4 ? "güçlü" : "iyi", trend: "up", evidence: "tepe-saat gözlemlerinden" });
+  if (c["Welcome"] >= 3) out.push({ label: "Karşılama → ilgilenme", value: "güçlü", trend: "up" });
+  if (c["Kabin Welcomer"] >= 3)
+    out.push({ label: "Kabin karşılama & kayıp önleme", value: c["Kabin Welcomer"] >= 4 ? "güçlü" : "iyi", trend: "up" });
+  if (zoneAvg >= 3) out.push({ label: "Reyon sell-through", value: "iyi", trend: "neutral" });
+  if (out.length < 2)
+    out.push({ label: "Saha uyumu & tempo", value: c["Kabin"] >= 2 || c["Welcome"] >= 2 ? "gelişiyor" : "yeni", trend: "up", evidence: "ilk haftalardan" });
+  return out.slice(0, 3);
 }
 
 function tendencyOf(level: MasteryLevel): number[] {
@@ -195,9 +198,9 @@ export const byId = (id: string): Employee | undefined => employees.find((e) => 
 // ShiftOrganizer Rapor'undaki görev dağılımına sadık: Müdür 1, Commercial (COM) birkaç,
 // gerisi Satış Danışmanı. Herkesin gelişim planı buna + yaşam evresine göre değişir.
 export type JobType = "Müdür" | "Commercial" | "Satış Danışmanı";
-const COMMERCIAL = new Set(["Şeyma", "Begüm", "Ecem", "Sevim"]);
+const COMMERCIAL = new Set(["Şeyma", "Begüm", "Ecem", "Eylül"]);
 export function jobTypeOf(id: string): JobType {
-  if (id === "Baran") return "Müdür";
+  if (id === "Sevim") return "Müdür";
   if (COMMERCIAL.has(id)) return "Commercial";
   return "Satış Danışmanı";
 }

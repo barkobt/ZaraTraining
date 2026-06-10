@@ -147,7 +147,7 @@ export function GelisimDefteri() {
         <div>
           <Headline ital="Gelişim" roman="Defteri" size={32} />
           <div className="pusula-sub">
-            8 haftalık saha programı · {emp.name} · Koç: Baran B.
+            8 haftalık saha programı · {emp.name} · Koç: Sevim Y.
           </div>
         </div>
         <label className="pusula-book-emp">

@@ -47,10 +47,10 @@ export const MENTOR_MATCHES_OPTIMIZED: MentorMatch[] = [
   },
   {
     id: "mm4",
-    mentorId: "Baran",
+    mentorId: "Sevim",
     menteeId: "Fatma",
     focus: "Usta aktarımı metodolojisi",
-    reason: "Fatma usta aktarımına hazır; Baran koçluk yöntemini sadeleştirerek aktarıyor. Eğitimcinin de eğitimi — koç gelişir.",
+    reason: "Fatma usta aktarımına hazır; Sevim (saha yöneticisi) koçluk yöntemini sadeleştirerek aktarıyor. Eğitimcinin de eğitimi — koç gelişir.",
     shift: "Sabah · 09–18",
   slot: "Yarın 12:30–13:00 · öğle düşüşü",
     confidence: "medium",

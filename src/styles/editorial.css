@@ -1121,13 +1121,14 @@
 
 /* ── EKİP: roster kartları ─────────────────────────────── */
 .pusula-team-head { margin-bottom: 18px; }
-.pusula-team-filters { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--zara-line); }
-.pusula-filterrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.pusula-filter-k { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-40); width: 78px; }
-.pusula-chipf { border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 5px 12px; border-radius: 999px; font-family: var(--ff-sans); font-size: 12px; color: var(--zara-ink-2); transition: all 200ms var(--ease-atelier); }
-.pusula-chipf:hover { border-color: var(--zara-ink); }
-.pusula-chipf.on { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
-.pusula-team-count { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); margin-top: 16px; }
+.pusula-team-filters { display: flex; flex-direction: column; gap: 4px; margin-bottom: 26px; padding: 16px 2px 16px; border-top: 1px solid var(--zara-line); border-bottom: 1px solid var(--zara-line); }
+.pusula-filterrow { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+.pusula-filter-k { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--zara-gold-deep); width: 96px; flex-shrink: 0; }
+.pusula-chipf { border: none; background: transparent; cursor: pointer; padding: 7px 14px; border-radius: 999px; font-family: var(--ff-sans); font-size: 13px; color: var(--zara-ink-40); position: relative; transition: color 220ms var(--ease-atelier), background 220ms; }
+.pusula-chipf:hover { color: var(--zara-ink); background: var(--zara-bg-alt); }
+.pusula-chipf.on { background: var(--zara-ink); color: var(--zara-bg); }
+.pusula-chipf.on:hover { color: var(--zara-bg); background: var(--zara-ink-soft); }
+.pusula-team-count { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); margin-top: 18px; }
 .pusula-team-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 14px;
 }

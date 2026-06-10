@@ -64,7 +64,7 @@ export const ARCHIVE_NOTES: ArchiveNote[] = [
   },
   {
     id: "n6",
-    employeeId: "Baran",
+    employeeId: "Sevim",
     date: "2026-06-08",
     kind: "Koçluk",
     topic: "Koçun koçluğu — geri bildirim döngüsü",
