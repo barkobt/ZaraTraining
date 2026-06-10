@@ -1397,6 +1397,38 @@
 .pusula-mark-note { flex: 1; border: none; border-bottom: 1px dashed var(--zara-line-strong); background: transparent; padding: 3px 2px; font-family: var(--ff-sans); font-size: 12px; font-style: italic; color: var(--zara-ink-2); outline: none; }
 .pusula-mark-note:focus { border-bottom-color: var(--zara-gold); }
 .pusula-mark-note::placeholder { color: var(--zara-ink-30); font-style: italic; }
+
+/* müfredat sinyali (koç notlarından plan revizyonu) */
+.pusula-curr { margin-top: 26px; border: 1px solid var(--zara-gold-soft); border-radius: var(--panel-radius); background: var(--zara-gold-tint); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.pusula-curr-head { display: flex; align-items: center; gap: 8px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-gold-deep); }
+.pusula-curr-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: var(--zara-bg-white); border: 1px solid var(--zara-line); border-radius: 8px; }
+.pusula-curr-kind { flex-shrink: 0; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; }
+.pusula-curr-kind.ekle { background: rgba(122,148,110,0.16); color: var(--zara-sage-ink); }
+.pusula-curr-kind.taşı { background: var(--zara-gold-tint); color: var(--zara-gold-deep); border: 1px solid var(--zara-gold-soft); }
+.pusula-curr-kind.pekiştir { background: var(--zara-ink); color: var(--zara-bg); }
+.pusula-curr-body { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pusula-curr-topic { font-family: var(--ff-display); font-size: 16px; color: var(--zara-ink); }
+.pusula-curr-topic em { font-family: var(--ff-mono); font-style: normal; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-gold-deep); }
+.pusula-curr-signal { font-family: var(--ff-sans); font-size: 12px; color: var(--zara-ink-50); font-style: italic; }
+.pusula-curr-sugg { display: flex; align-items: center; gap: 6px; font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink); margin-top: 2px; }
+.pusula-curr-sugg svg { color: var(--zara-gold-deep); }
+.pusula-curr-act { flex-shrink: 0; align-self: center; border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 7px 13px; border-radius: 5px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); transition: all 200ms; }
+.pusula-curr-act:hover { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
+.pusula-curr-note { font-family: var(--ff-sans); font-size: 12px; font-style: italic; color: var(--zara-ink-50); }
+
+/* günün koçluk aksiyonları kuyruğu */
+.pusula-dayq { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 16px 18px; margin-bottom: 22px; }
+.pusula-dayq-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.pusula-dayq-head > span:first-child { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-dayq-prog { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); }
+.pusula-dayq-list { display: flex; flex-direction: column; gap: 4px; }
+.pusula-dayq-item { display: flex; align-items: center; gap: 10px; border: none; background: transparent; cursor: pointer; text-align: left; padding: 8px 6px; border-radius: 6px; transition: background 180ms; }
+.pusula-dayq-item:hover { background: var(--zara-bg-alt); }
+.pusula-dayq-item svg { flex-shrink: 0; color: var(--zara-ink-40); }
+.pusula-dayq-item.done svg { color: var(--zara-sage-ink); }
+.pusula-dayq-who { font-family: var(--ff-sans); font-size: 13px; font-weight: 600; color: var(--zara-ink); flex-shrink: 0; min-width: 56px; }
+.pusula-dayq-what { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-2); }
+.pusula-dayq-item.done .pusula-dayq-who, .pusula-dayq-item.done .pusula-dayq-what { color: var(--zara-ink-40); text-decoration: line-through; }
 .pusula-book-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
 .pusula-book-count { font-family: var(--ff-sans); font-size: 12.5px; font-style: italic; color: var(--zara-ink-50); }
 .pusula-apply .pusula-spin, .pusula-apply svg { vertical-align: middle; }
@@ -1665,6 +1697,9 @@
 .pusula-persona-block { display: flex; flex-direction: column; gap: 5px; border-left: 1px solid var(--zara-line); padding-left: 22px; }
 .pusula-persona-k { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-persona-block p { margin: 0; font-family: var(--ff-sans); font-size: 12.5px; line-height: 1.55; color: var(--zara-ink-2); }
+.pusula-persona { margin-bottom: 10px; }
+.pusula-persona-live { display: flex; align-items: baseline; gap: 10px; margin-bottom: 26px; padding: 0 4px; font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-50); }
+.pusula-persona-livek { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); font-style: normal; white-space: nowrap; }
 @media (max-width: 900px) {
   .pusula-persona { grid-template-columns: 1fr; gap: 14px; }
   .pusula-persona-block { border-left: none; padding-left: 0; border-top: 1px solid var(--zara-line); padding-top: 12px; }

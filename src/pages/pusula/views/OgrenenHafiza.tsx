@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileText, Sparkles, Check, RotateCcw } from "lucide-react";
+import { FileText, Sparkles, Check, RotateCcw, CheckCircle2, Circle } from "lucide-react";
 import { Eyebrow, Headline } from "../../brain/primitives";
 import { employees } from "../data";
 import { NOTED_IDS, notesFor } from "../data-hafiza";
@@ -14,6 +14,15 @@ const TONE_WORD: Record<ArchiveNote["tone"], string> = {
   strong: "güçlü",
 };
 const TONE_LEVEL: Record<ArchiveNote["tone"], number> = { developing: 1, steady: 2, strong: 3 };
+
+/** Günün koçluk aksiyonları — "sıradaki öğretilecekler" kuyruğu (tiklenir, ilerler). */
+const DAY_ACTIONS: Array<{ who: string; what: string }> = [
+  { who: "Asya", what: "Kabin temelleri → 2. gölge seansı (Fatma ile)" },
+  { who: "Asya", what: "Müşteri yaklaşımı → ilk temas pratiği" },
+  { who: "Kaan", what: "Tepe-saat dayanıklılığı → 16:00 kontrollü maruziyet" },
+  { who: "Gamze", what: "Sprinter akışı → mola ve araç düzeni" },
+  { who: "Fatma", what: "Usta aktarımı → Asya'ya kabin sıra-yönetimi" },
+];
 
 /**
  * Öğrenen Hafıza — koçluk gözlem arşivi (bilgi kaybolmasın). Zaman çizelgesi +
@@ -30,6 +39,11 @@ export function OgrenenHafiza() {
   const [draft, setDraft] = useState("");
   const [extracted, setExtracted] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+
+  // günün aksiyonları kuyruğu
+  const [doneActions, setDoneActions] = useState<number[]>([]);
+  const toggleAction = (i: number) =>
+    setDoneActions((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
 
   const onSelectEmp = (id: string) => {
     setEmpId(id);
@@ -56,6 +70,26 @@ export function OgrenenHafiza() {
           <div className="pusula-sub">
             Her gözlem tarihiyle, koçuyla birikir — aktarılan bilgi kaybolmaz.
           </div>
+        </div>
+      </div>
+
+      {/* günün koçluk aksiyonları — sıradaki öğretilecekler kuyruğu */}
+      <div className="pusula-dayq">
+        <div className="pusula-dayq-head">
+          <span>Bugünün koçluk aksiyonları · sıradaki öğretilecekler</span>
+          <span className="pusula-dayq-prog">{doneActions.length}/{DAY_ACTIONS.length} tamam</span>
+        </div>
+        <div className="pusula-dayq-list">
+          {DAY_ACTIONS.map((a, i) => {
+            const done = doneActions.includes(i);
+            return (
+              <button key={i} className={`pusula-dayq-item ${done ? "done" : ""}`} onClick={() => toggleAction(i)}>
+                {done ? <CheckCircle2 size={15} strokeWidth={1.7} /> : <Circle size={15} strokeWidth={1.5} />}
+                <span className="pusula-dayq-who">{a.who}</span>
+                <span className="pusula-dayq-what">{a.what}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

@@ -74,6 +74,10 @@ export function Profil({
             <p>{pa.action}</p>
           </div>
         </div>
+        <div className="pusula-persona-live">
+          <span className="pusula-persona-livek">Canlı güncelleme</span>
+          {pa.live}
+        </div>
 
         <div className="pusula-profile-cols">
           {/* Sol kolon: ASA (+ kanıt) ve gelişim eğrisi */}

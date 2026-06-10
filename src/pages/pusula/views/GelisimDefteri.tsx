@@ -19,6 +19,7 @@ function planLevelFor(level: MasteryLevel): GuidebookLevel {
   return level === MasteryLevel.New ? "Başlangıç" : level === MasteryLevel.Competent ? "Orta" : "İleri";
 }
 import { StatusToggle } from "../components/StatusToggle";
+import { CurriculumSignal } from "../components/CurriculumSignal";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
@@ -254,6 +255,8 @@ export function GelisimDefteri() {
                 </span>
                 <button className="pusula-apply"><Target size={15} /> Durumu Kaydet</button>
               </div>
+
+              <CurriculumSignal />
             </>
           )}
 

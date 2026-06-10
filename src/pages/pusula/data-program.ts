@@ -122,6 +122,7 @@ export interface Persona {
   energy: string; // "sakin & yön veren"
   cx: string; // CX davranışı bağlantısı
   action: string; // bu personadan çıkan aksiyon
+  live: string; // hangi CANLI sinyalden güncellenir (statik değil)
 }
 
 /**
@@ -135,26 +136,32 @@ export function sellingPersona(emp: Employee): Persona {
   let label: string;
   let cx: string;
   let action: string;
+  let live: string;
   if ((c["Welcome"] ?? 0) >= 3) {
     label = "Yaklaşan · Approacher";
     cx = "İlk teması güçlü — 'karşılama → ilgilenme' dönüşümü yüksek; müşteriyi açar.";
     action = "Welcome/Giriş'te konumlandır; conversion'ın başını o tutar.";
+    live = "Welcome'da ilgilenme→satış dönüşümü (CX) ile güncellenir.";
   } else if ((c["Kabin"] ?? 0) >= 3) {
     label = "Kapatan · Closer";
     cx = "Kabinde alternatif beden/ürün önerisiyle kararsızı satışa çevirir.";
     action = "Tepe-saat kabinine; FR→satış dönüşümünü yükseltir.";
+    live = "FR'de denenip kasada satın alınan oranı ile güncellenir.";
   } else if (zoneAvg >= 3) {
     label = "Stilist · Mix&Match";
     cx = "Kombin önerisiyle UPT/ATV'yi (çapraz/üst satış) büyütür.";
     action = "Reyon + kombin köşesinde; sepet derinliğini artırır.";
+    live = "Sepet UPT/ATV ve zone sell-through ile güncellenir.";
   } else if ((c["Kabin Welcomer"] ?? 0) >= 3) {
     label = "Karşılayan · Welcomer";
     cx = "Sıcak karşılama; bekleme stresini düşürür, düşen ürünü akışa geri kazandırır.";
     action = "Kabin Welcomer / kayıp önleme hattında değerli.";
+    live = "Karşılama→ilgilenme + düşen ürün geri kazanımı ile güncellenir.";
   } else {
     label = "Gelişen · temel akış";
     cx = "Persona henüz netleşiyor — farklı alanlarda keşifle ortaya çıkacak.";
     action = "Rotasyonla persona keşfi; nerede parladığını ölç.";
+    live = "Rotasyon sinyalleri biriktikçe netleşir (henüz az veri).";
   }
   const energy =
     emp.level === MasteryLevel.Coach
@@ -164,7 +171,7 @@ export function sellingPersona(emp: Employee): Persona {
         : emp.level === MasteryLevel.Competent
           ? "istikrarlı · özgüveni artan"
           : "öğrenmeye aç · hareketli";
-  return { label, energy, cx, action };
+  return { label, energy, cx, action, live };
 }
 
 /** Final/dönem raporu — güçlü yönler · gelişim alanları · sonuç. */
