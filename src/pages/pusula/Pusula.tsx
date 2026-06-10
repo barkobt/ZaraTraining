@@ -11,6 +11,7 @@ import { GelisimDefteri } from "./views/GelisimDefteri";
 import { OgrenenHafiza } from "./views/OgrenenHafiza";
 import { UstaYolu } from "./views/UstaYolu";
 import { ProfileDrawer } from "./components/ProfileDrawer";
+import { useAuthGate } from "../shift-organizer/auth-gate";
 
 type ViewId = "ekip" | "profil" | "defter" | "hafiza" | "usta" | "yerlestirme";
 
@@ -50,7 +51,16 @@ const VIEW_GROUP: Record<ViewId, string> = {
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
+/** Pusula — ShiftOrganizer ile AYNI şifre (useAuthGate · shiftOrganizerPassword env). */
 export default function Pusula() {
+  const gate = useAuthGate("Pusula");
+  if (gate.required && !gate.authed) {
+    return <gate.LoginScreen />;
+  }
+  return <PusulaInner />;
+}
+
+function PusulaInner() {
   const [view, setView] = useState<ViewId>("ekip");
   const [open, setOpen] = useState<string | null>(null);
   const [selected, setSelected] = useState<Employee | null>(null);

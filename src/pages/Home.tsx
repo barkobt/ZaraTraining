@@ -63,6 +63,20 @@ const TOOLS: Project[] = [
     status: "YENİ",
     index: 2,
   },
+  {
+    id: "pusula",
+    title: "Pusula",
+    subtitle: "İnsan · 04",
+    description:
+      "Yaşayan uzman — kişinin gerçek yetkinlik ve sonucundan profil çıkarır; gelişim planı ve vardiya yerleşimine çevirir. Akşam cebini rahatlatan, insan-onaylı motor.",
+    href: "/pusula",
+    accent: "#B8935A",
+    image:
+      "https://images.unsplash.com/photo-1521334884684-d80222895322?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+    available: true,
+    status: "YENİ",
+    index: 3,
+  },
 ];
 
 const EDUCATION: Project[] = [

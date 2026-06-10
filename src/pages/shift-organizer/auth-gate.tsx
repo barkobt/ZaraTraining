@@ -4,7 +4,7 @@ import { trpc } from "@/providers/trpc";
 
 const STORAGE_KEY = "shift_organizer_auth_v1";
 
-export function useAuthGate() {
+export function useAuthGate(title = "Shift Organizer") {
   const requiredQuery = trpc.auth.required.useQuery(undefined, {
     staleTime: 5 * 60_000,
   });
@@ -49,7 +49,7 @@ export function useAuthGate() {
         <div className="border border-stone-300 p-10 w-full max-w-sm">
           <div className="flex items-center gap-2 mb-6">
             <Lock size={16} strokeWidth={1.5} />
-            <h1 className="font-serif text-xl">Shift Organizer</h1>
+            <h1 className="font-serif text-xl">{title}</h1>
           </div>
           <p className="text-xs text-stone-500 mb-4">
             Bu alan kısıtlı. Erişim şifresini gir.
