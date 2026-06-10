@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, Sparkles } from "lucide-react";
+import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, Sparkles, Layers } from "lucide-react";
 import { Headline } from "../../brain/primitives";
 import { employees } from "../data";
 import {
@@ -23,14 +23,36 @@ import { CurriculumSignal } from "../components/CurriculumSignal";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
-type Mode = "takip" | "yetkinlik" | "donem" | "rapor" | "sozluk";
+type Mode = "takip" | "yetkinlik" | "donem" | "rapor" | "evre" | "sozluk";
 const TABS: Array<{ id: Mode; label: string; Icon: typeof BookOpen }> = [
   { id: "takip", label: "Takip", Icon: BookOpen },
   { id: "yetkinlik", label: "Yetkinlik", Icon: Gauge },
   { id: "donem", label: "Dönem Aksiyonu", Icon: ClipboardList },
   { id: "rapor", label: "Dönem Raporu", Icon: FileText },
+  { id: "evre", label: "Evre Planları", Icon: Layers },
   { id: "sozluk", label: "Sözlük", Icon: BookText },
 ];
+
+/** Yaşam evresi planları — her evrenin eğitim planı farklıdır (üstüne gelince açılır). */
+const STAGES: Array<{ id: string; level: GuidebookLevel | null; focus: string }> = [
+  { id: "Yeni", level: "Başlangıç", focus: "Temel akışlar · bol gölge · oryantasyon" },
+  { id: "Yetkin", level: "Orta", focus: "Genişlik · çok-alanlılık · tepe-saat dayanıklılığı" },
+  { id: "Usta", level: "İleri", focus: "Bağımsızlık · Öğretebilir konsolidasyonu · aktarıma hazırlık" },
+  { id: "Koç", level: null, focus: "Mentee lifti · yöntem yakalama · eğitimcinin eğitimi" },
+];
+const KOC_PLAN = [
+  "Mentee lifti takibi — yetiştirdiği kişide gelişim",
+  "Yöntem yakalama: işe yarayan koçluk adımını çıkar → onayla",
+  "Geri bildirim döngüsü: açık uçlu soru + aktif dinleme",
+  "Buz kırıcı ve vardiya başı toplantı yönetimi",
+  "Eğitimcinin eğitimi: kendi gelişim kenarı (ileri One Store anlatımı)",
+];
+const STAGE_OF: Record<MasteryLevel, string> = {
+  [MasteryLevel.New]: "Yeni",
+  [MasteryLevel.Competent]: "Yetkin",
+  [MasteryLevel.Master]: "Usta",
+  [MasteryLevel.Coach]: "Koç",
+};
 
 /** 0–5 yetkinlik → renk tonu (sayı değil etiket). */
 function scaleTone(level: number): string {
@@ -73,6 +95,7 @@ export function GelisimDefteri() {
   const [history, setHistory] = useState<Record<string, Mark[]>>({});
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
+  const [hoverStage, setHoverStage] = useState<string | null>(null);
 
   const eVal = (key: string, fallback: string) => edits[key] ?? fallback;
   const setE = (key: string, v: string) => setEdits((p) => ({ ...p, [key]: v }));
@@ -102,6 +125,7 @@ export function GelisimDefteri() {
   const teachable = section ? section.topics.filter((t) => curStatus(t.id, t.status) === "Öğretebilir").length : 0;
   const groups = groupByCat(section?.topics ?? []);
   const recLevel = planLevelFor(emp.level);
+  const adayStage = STAGE_OF[emp.level];
 
   // aday değişince planı yaşam evresine göre uyarla (herkesin planı farklı)
   useEffect(() => {
@@ -378,6 +402,60 @@ export function GelisimDefteri() {
                 <span>Değerlendirme = gelişim için, ceza için değil</span>
                 <span>Bu raporu çalışan da görür</span>
               </div>
+            </div>
+          )}
+
+          {/* ── EVRE PLANLARI (her evre için ayrı, hover ile açılan tablo) ── */}
+          {mode === "evre" && (
+            <div className="pusula-stages">
+              <div className="pusula-edit-hint">
+                <span className="pusula-ai-badge">Yaşam evresi</span>
+                Her evrenin eğitim planı farklıdır — üstüne gelince tablosu açılır.{" "}
+                <em>{emp.name.split(" ")[0]}</em> şu an <strong>{adayStage}</strong> evresinde.
+              </div>
+              {STAGES.map((s) => {
+                const open = hoverStage === s.id || (hoverStage === null && adayStage === s.id);
+                const topics = s.level ? (sectionFor(role, s.level)?.topics ?? []) : null;
+                return (
+                  <div
+                    key={s.id}
+                    className={`pusula-stage ${open ? "open" : ""} ${adayStage === s.id ? "active" : ""}`}
+                    onMouseEnter={() => setHoverStage(s.id)}
+                    onMouseLeave={() => setHoverStage(null)}
+                  >
+                    <div className="pusula-stage-bar">
+                      <span className="pusula-stage-name">{s.id}</span>
+                      <span className="pusula-stage-focus">{s.focus}</span>
+                      {adayStage === s.id && (
+                        <span className="pusula-stage-here">{emp.name.split(" ")[0]} burada</span>
+                      )}
+                      <span className="pusula-stage-meta">{s.level ? `${s.level} · plan` : "koçluk planı"}</span>
+                    </div>
+                    <div className="pusula-stage-table">
+                      <div className="pusula-stage-inner">
+                        {topics
+                          ? topics.slice(0, 8).map((t) => (
+                              <div key={t.id} className="pusula-stage-row">
+                                <span className="pusula-stage-cat">{t.category}</span>
+                                <span className="pusula-stage-topic">
+                                  <span className="pusula-topic-no">{t.no}.</span> {t.title}
+                                </span>
+                              </div>
+                            ))
+                          : KOC_PLAN.map((k, i) => (
+                              <div key={i} className="pusula-stage-row">
+                                <span className="pusula-stage-cat">Koçluk</span>
+                                <span className="pusula-stage-topic">{k}</span>
+                              </div>
+                            ))}
+                        {topics && topics.length > 8 && (
+                          <div className="pusula-stage-more">+{topics.length - 8} konu daha — Takip'te</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 

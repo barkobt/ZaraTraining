@@ -1700,6 +1700,25 @@
 .pusula-persona { margin-bottom: 10px; }
 .pusula-persona-live { display: flex; align-items: baseline; gap: 10px; margin-bottom: 26px; padding: 0 4px; font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-50); }
 .pusula-persona-livek { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); font-style: normal; white-space: nowrap; }
+
+/* ── Evre Planları — her evre için ayrı, hover ile açılan tablo ── */
+.pusula-stages { display: flex; flex-direction: column; gap: 10px; }
+.pusula-stage { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); overflow: hidden; transition: border-color 220ms var(--ease-atelier); }
+.pusula-stage:hover { border-color: var(--zara-ink); }
+.pusula-stage.active { border-color: var(--zara-gold-soft); }
+.pusula-stage-bar { display: flex; align-items: center; gap: 16px; padding: 14px 18px; cursor: pointer; }
+.pusula-stage-name { font-family: var(--ff-display); font-style: italic; font-size: 22px; color: var(--zara-ink); min-width: 90px; }
+.pusula-stage.active .pusula-stage-name { color: var(--zara-gold-deep); }
+.pusula-stage-focus { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-50); flex: 1; }
+.pusula-stage-here { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); background: var(--zara-gold-tint); border: 1px solid var(--zara-gold-soft); padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+.pusula-stage-meta { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); white-space: nowrap; }
+.pusula-stage-table { max-height: 0; overflow: hidden; transition: max-height 400ms var(--ease-atelier); }
+.pusula-stage.open .pusula-stage-table { max-height: 620px; }
+.pusula-stage-inner { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--zara-line); padding-top: 12px; }
+.pusula-stage-row { display: flex; align-items: baseline; gap: 12px; }
+.pusula-stage-cat { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-gold-deep); min-width: 72px; }
+.pusula-stage-topic { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-2); }
+.pusula-stage-more { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-40); margin-top: 4px; }
 @media (max-width: 900px) {
   .pusula-persona { grid-template-columns: 1fr; gap: 14px; }
   .pusula-persona-block { border-left: none; padding-left: 0; border-top: 1px solid var(--zara-line); padding-top: 12px; }
