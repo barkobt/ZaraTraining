@@ -20,6 +20,7 @@ function planLevelFor(level: MasteryLevel): GuidebookLevel {
 }
 import { StatusToggle } from "../components/StatusToggle";
 import { CurriculumSignal } from "../components/CurriculumSignal";
+import { useT } from "../i18n";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
@@ -96,6 +97,7 @@ export function GelisimDefteri() {
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [hoverStage, setHoverStage] = useState<string | null>(null);
+  const t = useT();
 
   const eVal = (key: string, fallback: string) => edits[key] ?? fallback;
   const setE = (key: string, v: string) => setEdits((p) => ({ ...p, [key]: v }));
@@ -145,7 +147,7 @@ export function GelisimDefteri() {
     <div className="pusula-book">
       <div className="pusula-place-head">
         <div>
-          <Headline ital="Gelişim" roman="Defteri" size={32} />
+          <Headline ital={t("t.defter.i")} roman={t("t.defter.r")} size={32} />
           <div className="pusula-sub">
             8 haftalık saha programı · {emp.name} · Koç: Sevim Y.
           </div>
@@ -277,7 +279,7 @@ export function GelisimDefteri() {
                 <span className="pusula-book-count">
                   {marked} / {section?.topics.length} işaretli · {teachable} öğretebilir · tik notları Pusula'ya sinyal
                 </span>
-                <button className="pusula-apply"><Target size={15} /> Durumu Kaydet</button>
+                <button className="pusula-apply"><Target size={15} /> {t("b.save")}</button>
               </div>
 
               <CurriculumSignal />

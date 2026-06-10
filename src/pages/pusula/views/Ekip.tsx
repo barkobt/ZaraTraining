@@ -3,6 +3,7 @@ import { Headline } from "../../brain/primitives";
 import { employees, jobTypeOf, type JobType } from "../data";
 import { MasteryLevel, type Employee } from "../types";
 import { PersonCard } from "../components/PersonCard";
+import { useT } from "../i18n";
 
 const JOBS: Array<JobType | "Tümü"> = ["Tümü", "Satış Danışmanı", "Commercial", "Müdür"];
 const LIFES: Array<{ id: MasteryLevel | "Tümü"; label: string }> = [
@@ -19,6 +20,7 @@ const LIFES: Array<{ id: MasteryLevel | "Tümü"; label: string }> = [
  * birbirinden farklı takip edilir.
  */
 export function Ekip({ onPeek }: { onPeek: (p: Employee) => void }) {
+  const t = useT();
   const [job, setJob] = useState<JobType | "Tümü">("Tümü");
   const [life, setLife] = useState<MasteryLevel | "Tümü">("Tümü");
 
@@ -29,24 +31,24 @@ export function Ekip({ onPeek }: { onPeek: (p: Employee) => void }) {
   return (
     <div className="pusula-team">
       <div className="pusula-team-head">
-        <Headline ital="Yaşayan" roman="Ekip" size={32} />
-        <div className="pusula-sub">İnsan birincil — rol-tipi ve yaşam evresine göre ayrı izlenir.</div>
+        <Headline ital={t("t.ekip.i")} roman={t("t.ekip.r")} size={32} />
+        <div className="pusula-sub">{t("t.ekipSub")}</div>
       </div>
 
       <div className="pusula-team-filters">
         <div className="pusula-filterrow">
-          <span className="pusula-filter-k">İş tipi</span>
+          <span className="pusula-filter-k">{t("f.jobtype")}</span>
           {JOBS.map((j) => (
             <button key={j} className={`pusula-chipf ${job === j ? "on" : ""}`} onClick={() => setJob(j)}>
-              {j}
+              {j === "Tümü" ? t("f.all") : j}
             </button>
           ))}
         </div>
         <div className="pusula-filterrow">
-          <span className="pusula-filter-k">Yaşam evresi</span>
+          <span className="pusula-filter-k">{t("f.lifecycle")}</span>
           {LIFES.map((l) => (
             <button key={l.label} className={`pusula-chipf ${life === l.id ? "on" : ""}`} onClick={() => setLife(l.id)}>
-              {l.label}
+              {l.id === "Tümü" ? t("f.all") : l.label}
             </button>
           ))}
         </div>
@@ -59,13 +61,13 @@ export function Ekip({ onPeek }: { onPeek: (p: Employee) => void }) {
       </div>
 
       <div className="pusula-team-count">
-        {list.length} kişi · {job === "Tümü" ? "tüm roller" : job} ·{" "}
-        {life === "Tümü" ? "tüm evreler" : LIFES.find((l) => l.id === life)?.label}
+        {list.length} · {job === "Tümü" ? t("f.all") : job} ·{" "}
+        {life === "Tümü" ? t("f.all") : LIFES.find((l) => l.id === life)?.label}
       </div>
 
       <div className="pusula-assure pusula-assure-row">
-        <span>Bu profili çalışan da görür</span>
-        <span>Skor yok, sıralama yok — yalnız nitel okuma</span>
+        <span>{t("a.worker")}</span>
+        <span>{t("a.noscore")}</span>
       </div>
     </div>
   );

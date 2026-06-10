@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, BrainCircuit, Clock, RefreshCw, Sparkles } from "lucide-react";
 import { Headline } from "../../brain/primitives";
+import { useT } from "../i18n";
 import { byId } from "../data";
 import { MENTOR_MATCHES, MENTOR_MATCHES_OPTIMIZED } from "../data-mentor";
 import { MasteryLevel } from "../types";
@@ -22,6 +23,7 @@ const SLACK_WINDOWS = ["15:00–16:00 · sakin açılış", "12:30–13:30 · ö
  * Match-score yüzdesi YOK — güven SOFT.
  */
 export function UstaYolu() {
+  const t = useT();
   const [day, setDay] = useState("Yarın");
   const [matches, setMatches] = useState<MentorMatch[]>(MENTOR_MATCHES);
   const [optimizing, setOptimizing] = useState(false);
@@ -38,7 +40,7 @@ export function UstaYolu() {
     <div className="pusula-usta">
       <div className="pusula-place-head">
         <div>
-          <Headline ital="Usta" roman="Yolu" size={32} />
+          <Headline ital={t("t.usta.i")} roman={t("t.usta.r")} size={32} />
           <div className="pusula-sub">
             Müsait saatler eğitim fırsatıdır — önceki günden bilinir, koç↔kişi eşleştirilir. Model öğrenir.
           </div>
@@ -53,7 +55,7 @@ export function UstaYolu() {
           </div>
           <button className="pusula-apply" onClick={optimize} disabled={optimizing}>
             <RefreshCw size={14} className={optimizing ? "pusula-spin" : ""} />
-            {optimizing ? "Öğreniyor…" : "Yeniden optimize"}
+            {optimizing ? t("b.learning") : t("b.reoptimize")}
           </button>
         </div>
       </div>
@@ -111,8 +113,8 @@ export function UstaYolu() {
                   <ConfidenceDots level={m.confidence} />
                 </div>
                 <div className="pusula-match-act2">
-                  <button className="pusula-match-yes">Onayla</button>
-                  <button className="pusula-match-edit">Düzenle</button>
+                  <button className="pusula-match-yes">{t("b.confirm")}</button>
+                  <button className="pusula-match-edit">{t("b.edit")}</button>
                 </div>
               </motion.div>
             );

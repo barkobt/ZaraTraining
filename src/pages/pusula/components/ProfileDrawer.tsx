@@ -5,6 +5,7 @@ import { PersonAvatar } from "./PersonAvatar";
 import { MasteryChip } from "./MasteryChip";
 import { ConfidenceDots } from "./ConfidenceDots";
 import { AsaBar } from "./AsaBar";
+import { useT } from "../i18n";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
@@ -20,6 +21,7 @@ export function ProfileDrawer({
   onClose: () => void;
   onFull: () => void;
 }) {
+  const t = useT();
   return (
     <AnimatePresence>
       {person && (
@@ -67,7 +69,7 @@ export function ProfileDrawer({
 
             <div className="pusula-drawer-foot">
               <button className="pusula-fulllink" onClick={onFull}>
-                Tam profil →
+                {t("b.fullProfile")}
               </button>
               <span className="pusula-drawer-note">Bu profili çalışan da görür.</span>
             </div>

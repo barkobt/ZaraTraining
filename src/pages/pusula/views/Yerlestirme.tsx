@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Eyebrow, Headline } from "../../brain/primitives";
+import { useT } from "../i18n";
 import { pocket, recommendations } from "../data";
 import { applyMoves } from "../placement";
 import { ShiftChart } from "../components/ShiftChart";
@@ -26,6 +27,7 @@ export function Yerlestirme({
   applied: boolean;
   onApply: (v: boolean) => void;
 }) {
+  const t = useT();
   // accepted rec id listesi — applied=true ise hepsi açık başlasın (shell hatırası ile uyum)
   const [accepted, setAccepted] = useState<string[]>(applied ? recommendations.map((r) => r.id) : []);
 
@@ -52,17 +54,17 @@ export function Yerlestirme({
     <div className="pusula-place">
       <div className="pusula-place-head">
         <div>
-          <Headline ital="Akşam" roman="Yerleşimi" size={32} />
+          <Headline ital={t("t.yer.i")} roman={t("t.yer.r")} size={32} />
           <div className="pusula-sub">
             Pusula önerir; koç tek tek uygular. Her kabul cebi biraz daha rahatlatır — öneri, dayatma değil.
           </div>
         </div>
         <div className="pusula-usta-controls">
           <button className="pusula-apply" onClick={all} disabled={fraction >= 1}>
-            Hepsini uygula
+            {t("b.applyAll")}
           </button>
           <button className="pusula-apply" data-applied="1" onClick={reset} disabled={accepted.length === 0}>
-            Sıfırla
+            {t("b.reset")}
           </button>
         </div>
       </div>
@@ -79,7 +81,7 @@ export function Yerlestirme({
 
         <aside className="pusula-place-side">
           <div className="pusula-recs-head">
-            <Eyebrow>Pusula'nın tezi</Eyebrow>
+            <Eyebrow>{t("e.thesis")}</Eyebrow>
             <span className="pusula-recs-count">
               {accepted.length}/{recommendations.length} uygulandı
             </span>
@@ -104,8 +106,8 @@ export function Yerlestirme({
           <AdjacencyNote />
 
           <div className="pusula-assure">
-            <span>Sert kısıtlar korundu: mola · kapasite · yetkinlik</span>
-            <span>Karar sizde — öneri, dayatma değil</span>
+            <span>{t("a.constraints")}</span>
+            <span>{t("a.decision")}</span>
           </div>
         </aside>
       </div>

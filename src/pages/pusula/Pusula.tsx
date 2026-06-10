@@ -12,41 +12,42 @@ import { OgrenenHafiza } from "./views/OgrenenHafiza";
 import { UstaYolu } from "./views/UstaYolu";
 import { ProfileDrawer } from "./components/ProfileDrawer";
 import { useAuthGate } from "../shift-organizer/auth-gate";
+import { LangCtx, LANGS, tr, type Lang } from "./i18n";
 
 type ViewId = "ekip" | "profil" | "defter" | "hafiza" | "usta" | "yerlestirme";
 
-const GROUPS: Array<{ group: string; hint: string; items: Array<{ id: ViewId; label: string; sub: string }> }> = [
+const GROUPS: Array<{ key: string; hintKey: string; items: Array<{ id: ViewId; labelKey: string; subKey: string }> }> = [
   {
-    group: "İnsan",
-    hint: "Kim",
+    key: "nav.insan",
+    hintKey: "hint.kim",
     items: [
-      { id: "ekip", label: "Ekip", sub: "Yaşayan roster" },
-      { id: "profil", label: "Profil", sub: "Derin okuma" },
+      { id: "ekip", labelKey: "item.ekip", subKey: "sub.ekip" },
+      { id: "profil", labelKey: "item.profil", subKey: "sub.profil" },
     ],
   },
   {
-    group: "Gelişim",
-    hint: "Nasıl büyür",
+    key: "nav.gelisim",
+    hintKey: "hint.nasil",
     items: [
-      { id: "defter", label: "Gelişim Defteri", sub: "Takip · yetkinlik · dönem" },
-      { id: "hafiza", label: "Öğrenen Hafıza", sub: "Koçluk arşivi" },
-      { id: "usta", label: "Usta Yolu", sub: "Mentor eşleşme" },
+      { id: "defter", labelKey: "item.defter", subKey: "sub.defter" },
+      { id: "hafiza", labelKey: "item.hafiza", subKey: "sub.hafiza" },
+      { id: "usta", labelKey: "item.usta", subKey: "sub.usta" },
     ],
   },
   {
-    group: "Sonuç",
-    hint: "Ne değişir",
-    items: [{ id: "yerlestirme", label: "Yerleştirme", sub: "Canlı chart" }],
+    key: "nav.sonuc",
+    hintKey: "hint.ne",
+    items: [{ id: "yerlestirme", labelKey: "item.yerlestirme", subKey: "sub.yerlestirme" }],
   },
 ];
 
 const VIEW_GROUP: Record<ViewId, string> = {
-  ekip: "İnsan",
-  profil: "İnsan",
-  defter: "Gelişim",
-  hafiza: "Gelişim",
-  usta: "Gelişim",
-  yerlestirme: "Sonuç",
+  ekip: "nav.insan",
+  profil: "nav.insan",
+  defter: "nav.gelisim",
+  hafiza: "nav.gelisim",
+  usta: "nav.gelisim",
+  yerlestirme: "nav.sonuc",
 };
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
@@ -66,6 +67,7 @@ function PusulaInner() {
   const [selected, setSelected] = useState<Employee | null>(null);
   const [peek, setPeek] = useState<Employee | null>(null);
   const [applied, setApplied] = useState(false);
+  const [lang, setLang] = useState<Lang>("tr");
   const closeTimer = useRef<number | null>(null);
 
   // hover gecikmesiyle dropdown kapanışı (titremesin)
@@ -84,6 +86,7 @@ function PusulaInner() {
   };
 
   return (
+    <LangCtx.Provider value={{ lang, setLang }}>
     <div className="zt-editorial pusula-shell">
       <header className="pusula-top">
         <div className="pusula-brand">
@@ -100,24 +103,24 @@ function PusulaInner() {
 
         <nav className="pusula-nav">
           {GROUPS.map((g) => {
-            const activeGroup = VIEW_GROUP[view] === g.group;
-            const isOpen = open === g.group;
+            const activeGroup = VIEW_GROUP[view] === g.key;
+            const isOpen = open === g.key;
             return (
               <div
-                key={g.group}
+                key={g.key}
                 className="pusula-navdrop"
                 onMouseEnter={() => {
                   cancelClose();
-                  setOpen(g.group);
+                  setOpen(g.key);
                 }}
                 onMouseLeave={scheduleClose}
               >
                 <button
                   className={`pusula-navtrigger ${activeGroup ? "active" : ""} ${isOpen ? "open" : ""}`}
-                  onClick={() => setOpen(isOpen ? null : g.group)}
+                  onClick={() => setOpen(isOpen ? null : g.key)}
                 >
-                  <span className="pusula-navtrigger-g">{g.group}</span>
-                  <span className="pusula-navtrigger-h">{g.hint}</span>
+                  <span className="pusula-navtrigger-g">{tr(g.key, lang)}</span>
+                  <span className="pusula-navtrigger-h">{tr(g.hintKey, lang)}</span>
                   <ChevronDown size={12} strokeWidth={2} className="pusula-navchev" />
                 </button>
                 <AnimatePresence>
@@ -135,8 +138,8 @@ function PusulaInner() {
                           className={`pusula-navmenu-item ${view === it.id ? "on" : ""}`}
                           onClick={() => go(it.id)}
                         >
-                          <span className="pusula-navmenu-label">{it.label}</span>
-                          <span className="pusula-navmenu-sub">{it.sub}</span>
+                          <span className="pusula-navmenu-label">{tr(it.labelKey, lang)}</span>
+                          <span className="pusula-navmenu-sub">{tr(it.subKey, lang)}</span>
                         </button>
                       ))}
                     </motion.div>
@@ -147,7 +150,16 @@ function PusulaInner() {
           })}
         </nav>
 
-        <LiveDot label="PUSULA" />
+        <div className="pusula-right">
+          <div className="pusula-lang">
+            {LANGS.map((l) => (
+              <button key={l} className={`pusula-lang-b ${lang === l ? "on" : ""}`} onClick={() => setLang(l)}>
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <LiveDot label="PUSULA" />
+        </div>
       </header>
 
       <main className="pusula-main">
@@ -179,5 +191,6 @@ function PusulaInner() {
         }}
       />
     </div>
+    </LangCtx.Provider>
   );
 }

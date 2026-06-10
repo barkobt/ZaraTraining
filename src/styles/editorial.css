@@ -1109,6 +1109,13 @@
 
 .pusula-main { flex: 1; min-width: 0; padding: 34px 40px 80px; max-width: 1180px; width: 100%; margin: 0 auto; }
 
+/* dil seçici (TR/EN/ES) */
+.pusula-right { display: flex; align-items: center; gap: 14px; }
+.pusula-lang { display: inline-flex; border: 1px solid var(--zara-line-strong); border-radius: 999px; overflow: hidden; }
+.pusula-lang-b { border: none; background: transparent; cursor: pointer; padding: 5px 9px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.1em; color: var(--zara-ink-40); transition: background 180ms var(--ease-atelier), color 180ms; }
+.pusula-lang-b:hover { color: var(--zara-ink); }
+.pusula-lang-b.on { background: var(--zara-ink); color: var(--zara-bg); }
+
 /* ── güvence ibareleri ─────────────────────────────────── */
 .pusula-assure {
   display: flex; flex-direction: column; gap: 6px; margin-top: 26px;

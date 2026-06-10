@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FileText, Sparkles, Check, RotateCcw, CheckCircle2, Circle } from "lucide-react";
 import { Eyebrow, Headline } from "../../brain/primitives";
+import { useT } from "../i18n";
 import { employees } from "../data";
 import { NOTED_IDS, notesFor } from "../data-hafiza";
 import type { ArchiveNote } from "../types-gelisim";
@@ -30,6 +31,7 @@ const DAY_ACTIONS: Array<{ who: string; what: string }> = [
  * Pusula yöntemi çıkarır → koç onaylar (extract-then-confirm). Sentiment % YOK.
  */
 export function OgrenenHafiza() {
+  const t = useT();
   const [empId, setEmpId] = useState(NOTED_IDS[0] ?? employees[0].id);
   const emp = employees.find((e) => e.id === empId) ?? employees[0];
   const notes = notesFor(empId);
@@ -66,7 +68,7 @@ export function OgrenenHafiza() {
     <div className="pusula-mem">
       <div className="pusula-place-head">
         <div>
-          <Headline ital="Öğrenen" roman="Hafıza" size={32} />
+          <Headline ital={t("t.hafiza.i")} roman={t("t.hafiza.r")} size={32} />
           <div className="pusula-sub">
             Her gözlem tarihiyle, koçuyla birikir — aktarılan bilgi kaybolmaz.
           </div>
