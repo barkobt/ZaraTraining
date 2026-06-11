@@ -8,8 +8,10 @@ import {
   channelLabel,
   compLabel,
   discoveryFor,
+  personCompetencies,
   provenWord,
   type AptitudeSuggestion,
+  type EvidenceChannel,
 } from "../data-competency";
 import { mentorMatches } from "../data-mentor";
 import { sectionFor } from "../data-gelisim";
@@ -277,6 +279,28 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
             </div>
           </div>
           <HourlySpark />
+          {/* kanıt akışı — modeli bugün besleyen kanal hacimleri (rosterdan gerçek toplam) */}
+          <div className="pvh-flow">
+            <span className="k">{pick({ tr: "Kanıt akışı · kanal kanal", en: "Evidence flow · by channel", es: "Flujo de evidencia · por canal" })}</span>
+            {(() => {
+              const sums: Record<EvidenceChannel, number> = { counter: 0, attribution: 0, booklet: 0, eas: 0, coach: 0 };
+              for (const e of employees)
+                for (const pc of personCompetencies(e.id))
+                  for (const ev of pc.evidence) sums[ev.channel] += ev.n;
+              const SHORT: Record<EvidenceChannel, string> = {
+                counter: pick({ tr: "sayaç", en: "counter", es: "contador" }),
+                attribution: pick({ tr: "kesişim", en: "overlap", es: "cruce" }),
+                booklet: pick({ tr: "kitapçık", en: "booklet", es: "cuadernillo" }),
+                eas: "EAS",
+                coach: pick({ tr: "koç notu", en: "coach note", es: "nota coach" }),
+              };
+              return (Object.keys(sums) as EvidenceChannel[]).map((ch) => (
+                <span key={ch} className="c">
+                  <em>{sums[ch]}</em> {SHORT[ch]}
+                </span>
+              ));
+            })()}
+          </div>
         </div>
       </motion.section>
 

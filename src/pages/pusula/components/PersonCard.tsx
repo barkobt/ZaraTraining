@@ -47,7 +47,7 @@ export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () =>
         <PersonAvatar name={person.name} dark={dark} size={38} />
         <div className="pusula-card-id">
           <div className="pusula-card-name">{person.name}</div>
-          <span className="pusula-card-tenure">{jobTypeLabelCaps(person.id)}{" · "}{tenureOf(person)}</span>
+          <span className="pusula-card-tenure">{jobTypeLabelCaps(person.id)}{" · "}<i className="nb">{tenureOf(person)}</i></span>
         </div>
         <span className="pusula-card-chip">
           <MasteryChip level={person.level} />

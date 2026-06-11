@@ -700,11 +700,18 @@ export function GelisimDefteri() {
               {/* 3 · saha sinyali — koç gözlemi ile saha verisi karşılaştırması */}
               <span className="pusula-rep-eb">{plang({ tr: "Saha sinyali · gözlemle uyum", en: "Floor signal · consistency with observation", es: "Señal de sala · coherencia" })}</span>
               <div className="pusula-rep-signals">
-                {signals.map((s) => (
+                {signals.map((s, si) => (
                   <div key={s.area} className="pusula-rep-sig">
-                    <span className="a">{s.area}</span>
-                    <span className="src">{s.source}</span>
-                    <span className={`fit ${s.level}`}>{fitWordOf(s.level)} · {s.evidence}</span>
+                    <span className="no">{String(si + 1).padStart(2, "0")}</span>
+                    <div className="al">
+                      <span className="a">{s.area}</span>
+                      <span className="src">{s.source}</span>
+                    </div>
+                    <span className={`fit ${s.level}`}>
+                      {/* level "none" iken evidence da "veri yok" der — tekrar etme */}
+                      <i className={`g ${s.level}`} aria-hidden /> {fitWordOf(s.level)}
+                      {s.level !== "none" && <> · {s.evidence}</>}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -724,10 +731,15 @@ export function GelisimDefteri() {
                       : doneN > 0
                         ? plang({ tr: `kısmen uygulandı · ${doneN}/${total}`, en: `partially applied · ${doneN}/${total}`, es: `aplicado en parte · ${doneN}/${total}` })
                         : plang({ tr: "açık — henüz uygulanmadı", en: "open — not yet applied", es: "abierto — sin aplicar" });
+                  const cls = isRej ? "rej" : doneN === total && total > 0 ? "ok" : doneN > 0 ? "half" : "";
                   return (
-                    <div key={a.week} className={`pusula-rep-loop ${isRej ? "rej" : doneN === total && total > 0 ? "ok" : ""}`}>
+                    <div key={a.week} className={`pusula-rep-loop ${cls}`}>
+                      <i className="g" aria-hidden />
                       <span className="w">{a.week}</span>
-                      <span className="m">{a.prov.scenario} · {a.prov.method}</span>
+                      <span className="m">
+                        <em>{a.prov.scenario}</em>
+                        <span className="mm">{a.prov.method}</span>
+                      </span>
                       <span className="s">{st}</span>
                     </div>
                   );

@@ -325,10 +325,13 @@ export function finalReport(emp: Employee): FinalReport {
     .filter((k) => compRaw(emp.id, k) >= 3)
     .slice(0, 3)
     .map((k) => pick({ tr: `${compLabel(k)} — güçlü`, en: `Strong in ${compLabel(k)}`, es: `Fuerte en ${compLabel(k)}` }));
-  const growthRoles = (["karsilama", "kabin"] as CompKey[])
-    .filter((k) => compRaw(emp.id, k) <= 1)
-    .slice(0, 2)
-    .map((k) => pick({ tr: `${compLabel(k)} kademeli geliştirilmeli`, en: `${compLabel(k)} to be developed gradually`, es: `Desarrollar ${compLabel(k)} gradualmente` }));
+  const growthKeys = (["karsilama", "kabin"] as CompKey[]).filter((k) => compRaw(emp.id, k) <= 1).slice(0, 2);
+  const growthRoles = growthKeys.map((k) =>
+    pick({ tr: `${compLabel(k)} kademeli geliştirilmeli`, en: `${compLabel(k)} to be developed gradually`, es: `Desarrollar ${compLabel(k)} gradualmente` }),
+  );
+  // growthEdge aynı yetkinliği tekrarlıyorsa listeye İKİNCİ kez girmesin
+  const edge = growthEdgeOf(emp);
+  const edgeDupe = growthKeys.some((k) => edge.includes(compLabel(k)));
   const result: Record<MasteryLevel, string> = {
     [MasteryLevel.New]: pick({
       tr: "Temeller oturuyor; ön cephe için kademeli ve kıdemli eşliğinde ilerliyor.",
@@ -356,7 +359,7 @@ export function finalReport(emp: Employee): FinalReport {
       pick({ tr: "Öğrenmeye hevesli", en: "Eager to learn", es: "Con ganas de aprender" }),
       pick({ tr: "Tempoya hızlı uyum", en: "Adapts to tempo quickly", es: "Se adapta rápido al ritmo" }),
     ],
-    growth: growthRoles.length ? [...growthRoles, growthEdgeOf(emp)] : [growthEdgeOf(emp)],
+    growth: growthRoles.length ? (edgeDupe ? growthRoles : [...growthRoles, edge]) : [edge],
     result: result[emp.level],
   };
 }

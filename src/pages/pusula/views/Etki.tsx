@@ -72,12 +72,13 @@ export function Etki() {
           />
           <div className="pusula-sub">
             {pick({
-              tr: "Döngünün kapandığı yer: öneri → koç kararı → gerçekleşen sonuç geri yazılır. En sağlam iddia isabettir.",
-              en: "Where the loop closes: suggestion → coach decision → realized outcome written back. The soundest claim is accuracy.",
-              es: "Donde se cierra el ciclo: sugerencia → decisión del coach → resultado reescrito. La afirmación más sólida es el acierto.",
+              tr: "Sistemin BU mağazaya kattıkları — öneri → koç kararı → gerçekleşen sonuç geri yazılır.",
+              en: "What the system adds to THIS store — suggestion → coach decision → outcome written back.",
+              es: "Lo que el sistema aporta a ESTA tienda — sugerencia → decisión → resultado reescrito.",
             })}
           </div>
           <div className="pv4-how">{t("how.etki")}</div>
+          <span className="petki-store">ZARA · BORNOVA 3643 · {pick({ tr: "PİLOT MAĞAZA", en: "PILOT STORE", es: "TIENDA PILOTO" })}</span>
         </div>
         {/* canlı: bu oturumda kapanan döngüler */}
         <div className="petki-live">
@@ -116,9 +117,9 @@ export function Etki() {
           </svg>
           <p className="petki-hit-p">
             {pick({
-              tr: "Her kapanan döngü modeli keskinleştirir: koç onayı + gerçekleşen sonuç geri yazılır — isabet 62'den 86'ya. Bu, sistemin kendi iç tutarlılığıdır; dış nedensellik iddiası değildir.",
-              en: "Every closed loop sharpens the model: approvals + outcomes are written back — accuracy from 62 to 86. This is the system's internal consistency, not an external causal claim.",
-              es: "Cada ciclo cerrado afina el modelo: aprobaciones y resultados se reescriben — el acierto sube de 62 a 86. Es consistencia interna, no causalidad externa.",
+              tr: "Her kapanan döngü modeli keskinleştirir — bu mağazanın isabeti dört dönemde 62'den 86'ya.",
+              en: "Every closed loop sharpens the model — this store's accuracy rose from 62 to 86 in four periods.",
+              es: "Cada ciclo cerrado afina el modelo — el acierto de esta tienda subió de 62 a 86 en cuatro periodos.",
             })}
           </p>
         </motion.section>
@@ -144,9 +145,9 @@ export function Etki() {
           </div>
           <p className="petki-hit-p">
             {pick({
-              tr: "Soğuk başlangıçta öneriler geneldir ve aralık geniştir; kanıt kanalları beslemeye başlayınca aralık daralır. Bu sınır saklanmaz — özelliktir.",
-              en: "At cold start suggestions are generic and the interval is wide; as evidence channels feed in, it narrows. This limit isn't hidden — it's a feature.",
-              es: "Al inicio las sugerencias son genéricas y el intervalo amplio; al alimentar los canales, se estrecha. Ese límite no se oculta — es una característica.",
+              tr: "Kanıt biriktikçe öneriler kişiselleşir — sınır saklanmaz, özelliktir.",
+              en: "As evidence accrues, suggestions personalize — the limit isn't hidden; it's a feature.",
+              es: "Al acumular evidencia, las sugerencias se personalizan — el límite no se oculta.",
             })}
           </p>
         </motion.section>
@@ -202,22 +203,60 @@ export function Etki() {
           <div className="petki-note">{impactNote()}</div>
         </motion.section>
 
-        {/* ② RAMP + örtük bilgi vb. göstergeler */}
+        {/* ② PİLOT HEDEFLERİ — önce/sonra çubuklarıyla GRAFİK figürler */}
         <motion.aside
           className="petki-side"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.24, ease: EASE }}
         >
-          <div className="pv3-eb">
-            {pick({ tr: "Pilot hedefleri · A/B çerçevesi", en: "Pilot targets · A/B framing", es: "Objetivos piloto · marco A/B" })}
+          <div className="pv3-eb petki-eb-row">
+            <span>{pick({ tr: "Pilot hedefleri · önce → sonra", en: "Pilot targets · before → after", es: "Objetivos piloto · antes → después" })}</span>
+            <span className="petki-rep">{pick({ tr: "temsilî", en: "representative", es: "representativo" })}</span>
           </div>
-          <div className="pusula-pulse petki-pulse">
-            {stats.map((s) => (
-              <div key={s.k} className="pusula-pulse-cell">
-                <em>{s.v}</em>
-                <span>{s.k}</span>
-                <small>{s.s}</small>
+          <div className="petki-figs">
+            {([
+              {
+                v: stats[0].v, k: stats[0].k,
+                a: { w: 64, l: pick({ tr: "yeni · %16", en: "new · 16%", es: "nuevo · 16%" }) },
+                b: { w: 100, l: pick({ tr: "öğretebilir · %25", en: "can teach · 25%", es: "enseña · 25%" }) },
+              },
+              {
+                v: stats[1].v, k: stats[1].k,
+                a: { w: 100, l: pick({ tr: "önce · 8 hafta", en: "before · 8 weeks", es: "antes · 8 sem." }) },
+                b: { w: 75, l: pick({ tr: "pilot · 6 hafta", en: "pilot · 6 weeks", es: "piloto · 6 sem." }) },
+              },
+              {
+                v: stats[2].v, k: stats[2].k,
+                a: { w: 100, l: pick({ tr: "önce · elle hazırlık", en: "before · manual prep", es: "antes · manual" }) },
+                b: { w: 60, l: pick({ tr: "pilot · taslak hazır", en: "pilot · drafts ready", es: "piloto · borradores" }) },
+              },
+              {
+                v: stats[3].v, k: stats[3].k,
+                a: { w: 28, l: pick({ tr: "usta ayrılınca · kayıp", en: "master leaves · lost", es: "se va · perdido" }) },
+                b: { w: 100, l: pick({ tr: "Pusula ile · kurumda kalır", en: "with Pusula · retained", es: "con Pusula · queda" }) },
+              },
+            ] as const).map((f) => (
+              <div key={f.k} className="petki-fig">
+                <div className="petki-fig-head">
+                  <em>{f.v}</em>
+                  <span>{f.k}</span>
+                </div>
+                <div className="petki-fig-bars">
+                  <div className="r">
+                    <i className="a" style={{ width: `${f.a.w}%` }} />
+                    <label>{f.a.l}</label>
+                  </div>
+                  <div className="r">
+                    <motion.i
+                      className="b"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${f.b.w}%` }}
+                      transition={{ duration: 0.7, delay: 0.4, ease: EASE }}
+                    />
+                    <label>{f.b.l}</label>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

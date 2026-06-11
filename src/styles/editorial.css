@@ -1174,10 +1174,12 @@
   transition: transform 280ms var(--ease-atelier), box-shadow 280ms;
 }
 .pusula-card:hover { transform: translateY(-3px); box-shadow: var(--panel-shadow-soft); }
-.pusula-card-top { display: flex; align-items: center; gap: 12px; }
-.pusula-card-id { display: flex; flex-direction: column; gap: 6px; }
-.pusula-card-name { font-family: var(--ff-display); font-size: 18px; line-height: 1; }
+/* üst satır GRID: uzun isim sarar, evre çipi ASLA taşmaz */
+.pusula-card-top { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: start; gap: 12px; }
+.pusula-card-id { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pusula-card-name { font-family: var(--ff-display); font-size: 18px; line-height: 1.15; overflow-wrap: break-word; }
 .pusula-card-tenure { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-card-tenure .nb { font-style: normal; white-space: nowrap; }
 .pusula-card-lines { display: flex; flex-direction: column; gap: 7px; }
 .pusula-card-line { display: flex; gap: 10px; font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-2); align-items: baseline; }
 .pusula-card-key { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; flex-shrink: 0; width: 58px; }
@@ -1206,7 +1208,8 @@
 .pusula-card-note i { font-family: var(--ff-mono); font-style: normal; font-size: 8px; color: var(--zara-ink-40); }
 .pusula-card-conf { display: inline-flex; align-items: center; gap: 7px; }
 .pusula-card-conf i { font-family: var(--ff-mono); font-style: normal; font-size: 7px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); }
-.pusula-card-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--zara-line); }
+/* foot her kartta TABANA sabit — kanıt güveni hizası kartlar arasında oynamaz */
+.pusula-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid var(--zara-line); margin-top: auto; }
 .pusula-card-peek { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-card:hover .pusula-card-peek { color: var(--zara-ink); }
 
@@ -1252,7 +1255,8 @@
 .pusula-profile-strong { font-family: var(--ff-sans); font-size: 13.5px; font-style: italic; color: var(--zara-ink-2); line-height: 1.55; margin-top: 10px; max-width: 560px; }
 .pusula-profile-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 30px 44px; align-items: start; }
 .pusula-profile-col { display: flex; flex-direction: column; gap: 30px; min-width: 0; }
-.pusula-profile-block { display: flex; flex-direction: column; gap: 14px; }
+.pusula-profile-block { display: flex; flex-direction: column; gap: 16px; }
+.pusula-profile-block + .pusula-profile-block { margin-top: 14px; }
 .pusula-profile-asa { display: flex; flex-direction: column; gap: 16px; }
 .pusula-profile-curveword { font-family: var(--ff-sans); font-size: 12.5px; font-style: italic; color: var(--zara-ink-50); }
 
@@ -1455,10 +1459,10 @@
   background-repeat: no-repeat; background-position: right 4px center;
 }
 .pusula-book-emp select:focus { outline: none; border-bottom-color: var(--zara-ink); }
-.pusula-asa-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px 16px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-warm); margin-bottom: 18px; }
-.pusula-asa-strip-eb { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-gold-deep); margin-right: 6px; }
-.pusula-asa-chip { font-family: var(--ff-sans); font-size: 12px; color: var(--zara-ink-2); padding: 4px 10px; border: 1px solid var(--zara-line-strong); border-radius: 0; }
-.pusula-asa-chip em { font-style: normal; font-family: var(--ff-mono); font-size: 9px; color: var(--zara-ink-40); margin-left: 4px; }
+.pusula-asa-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 18px 20px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-warm); margin-bottom: 18px; }
+.pusula-asa-strip-eb { flex-basis: 100%; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-gold-deep); }
+.pusula-asa-chip { font-family: var(--ff-sans); font-size: 12px; line-height: 1.4; color: var(--zara-ink-2); padding: 7px 13px; border: 1px solid var(--zara-line-strong); border-radius: 0; }
+.pusula-asa-chip em { font-style: normal; font-family: var(--ff-mono); font-size: 8.5px; color: var(--zara-ink-40); margin-left: 8px; }
 .pusula-level-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); overflow: hidden; margin-bottom: 22px; }
 .pusula-level-tab { position: relative; border: none; background: var(--zara-bg-white); cursor: pointer; padding: 14px 12px; display: flex; flex-direction: column; gap: 3px; transition: background 300ms var(--ease-atelier), color 300ms var(--ease-atelier); }
 .pusula-level-tab:hover { background: var(--zara-bg-alt); }
@@ -1485,6 +1489,11 @@
 .pusula-topic-no { color: var(--zara-ink-40); font-family: var(--ff-mono); font-size: 11px; }
 /* etiketli + sıralı durum seçici */
 .pusula-statusrow { display: inline-flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+/* dar ekranda 4'lü pill grubu kendi tam satırına iner ve SARAR — yatay taşma olmaz */
+@media (max-width: 560px) {
+  .pusula-statusrow { width: 100%; flex-shrink: 1; min-width: 0; }
+  .pusula-topic-main .pusula-topic-title { flex-basis: 100%; }
+}
 .pusula-statusopt { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--zara-line-strong); background: var(--zara-bg-white); color: var(--zara-ink-65); cursor: pointer; padding: 5px 10px; border-radius: 0; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; transition: all 200ms var(--ease-atelier); }
 .pusula-statusopt:hover { border-color: var(--c); color: var(--c); }
 .pusula-statusopt.on { border-color: var(--c); color: var(--c); background: color-mix(in srgb, var(--c) 8%, var(--zara-bg-white)); font-weight: 600; }
@@ -1608,6 +1617,8 @@
 /* ── ÖĞRENEN HAFIZA ────────────────────────────────────── */
 .pusula-mem-people { margin-bottom: 22px; }
 .pusula-mem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+/* taban kuralı yukarıdaki 900px bloğundan SONRA geldiği için mobil kuralı burada tekrarlanır */
+@media (max-width: 900px) { .pusula-mem-grid { grid-template-columns: 1fr; } }
 .pusula-mem-left { display: flex; flex-direction: column; gap: 16px; }
 /* GİDİŞAT — nitel sparkline (boş kutu yerine dolu, eksenli mini grafik) */
 .pusula-mem-trend { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px 12px; border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); }
@@ -1652,18 +1663,18 @@
 .pusula-coach-input:focus { border-color: var(--zara-ink); }
 .pusula-coach-btn { flex-shrink: 0; align-self: flex-start; border: 1px solid var(--zara-ink); background: var(--zara-ink); color: var(--zara-bg); cursor: pointer; padding: 11px 16px; border-radius: 0; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 7px; transition: opacity 200ms; }
 .pusula-coach-btn:disabled { opacity: 0.4; cursor: default; }
-/* etiket çipleri — Senaryo + Yöntem seçimi (çıkarım düzeltilebilir) */
-.pusula-tagrow { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
-.pusula-tagrow-k { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-40); min-width: 56px; }
-.pusula-tagchip { border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 5px 11px; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-ink-50); transition: all 180ms var(--ease-atelier); }
+/* etiket çipleri — Senaryo + Yöntem seçimi (ferah: bol soluk alanlı satırlar) */
+.pusula-tagrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.pusula-tagrow-k { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink-40); min-width: 72px; }
+.pusula-tagchip { border: 1px solid var(--zara-line-strong); background: var(--zara-bg-white, #fff); cursor: pointer; padding: 9px 16px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-50); transition: all 180ms var(--ease-atelier); }
 .pusula-tagchip:hover { color: var(--zara-ink); border-color: var(--zara-ink); }
 .pusula-tagchip.on { color: var(--zara-ink); border-color: var(--zara-ink); box-shadow: inset 0 -2px 0 var(--zara-ink); font-weight: 600; }
-.pusula-tagtitle { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-65); margin-top: 12px; }
-.pusula-tagtitle em { font-family: var(--ff-display); font-style: italic; font-size: 15px; color: var(--zara-ink); }
-.pusula-coach-confirm { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--zara-gold-soft); }
-.pusula-coach-confirm p { margin: 0 0 12px; font-family: var(--ff-display); font-size: 16px; color: var(--zara-ink); }
+.pusula-tagtitle { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-65); margin-top: 18px; }
+.pusula-tagtitle em { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--zara-ink); margin-left: 4px; }
+.pusula-coach-confirm { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--zara-gold-soft); }
+.pusula-coach-confirm p { margin: 0 0 14px; font-family: var(--ff-display); font-size: 16px; color: var(--zara-ink); }
 .pusula-coach-confirm em { color: var(--zara-gold-deep); }
-.pusula-coach-actions { display: flex; gap: 10px; }
+.pusula-coach-actions { display: flex; gap: 12px; margin-top: 18px; }
 .pusula-coach-yes, .pusula-coach-no { border: 1px solid var(--zara-line-strong); background: var(--zara-bg-white); cursor: pointer; padding: 9px 16px; border-radius: 0; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); display: inline-flex; align-items: center; gap: 7px; transition: all 200ms; }
 .pusula-coach-yes:hover { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
 .pusula-coach-no:hover { border-color: var(--zara-ink); }
@@ -1687,7 +1698,7 @@
 .pusula-match-reason svg { flex-shrink: 0; margin-top: 2px; color: var(--zara-ink-40); }
 .pusula-match-reason p { margin: 0; font-family: var(--ff-sans); font-size: 12.5px; font-style: italic; line-height: 1.55; color: var(--zara-ink-2); }
 .pusula-match-actions { display: flex; gap: 10px; }
-.pusula-match-yes, .pusula-match-edit { flex: 1; border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 9px; border-radius: 0; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); transition: all 200ms; }
+.pusula-match-yes, .pusula-match-edit { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 9px; border-radius: 0; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); transition: all 200ms; }
 .pusula-match-yes:hover, .pusula-match-edit:hover { background: var(--zara-ink); color: var(--zara-bg); border-color: var(--zara-ink); }
 .pusula-usta-learn { display: flex; gap: 14px; padding: 18px 20px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-warm); margin-bottom: 8px; }
 .pusula-usta-learn svg { flex-shrink: 0; color: var(--zara-ink-40); margin-top: 2px; }
@@ -1774,11 +1785,13 @@
 /* ── Dönem raporu ──────────────────────────────────────── */
 .pusula-report { display: flex; flex-direction: column; gap: 22px; }
 .pusula-report-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-.pusula-report-list { margin: 8px 0 0; padding-left: 16px; display: flex; flex-direction: column; gap: 6px; }
-.pusula-report-list li { font-family: var(--ff-sans); font-size: 13.5px; color: var(--zara-ink); }
-.pusula-report-list.strong li::marker { color: var(--zara-gold); }
-.pusula-report-list.growth li::marker { color: var(--zara-sage-ink); }
-.pusula-report-result { border-top: 1px solid var(--zara-line-strong); padding-top: 18px; }
+/* madde imi yerine hairline ritmi — serif italik satırlar */
+.pusula-report-list { margin: 6px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.pusula-report-list li { font-family: var(--ff-display); font-style: italic; font-size: 15px; line-height: 1.45; color: var(--zara-ink); padding: 10px 2px; border-bottom: 1px dotted var(--zara-line-strong); }
+.pusula-report-list li:last-child { border-bottom: none; }
+.pusula-report-list.growth li { color: var(--zara-ink-2); }
+.pusula-report-result { border-top: 1px solid var(--zara-line-strong); padding-top: 18px; margin-top: 22px; }
+.pusula-report-result .pusula-edit { margin-top: 12px; }
 .pusula-report-result p { margin: 8px 0 0; font-family: var(--ff-display); font-size: 18px; font-style: italic; line-height: 1.5; color: var(--zara-ink); max-width: 640px; }
 
 /* yazılabilir alanlar (AI önerisi + koç düzenler) */
@@ -1914,6 +1927,34 @@
 .pusula-persona-livek { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); font-style: normal; white-space: nowrap; }
 
 /* ── Evre Planları — her evre için ayrı, hover ile açılan tablo ── */
+/* USTA YOLU — aktarım kartları + kurumsal hafıza bandı */
+.pusula-transfers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; }
+.pusula-transfer { border: 1px solid var(--zara-line); background: var(--zara-bg-white, #fff); padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 12px; transition: border-color 240ms; }
+.pusula-transfer.ok { border-left: 3px solid var(--zara-ink); }
+.pusula-transfer-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pusula-transfer-pair { display: inline-flex; align-items: center; gap: 8px; color: var(--zara-ink-40); }
+.pusula-transfer-conf { display: inline-flex; align-items: center; gap: 8px; }
+.pusula-transfer-conf i { font-family: var(--ff-mono); font-style: normal; font-size: 7px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-transfer-names { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.pusula-transfer-names em { font-family: var(--ff-display); font-style: italic; font-size: 21px; line-height: 1.1; color: var(--zara-ink); }
+.pusula-transfer-names span { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-transfer-focus { font-family: var(--ff-sans); font-size: 13px; line-height: 1.5; color: var(--zara-ink-2); }
+.pusula-transfer-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pusula-transfer-meta .tag { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); border: 1px solid var(--zara-line-strong); padding: 4px 9px; }
+.pusula-transfer-meta .slot { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.06em; color: var(--zara-ink-50); }
+.pusula-transfer-acts { display: flex; gap: 10px; margin-top: 4px; }
+.pusula-transfer-slotbtn { border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 7px 13px; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-65); transition: all 200ms; }
+.pusula-transfer-slotbtn:hover { border-color: var(--zara-ink); color: var(--zara-ink); }
+.pusula-transfer-done { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px dashed var(--zara-line); padding-top: 11px; margin-top: 2px; }
+.pusula-transfer-done span { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink); }
+.pusula-transfer-done button { border: none; background: transparent; cursor: pointer; font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-50); box-shadow: inset 0 -1px 0 var(--zara-line-strong); padding: 0 0 2px; }
+.pusula-codified { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border: 1px dashed var(--zara-ink); padding: 14px 18px; margin-top: 16px; }
+.pusula-codified-eb { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink); }
+.pusula-codified-empty { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-50); }
+.pusula-codified-chip { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--zara-ink); padding: 6px 11px; font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink); }
+.pusula-codified-chip i { font-style: normal; color: var(--zara-ink-40); }
+@media (max-width: 860px) { .pusula-transfers { grid-template-columns: 1fr; } }
+
 /* USTA YOLU — hikâye şeridi + öğretebilir havuzu + yöntem etiketi */
 .pusula-usta-story { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border: 1px solid var(--zara-line); padding: 13px 18px; margin-bottom: 14px; }
 .pusula-usta-story span { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-50); }
@@ -1977,19 +2018,32 @@
 .pusula-rep-period { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink); }
 .pusula-rep-eb { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--zara-ink); display: block; margin-top: 22px; padding-bottom: 8px; border-bottom: 1px solid var(--zara-ink); }
 .pusula-report .pusula-pulse { margin-top: 0; border-top: none; }
+/* saha sinyali: numaralı, serif alan adı, kaynak altında, durum glifli */
 .pusula-rep-signals { display: flex; flex-direction: column; }
-.pusula-rep-sig { display: grid; grid-template-columns: 170px minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 10px 2px; border-bottom: 1px solid var(--zara-line); }
-.pusula-rep-sig .a { font-family: var(--ff-sans); font-size: 12.5px; font-weight: 600; color: var(--zara-ink); }
-.pusula-rep-sig .src { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--zara-ink-40); }
-.pusula-rep-sig .fit { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-65); text-align: right; }
+.pusula-rep-sig { display: grid; grid-template-columns: 34px minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; align-items: center; padding: 15px 4px; border-bottom: 1px solid var(--zara-line); }
+.pusula-rep-sig .no { font-family: var(--ff-mono); font-size: 9px; color: var(--zara-ink-30); }
+.pusula-rep-sig .al { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pusula-rep-sig .a { font-family: var(--ff-display); font-style: italic; font-weight: 400; font-size: 17px; line-height: 1.2; color: var(--zara-ink); }
+.pusula-rep-sig .src { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-rep-sig .fit { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-65); text-align: right; }
 .pusula-rep-sig .fit.none { color: var(--zara-ink-40); }
+.pusula-rep-sig .g { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--zara-ink); flex-shrink: 0; }
+.pusula-rep-sig .g.strong, .pusula-rep-sig .g.developing { background: var(--zara-ink); }
+.pusula-rep-sig .g.neutral { background: rgba(0,0,0,0.25); border-color: rgba(0,0,0,0.35); }
+.pusula-rep-sig .g.none { border-style: dashed; }
+/* kapanan döngüler: durum glifi ● ◐ ○, serif senaryo + mono yöntem */
 .pusula-rep-loops { display: flex; flex-direction: column; }
-.pusula-rep-loop { display: grid; grid-template-columns: 92px minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 10px 2px; border-bottom: 1px solid var(--zara-line); }
+.pusula-rep-loop { display: grid; grid-template-columns: 14px 84px minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: center; padding: 14px 4px; border-bottom: 1px solid var(--zara-line); }
+.pusula-rep-loop .g { width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--zara-ink); }
+.pusula-rep-loop.ok .g { background: var(--zara-ink); }
+.pusula-rep-loop.half .g { background: linear-gradient(90deg, var(--zara-ink) 50%, transparent 50%); }
+.pusula-rep-loop.rej .g { border-style: dashed; }
 .pusula-rep-loop .w { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); }
-.pusula-rep-loop .m { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-2); }
+.pusula-rep-loop .m { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pusula-rep-loop .m em { font-family: var(--ff-display); font-style: italic; font-size: 15.5px; line-height: 1.2; color: var(--zara-ink); }
+.pusula-rep-loop .m .mm { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-rep-loop .s { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-50); text-align: right; }
 .pusula-rep-loop.ok .s { color: var(--zara-ink); }
-.pusula-rep-loop.ok .w { box-shadow: inset 0 -2px 0 var(--zara-ink); }
 .pusula-rep-loop.rej { opacity: 0.6; }
 .pusula-rep-next { border: 1px dashed var(--zara-ink); padding: 16px 20px 18px; margin-top: 22px; display: flex; flex-direction: column; gap: 12px; }
 .pusula-rep-next .pusula-rep-eb { margin-top: 0; border-bottom: none; padding-bottom: 0; }
@@ -2173,7 +2227,7 @@
 
 /* Zone uyumu — nerede parlar */
 .pfit { display: flex; flex-direction: column; gap: 9px; }
-.pfit-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-white, #fff); }
+.pfit-row { display: flex; align-items: center; gap: 14px; padding: 15px 17px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-white, #fff); }
 .pfit-row.top { border: 1.5px solid var(--zara-ink); background: var(--zara-bg-white, #fff); }
 .pfit-row.top .pfit-ico { color: var(--zara-gold-deep); }
 .pfit-row.growth { border-style: dashed; border-color: var(--zara-gold-soft); background: transparent; }
@@ -2187,7 +2241,7 @@
 
 /* Aptitude döngüsü — kanıt → öneri → onay */
 .papt { display: flex; flex-direction: column; gap: 10px; }
-.papt-row { display: grid; grid-template-columns: 1.3fr 1fr auto; gap: 14px; align-items: center; padding: 13px 15px; border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); transition: border-color 300ms var(--ease-atelier); }
+.papt-row { display: grid; grid-template-columns: 1.3fr 1fr auto; gap: 18px; align-items: center; padding: 16px 18px; border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); transition: border-color 300ms var(--ease-atelier); }
 .papt-row.ok { border-color: var(--zara-line); background: var(--zara-bg-warm); }
 .papt-seg { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .papt-k { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-gold-deep); }
@@ -2451,6 +2505,12 @@
 .pvh-stats em { font-family: var(--ff-display); font-style: italic; font-weight: 400; font-size: 23px; line-height: 1; white-space: nowrap; }
 .pvh-stats span { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-50); }
 
+/* kanıt akışı şeridi — hero sağ kolonunun ayağı */
+.pvh-flow { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; border-top: 1px solid var(--zara-line); padding-top: 12px; }
+.pvh-flow .k { flex-basis: 100%; font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pvh-flow .c { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-ink-50); }
+.pvh-flow .c em { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--zara-ink); margin-right: 4px; }
+
 .pvq { border: 1px solid var(--zara-line); margin-top: 20px; }
 .pvq-head { display: flex; align-items: baseline; gap: 22px; flex-wrap: wrap; padding: 16px 24px 13px; border-bottom: 1px solid var(--zara-ink); }
 .pvq-title { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--zara-ink); }
@@ -2635,9 +2695,23 @@
 .petki-eb-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
 .petki-rep { letter-spacing: 0.12em; color: var(--zara-ink-40); border: 1px dashed var(--zara-line-strong); padding: 3px 7px; }
 .petki-badge.ink { fill: #0a0a0a; }
+.petki-store { display: inline-block; margin-top: 10px; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--zara-ink); border: 1px solid var(--zara-line-strong); padding: 4px 10px; }
+/* pilot figürleri — önce/sonra çubuk çiftleri */
+.petki-figs { display: flex; flex-direction: column; gap: 18px; }
+.petki-fig { display: flex; flex-direction: column; gap: 9px; padding-bottom: 16px; border-bottom: 1px solid var(--zara-line); }
+.petki-fig:last-child { border-bottom: none; padding-bottom: 0; }
+.petki-fig-head { display: flex; align-items: baseline; gap: 12px; }
+.petki-fig-head em { font-family: var(--ff-display); font-style: italic; font-weight: 400; font-size: 26px; line-height: 1; color: var(--zara-ink); }
+.petki-fig-head span { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-50); }
+.petki-fig-bars { display: flex; flex-direction: column; gap: 6px; }
+.petki-fig-bars .r { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.petki-fig-bars i { display: block; height: 5px; }
+.petki-fig-bars i.a { background: rgba(0,0,0,0.14); }
+.petki-fig-bars i.b { background: var(--zara-ink); }
+.petki-fig-bars label { font-family: var(--ff-mono); font-size: 7px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-ink-40); white-space: nowrap; }
 .petki-chart { padding: 24px 28px; border-right: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 16px; }
 .petki-svg { display: block; }
-.petki-ax { font-family: var(--ff-mono); font-size: 8.5px; fill: rgba(0,0,0,0.4); }
+.petki-ax { font-family: var(--ff-mono); font-size: 10px; fill: rgba(0,0,0,0.55); }
 .petki-val { font-family: var(--ff-display); font-style: italic; font-size: 13px; fill: #0a0a0a; }
 .petki-stage { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; fill: rgba(0,0,0,0.55); }
 .petki-lab { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; fill: #0a0a0a; }

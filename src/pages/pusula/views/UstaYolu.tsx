@@ -42,7 +42,15 @@ export function UstaYolu() {
   // koç onayları görünüm değişiminde kaybolmasın
   const [confirmed, setConfirmed] = usePersistentState<Record<string, boolean>>("usta.confirmed", {});
   const toggleConfirm = (id: string) => setConfirmed((p) => ({ ...p, [id]: !p[id] }));
+  // SLOT DEĞİŞTİR işlevseldir: eğitim penceresi döngüsel değişir, seçim oturumda kalır
+  const [slotPick, setSlotPick] = usePersistentState<Record<string, number>>("usta.slots", {});
+  const cycleSlot = (id: string) => setSlotPick((p) => ({ ...p, [id]: ((p[id] ?? -1) + 1) % SLACK_WINDOWS.length }));
+  const slotOf = (m: MentorMatch) =>
+    slotPick[m.id] !== undefined
+      ? `${pick({ tr: "Yarın", en: "Tomorrow", es: "Mañana" })} ${SLACK_WINDOWS[slotPick[m.id]]()}`
+      : m.slot;
   const matches: MentorMatch[] = optimized ? mentorMatchesOptimized() : mentorMatches();
+  const codified = matches.filter((m) => confirmed[m.id]);
 
   const optimize = () => {
     setOptimizing(true);
@@ -117,86 +125,95 @@ export function UstaYolu() {
         <span className="pusula-slack-note">{pick({ tr: "düşük trafik = sahada koçluk zamanı", en: "low traffic = coaching time on the floor", es: "tráfico bajo = tiempo de coaching en la sala" })}</span>
       </div>
 
-      {/* animasyonlu eşleşme tablosu */}
-      <div className="pusula-matchtable">
-        <div className="pusula-matchrow head">
-          <span>{pick({ tr: "Eşleşme", en: "Match", es: "Emparejamiento" })}</span>
-          <span>{pick({ tr: "Odak", en: "Focus", es: "Enfoque" })}</span>
-          <span>{pick({ tr: "Eğitim slotu", en: "Training slot", es: "Franja de formación" })}</span>
-          <span>{pick({ tr: "Güven", en: "Confidence", es: "Confianza" })}</span>
-          <span />
-        </div>
+      {/* AKTARIM KARTLARI — her eşleşme bir bilgi-aktarımı sahnesi */}
+      <div className="pusula-transfers">
         <AnimatePresence mode="popLayout">
           {matches.map((m) => {
             const mentor = byId(m.mentorId);
             const mentee = byId(m.menteeId);
+            const ok = confirmed[m.id];
+            const tg = inferTags(m.focus);
+            const confW =
+              m.confidence === "high"
+                ? pick({ tr: "güven · yüksek", en: "confidence · high", es: "confianza · alta" })
+                : m.confidence === "medium"
+                  ? pick({ tr: "güven · orta", en: "confidence · medium", es: "confianza · media" })
+                  : pick({ tr: "güven · filizlenen", en: "confidence · emerging", es: "confianza · incipiente" });
             return (
               <motion.div
                 key={m.id}
                 layout
-                className={`pusula-matchrow ${confirmed[m.id] ? "confirmed" : ""}`}
+                className={`pusula-transfer ${ok ? "ok" : ""}`}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.97 }}
                 transition={{ duration: 0.5, ease: EASE }}
               >
-                <div className="pusula-match-pair2">
-                  <PersonAvatar name={mentor?.name ?? "?"} dark={mentor?.level === MasteryLevel.Coach} size={28} />
-                  <div className="pusula-match-names">
-                    <strong>{mentor?.name?.split(" ")[0] ?? "—"}</strong>
-                    <span className="pusula-match-r">{pick({ tr: "mentor", en: "mentor", es: "mentor" })}</span>
-                  </div>
-                  <ArrowRight size={14} className="pusula-match-arrow" />
-                  <PersonAvatar name={mentee?.name ?? "?"} dark={mentee?.level === MasteryLevel.Coach} size={28} />
-                  <div className="pusula-match-names">
-                    <strong>{mentee?.name?.split(" ")[0] ?? "—"}</strong>
-                    <span className="pusula-match-r">{pick({ tr: "öğrenen", en: "learner", es: "aprendiz" })}</span>
-                  </div>
-                </div>
-                <div className="pusula-match-focus2">
-                  {m.focus}
-                  {/* aktarılan yöntem etiketi — eşleşme "kişi eşleştirme" değil, BİLGİ AKTARIMI */}
-                  {(() => {
-                    const tg = inferTags(m.focus);
-                    return (
-                      <span className="pusula-match-method">
-                        {compShort(tg.scenario)} · {methodLabel(tg.method)}
-                        {confirmed[m.id] && (
-                          <em>{pick({ tr: "✓ hafızaya kodlandı", en: "✓ written to memory", es: "✓ codificado en memoria" })}</em>
-                        )}
-                      </span>
-                    );
-                  })()}
-                </div>
-                <div className="pusula-match-slot">
-                  <Clock size={12} strokeWidth={1.7} /> {m.slot}
-                </div>
-                <div className="pusula-match-conf">
-                  <ConfidenceDots level={m.confidence} />
-                  <span className="pusula-match-confw">
-                    {m.confidence === "high"
-                      ? pick({ tr: "yüksek", en: "high", es: "alta" })
-                      : m.confidence === "medium"
-                        ? pick({ tr: "orta", en: "medium", es: "media" })
-                        : pick({ tr: "filizlenen", en: "emerging", es: "incipiente" })}
+                <div className="pusula-transfer-top">
+                  <span className="pusula-transfer-pair">
+                    <PersonAvatar name={mentor?.name ?? "?"} dark={mentor?.level === MasteryLevel.Coach} size={34} />
+                    <ArrowRight size={13} strokeWidth={1.8} />
+                    <PersonAvatar name={mentee?.name ?? "?"} size={34} />
+                  </span>
+                  <span className="pusula-transfer-conf">
+                    <ConfidenceDots level={m.confidence} />
+                    <i>{confW}</i>
                   </span>
                 </div>
-                <div className="pusula-match-act2">
-                  {confirmed[m.id] ? (
-                    <button className="pusula-match-yes on" onClick={() => toggleConfirm(m.id)}>
-                      <Check size={12} strokeWidth={2.4} /> {pick({ tr: "Onaylandı", en: "Confirmed", es: "Confirmado" })}
-                    </button>
-                  ) : (
-                    <>
-                      <button className="pusula-match-yes" onClick={() => toggleConfirm(m.id)}>{t("b.confirm")}</button>
-                      <button className="pusula-match-edit">{t("b.edit")}</button>
-                    </>
-                  )}
+                <div className="pusula-transfer-names">
+                  <em>{mentor?.name?.split(" ")[0] ?? "—"}</em>
+                  <span>{pick({ tr: "ustalığını aktarıyor →", en: "transfers mastery →", es: "transfiere maestría →" })}</span>
+                  <em>{mentee?.name?.split(" ")[0] ?? "—"}</em>
                 </div>
+                <div className="pusula-transfer-focus">{m.focus}</div>
+                <div className="pusula-transfer-meta">
+                  <span className="tag">{compShort(tg.scenario)} · {methodLabel(tg.method)}</span>
+                  <span className="slot"><Clock size={11} strokeWidth={1.7} /> {slotOf(m)}</span>
+                </div>
+                {ok ? (
+                  <div className="pusula-transfer-done">
+                    <span>
+                      <Check size={12} strokeWidth={2.4} /> {pick({ tr: "Planlandı — yöntem kurumsal hafızaya kodlanacak", en: "Planned — the method will be written to company memory", es: "Planificado — el método se codificará en la memoria" })}
+                    </span>
+                    <button onClick={() => toggleConfirm(m.id)}>{pick({ tr: "geri al", en: "undo", es: "deshacer" })}</button>
+                  </div>
+                ) : (
+                  <div className="pusula-transfer-acts">
+                    <button className="pusula-match-yes" onClick={() => toggleConfirm(m.id)}>
+                      <Check size={12} strokeWidth={2.2} /> {t("b.confirm")}
+                    </button>
+                    <button className="pusula-transfer-slotbtn" onClick={() => cycleSlot(m.id)}>
+                      {pick({ tr: "Slotu değiştir", en: "Change slot", es: "Cambiar franja" })}
+                    </button>
+                  </div>
+                )}
               </motion.div>
             );
           })}
         </AnimatePresence>
+      </div>
+
+      {/* KURUMSAL HAFIZAYA KODLANANLAR — ekranın vardığı yer */}
+      <div className="pusula-codified">
+        <span className="pusula-codified-eb">
+          {pick({ tr: "Kurumsal hafızaya kodlananlar", en: "Written to company memory", es: "Codificado en la memoria de la empresa" })} · {codified.length}
+        </span>
+        {codified.length === 0 ? (
+          <span className="pusula-codified-empty">
+            {pick({ tr: "Henüz kodlanan yok — bir aktarımı onayla; yöntem usta ayrılsa da kurumda kalır.", en: "Nothing codified yet — confirm a transfer; the method stays even if the master leaves.", es: "Nada codificado aún — confirma una transferencia; el método queda aunque el maestro se vaya." })}
+          </span>
+        ) : (
+          codified.map((m) => {
+            const tg = inferTags(m.focus);
+            const mentor = byId(m.mentorId);
+            return (
+              <span key={m.id} className="pusula-codified-chip">
+                <Check size={11} strokeWidth={2.2} /> {compShort(tg.scenario)} · {methodLabel(tg.method)}
+                <i>{pick({ tr: "kaynak", en: "source", es: "fuente" })}: {mentor?.name?.split(" ")[0]}</i>
+              </span>
+            );
+          })
+        )}
       </div>
 
       <div className="pusula-usta-learn">
