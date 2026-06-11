@@ -1,4 +1,5 @@
 import type { Employee } from "../types";
+import { pick } from "../i18n";
 
 /**
  * Soluk güven göstergesi — SOFT seviye ("emerging|medium|high") → ince çubuklar.
@@ -15,8 +16,8 @@ export function ConfidenceDots({ level }: { level: Employee["confidence"] }) {
   return (
     <span
       style={{ display: "inline-flex", gap: 3, alignItems: "center" }}
-      aria-label={`güven düzeyi: ${level}`}
-      title="Güven düzeyi — kanıt birikimi"
+      aria-label={`${pick({ tr: "güven düzeyi", en: "confidence level", es: "nivel de confianza" })}: ${level}`}
+      title={pick({ tr: "Güven düzeyi — kanıt birikimi", en: "Confidence level — accumulated evidence", es: "Nivel de confianza — evidencia acumulada" })}
     >
       {[0, 1, 2, 3, 4].map((i) => (
         <span

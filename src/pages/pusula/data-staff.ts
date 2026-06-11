@@ -1,20 +1,12 @@
 // src/pages/pusula/data-staff.ts
-// GERÇEK ROSTER — ShiftOrganizer seed'inden (db/seed.ts) birebir: 30 personel +
-// gerçek yetkinlik matrisi (Welcome·Kabin·Kabin Welcomer·Sprinter·Zone 2-5, 0–4).
-// Her kişinin Pusula profili (mastery/güçlü/gelişen/ASA/beceri/KPI/eğilim) bu
-// yetkinlik + tenure'dan NİTEL olarak TÜRETİLİR — sert skor ekrana basılmaz.
+// GERÇEK ROSTER — ShiftOrganizer seed'inden (db/seed.ts) birebir: 30 personel.
+// Buradaki 8-pozisyon matrisi (STAFF_COMP) artık yalnız İÇ TOHUMDUR: UI ve
+// sıralama bunu OKUMAZ — data-competency.ts ondan 6'lı KANIT katmanını türetir
+// (karşılama · kabin · dolum · sell-through · ürün · kayıp önleme) ve tüm
+// eşleşme/etiketler oradan gelir. Sert skor ekrana basılmaz.
 
-import {
-  MasteryLevel,
-  Role,
-  SkillStatus,
-  type ASA,
-  type AsaStatus,
-  type Employee,
-  type KPI,
-  type ZoneRole,
-  type Skill,
-} from "./types";
+import { MasteryLevel, Role, type Employee, type ZoneRole } from "./types";
+import { pick } from "./i18n";
 
 export const STAFF_ROLES: ZoneRole[] = [
   "Welcome",
@@ -27,10 +19,12 @@ export const STAFF_ROLES: ZoneRole[] = [
   "Zone 5",
 ];
 
+export type TenureKey = "NEW_0_1" | "NEW_1_3" | "NEW_3_6" | "NEW_6_PLUS" | "EXPERT";
+
 type Row = {
   id: string;
   name: string;
-  tenure: "NEW_0_1" | "NEW_1_3" | "NEW_3_6" | "NEW_6_PLUS" | "EXPERT";
+  tenure: TenureKey;
   mgr: boolean;
   note: string;
   /** [Welcome, Kabin, Kabin Welcomer, Sprinter, Zone 2, Zone 3, Zone 4, Zone 5] */
@@ -71,15 +65,18 @@ const ROWS: Row[] = [
   { id: "Sude", name: "Sude Yeni", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 4, 2, 1, 3, 2, 2, 1] },
 ];
 
-const TENURE_LABEL: Record<Row["tenure"], string> = {
-  NEW_0_1: "0–1 ay",
-  NEW_1_3: "1–3 ay",
-  NEW_3_6: "3–6 ay",
-  NEW_6_PLUS: "6+ ay",
-  EXPERT: "Yetkin",
+const TENURE_LABEL: Record<TenureKey, () => string> = {
+  NEW_0_1: () => pick({ tr: "0–1 ay", en: "0–1 month", es: "0–1 mes" }),
+  NEW_1_3: () => pick({ tr: "1–3 ay", en: "1–3 months", es: "1–3 meses" }),
+  NEW_3_6: () => pick({ tr: "3–6 ay", en: "3–6 months", es: "3–6 meses" }),
+  NEW_6_PLUS: () => pick({ tr: "6+ ay", en: "6+ months", es: "6+ meses" }),
+  // "Yetkin" mastery çipiyle ("Usta") çelişkili okunuyordu — kıdem dili ayrıştırıldı
+  EXPERT: () => pick({ tr: "Deneyimli", en: "Experienced", es: "Experimentado" }),
 };
 
-/** id → yetkinlik haritası (chart yerleşimi yetkinliğe göre yapılır). */
+const ROW_BY_ID: Record<string, Row> = {};
+
+/** İÇ TOHUM — UI/sıralama bunu OKUMAZ; data-competency türetilmiş 6'lı katmanı kullanır. */
 export const STAFF_COMP: Record<string, Record<ZoneRole, number>> = {};
 
 function compMap(row: Row): Record<ZoneRole, number> {
@@ -101,93 +98,25 @@ function confidenceOf(row: Row): Employee["confidence"] {
   return "emerging";
 }
 
-function statusFrom(v: number): AsaStatus {
-  return v >= 3 ? "strong" : v === 2 ? "developing" : "neutral";
-}
+// ── Render-time, lang-aware erişimciler ─────────────────────
+export const tenureOf = (emp: Employee): string => {
+  const row = ROW_BY_ID[emp.id];
+  return row ? TENURE_LABEL[row.tenure]() : emp.tenure;
+};
 
-function asaOf(c: Record<ZoneRole, number>, row: Row): ASA[] {
-  const servis = Math.max(c["Welcome"], c["Kabin Welcomer"]);
-  const satis = Math.max(c["Kabin"], c["Welcome"]);
-  const ops = Math.round((c["Zone 2"] + c["Zone 3"] + c["Zone 4"] + c["Zone 5"]) / 4);
-  const gelisim: AsaStatus = row.mgr || row.tenure === "EXPERT" ? "strong" : "developing";
-  return [
-    { label: "Müşteri Servisi", weight: 25, status: statusFrom(servis), ...(servis >= 3 ? { provenBy: "karşılama akışı · tepe-saatte korunmuş conversion" } : {}) },
-    { label: "Satış", weight: 25, status: statusFrom(satis), ...(satis >= 3 ? { provenBy: "kabin kapatma · conversion lift" } : {}) },
-    { label: "Mağaza İçi Operasyonu", weight: 25, status: statusFrom(ops), ...(ops >= 3 ? { provenBy: "zone kapsama · reyon düzeni" } : {}) },
-    { label: "Kendini Geliştirme", weight: 10, status: gelisim },
-  ];
-}
-
-const STATUS_BY_COMP = (v: number): SkillStatus =>
-  v >= 4 ? SkillStatus.CanTeach : v === 3 ? SkillStatus.CanDo : v === 2 ? SkillStatus.NeedImprovement : SkillStatus.Theory;
-
-function skillsOf(c: Record<ZoneRole, number>): Skill[] {
-  // En güçlü 2 + gelişime açık 2 rol — gerçek yetkinlikten
-  const sorted = [...STAFF_ROLES].filter((r) => r !== "Sprinter").sort((a, b) => c[b] - c[a]);
-  const pick = [...sorted.slice(0, 2), ...sorted.slice(-2)];
-  const seen = new Set<string>();
-  return pick
-    .filter((r) => (seen.has(r) ? false : (seen.add(r), true)))
-    .map((r) => ({ topic: r, status: STATUS_BY_COMP(c[r]) }));
-}
-
-function kpisOf(c: Record<ZoneRole, number>): KPI[] {
-  const zoneAvg = Math.round((c["Zone 2"] + c["Zone 3"] + c["Zone 4"] + c["Zone 5"]) / 4);
-  const out: KPI[] = [];
-  if (c["Kabin"] >= 3)
-    out.push({ label: "Yoğunlukta kapatma (FR→satış)", value: c["Kabin"] >= 4 ? "güçlü" : "iyi", trend: "up", evidence: "tepe-saat gözlemlerinden" });
-  if (c["Welcome"] >= 3) out.push({ label: "Karşılama → ilgilenme", value: "güçlü", trend: "up" });
-  if (c["Kabin Welcomer"] >= 3)
-    out.push({ label: "Kabin karşılama & kayıp önleme", value: c["Kabin Welcomer"] >= 4 ? "güçlü" : "iyi", trend: "up" });
-  if (zoneAvg >= 3) out.push({ label: "Reyon sell-through", value: "iyi", trend: "neutral" });
-  if (out.length < 2)
-    out.push({ label: "Saha uyumu & tempo", value: c["Kabin"] >= 2 || c["Welcome"] >= 2 ? "gelişiyor" : "yeni", trend: "up", evidence: "ilk haftalardan" });
-  return out.slice(0, 3);
-}
-
-function tendencyOf(level: MasteryLevel): number[] {
-  switch (level) {
-    case MasteryLevel.New: return [0, 1, 1, 2];
-    case MasteryLevel.Competent: return [1, 2, 2, 3];
-    case MasteryLevel.Master: return [2, 3, 3, 4];
-    default: return [3, 3, 4, 4];
-  }
-}
-
-function strongPointOf(c: Record<ZoneRole, number>, row: Row): string {
-  if (row.note.includes("yönetici")) return "Saha yönetimi & koçluk — ekibi tepe-saatte dengeler.";
-  const best = [...STAFF_ROLES].filter((r) => r !== "Sprinter").sort((a, b) => c[b] - c[a])[0];
-  if (c[best] >= 4) return `${best}'de usta — başkasına öğretebilir, tepe-saatte sakin.`;
-  if (c[best] >= 3) return `${best}'de güçlü; yoğunlukta güvenilir.`;
-  return "Öğrenmeye hevesli; temeller oturuyor.";
-}
-
-function growthEdgeOf(c: Record<ZoneRole, number>, row: Row): string {
-  if (row.tenure === "NEW_0_1") return "Çok yeni — kıdemli eşliğinde temel roller.";
-  const weakFront = c["Welcome"] <= 1 ? "Welcome (karşılama)" : c["Kabin"] <= 1 ? "Kabin akışı" : null;
-  if (weakFront) return `${weakFront} — kademeli geliştirilir.`;
-  return "One Store derinliği & tepe-saat dayanıklılığı.";
-}
+/** Kıdem anahtarı (dil-bağımsız) — data-competency'nin türetimi için. */
+export const tenureKey = (id: string): TenureKey => ROW_BY_ID[id]?.tenure ?? "NEW_3_6";
 
 function buildEmployee(row: Row): Employee {
-  const c = compMap(row);
-  STAFF_COMP[row.id] = c;
-  const level = levelOf(row);
-  const teachRole = STAFF_ROLES.find((r) => c[r] >= 4);
+  STAFF_COMP[row.id] = compMap(row);
+  ROW_BY_ID[row.id] = row;
   return {
     id: row.id,
     name: row.name,
     role: Role.SalesAssistant,
-    level,
-    tenure: TENURE_LABEL[row.tenure],
-    asaMap: asaOf(c, row),
-    skills: skillsOf(c),
-    kpis: kpisOf(c),
-    tendency: tendencyOf(level),
+    level: levelOf(row),
+    tenure: TENURE_LABEL[row.tenure](),
     confidence: confidenceOf(row),
-    strongPoint: strongPointOf(c, row),
-    growthEdge: growthEdgeOf(c, row),
-    ...(teachRole ? { canTeach: teachRole } : {}),
   };
 }
 
@@ -203,11 +132,4 @@ export function jobTypeOf(id: string): JobType {
   if (id === "Sevim") return "Müdür";
   if (COMMERCIAL.has(id)) return "Commercial";
   return "Satış Danışmanı";
-}
-
-/** Bir role en yetkin kişiler (chart yerleşimi + öneri için). */
-export function rankForRole(role: ZoneRole, excludeIds: string[] = []): string[] {
-  return ROWS.map((r) => r.id)
-    .filter((id) => !excludeIds.includes(id))
-    .sort((a, b) => STAFF_COMP[b][role] - STAFF_COMP[a][role]);
 }

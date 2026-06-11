@@ -1,4 +1,5 @@
 import { hourly } from "../data";
+import { pick } from "../i18n";
 
 /**
  * #4 — gerçek saatlik örüntü (Export.xlsx 2025): trafik bar'ları + conversion
@@ -28,24 +29,27 @@ export function HourlySpark() {
   return (
     <div className="pusula-spark">
       <div className="pusula-spark-head">
-        <span className="pusula-pocket-eb">Saatlik akış · 15–21</span>
+        <span className="pusula-pocket-eb">{pick({ tr: "Saatlik akış · 15–21", en: "Hourly flow · 15–21", es: "Flujo por hora · 15–21" })}</span>
         <span className="pusula-spark-legend">
-          <i className="t" /> trafik <i className="c" /> conversion
+          <i className="t" /> {pick({ tr: "trafik", en: "traffic", es: "tráfico" })} <i className="c" /> conversion
         </span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" className="pusula-spark-svg">
-        {pWidth > 0 && <rect x={pStart} y={padTop - 4} width={pWidth} height={H - padTop - padBot + 8} fill="var(--zara-gold-tint)" />}
+        {pWidth > 0 && <rect x={pStart} y={padTop - 4} width={pWidth} height={H - padTop - padBot + 8} rx={5} fill="var(--zara-gold)" opacity={0.07} />}
+        {/* taban çizgisi */}
+        <line x1={padX} y1={H - padBot} x2={W - padX} y2={H - padBot} stroke="var(--zara-line-strong)" strokeWidth={0.8} />
         {hourly.map((h, i) => {
           const bh = (h.traffic / maxT) * (H - padTop - padBot);
           return (
             <rect
               key={h.hour}
-              x={padX + bw * i + bw * 0.2}
+              x={padX + bw * i + bw * 0.26}
               y={H - padBot - bh}
-              width={bw * 0.6}
+              width={bw * 0.48}
               height={bh}
-              fill="var(--zara-line-strong)"
-              opacity={0.5}
+              rx={2.5}
+              fill="var(--zara-ink)"
+              opacity={0.12}
             />
           );
         })}
@@ -60,7 +64,11 @@ export function HourlySpark() {
         ))}
       </svg>
       <div className="pusula-spark-foot">
-        Tepe-saatte trafik zirvede, conversion dipte — kapatılan açık talep cebi.
+        {pick({
+          tr: "Tepe-saatte trafik zirvede, conversion dipte — kapatılan açık talep cebi.",
+          en: "At peak, traffic spikes and conversion bottoms out — the open-demand pocket being closed.",
+          es: "En el pico, el tráfico se dispara y la conversión cae — el hueco de demanda abierta que se cierra.",
+        })}
       </div>
     </div>
   );

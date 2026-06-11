@@ -10,11 +10,12 @@ import { Yerlestirme } from "./views/Yerlestirme";
 import { GelisimDefteri } from "./views/GelisimDefteri";
 import { OgrenenHafiza } from "./views/OgrenenHafiza";
 import { UstaYolu } from "./views/UstaYolu";
+import { SahaKrokisi } from "./views/SahaKrokisi";
 import { ProfileDrawer } from "./components/ProfileDrawer";
 import { useAuthGate } from "../shift-organizer/auth-gate";
-import { LangCtx, LANGS, tr, type Lang } from "./i18n";
+import { LangCtx, LANGS, tr, setActiveLang, type Lang } from "./i18n";
 
-type ViewId = "ekip" | "profil" | "defter" | "hafiza" | "usta" | "yerlestirme";
+type ViewId = "ekip" | "profil" | "defter" | "hafiza" | "usta" | "yerlestirme" | "saha";
 
 const GROUPS: Array<{ key: string; hintKey: string; items: Array<{ id: ViewId; labelKey: string; subKey: string }> }> = [
   {
@@ -37,7 +38,10 @@ const GROUPS: Array<{ key: string; hintKey: string; items: Array<{ id: ViewId; l
   {
     key: "nav.sonuc",
     hintKey: "hint.ne",
-    items: [{ id: "yerlestirme", labelKey: "item.yerlestirme", subKey: "sub.yerlestirme" }],
+    items: [
+      { id: "yerlestirme", labelKey: "item.yerlestirme", subKey: "sub.yerlestirme" },
+      { id: "saha", labelKey: "item.saha", subKey: "sub.saha" },
+    ],
   },
 ];
 
@@ -48,6 +52,7 @@ const VIEW_GROUP: Record<ViewId, string> = {
   hafiza: "nav.gelisim",
   usta: "nav.gelisim",
   yerlestirme: "nav.sonuc",
+  saha: "nav.sonuc",
 };
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
@@ -85,12 +90,24 @@ function PusulaInner() {
     setOpen(null);
   };
 
+  // üretilmiş içerik (data-program) için aktif dili senkron set et (çocuklar render'dan önce)
+  setActiveLang(lang);
+
+  // CSS text-transform: uppercase TR locale'de EN metne noktalı İ basar (STRONG İN) —
+  // html lang'ı aktif dile eşitle; ayrılırken site varsayılanına (tr) dön.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    return () => {
+      document.documentElement.lang = "tr";
+    };
+  }, [lang]);
+
   return (
     <LangCtx.Provider value={{ lang, setLang }}>
     <div className="zt-editorial pusula-shell">
       <header className="pusula-top">
         <div className="pusula-brand">
-          <Link to="/brain" className="pusula-brand-back" aria-label="Brain'e dön">
+          <Link to="/brain" className="pusula-brand-back" aria-label={tr("a11y.backBrain", lang)}>
             <Icon name="arrow-up-right" size={13} style={{ transform: "rotate(-135deg)" }} />
           </Link>
           <div>
@@ -177,6 +194,7 @@ function PusulaInner() {
             {view === "hafiza" && <OgrenenHafiza />}
             {view === "usta" && <UstaYolu />}
             {view === "yerlestirme" && <Yerlestirme applied={applied} onApply={setApplied} />}
+            {view === "saha" && <SahaKrokisi />}
           </motion.div>
         </AnimatePresence>
       </main>

@@ -1,20 +1,29 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, BrainCircuit, Clock, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowRight, BrainCircuit, Check, Clock, RefreshCw, Sparkles } from "lucide-react";
 import { Headline } from "../../brain/primitives";
-import { useT } from "../i18n";
+import { usePersistentState } from "../session-store";
+import { pick, useT } from "../i18n";
 import { byId } from "../data";
-import { MENTOR_MATCHES, MENTOR_MATCHES_OPTIMIZED } from "../data-mentor";
+import { mentorMatches, mentorMatchesOptimized } from "../data-mentor";
 import { MasteryLevel } from "../types";
 import type { MentorMatch } from "../types-gelisim";
 import { PersonAvatar } from "../components/PersonAvatar";
 import { ConfidenceDots } from "../components/ConfidenceDots";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
-const DAYS = ["Dün", "Bugün", "Yarın"];
+const DAYS: { key: string; label: () => string }[] = [
+  { key: "Dün", label: () => pick({ tr: "Dün", en: "Yesterday", es: "Ayer" }) },
+  { key: "Bugün", label: () => pick({ tr: "Bugün", en: "Today", es: "Hoy" }) },
+  { key: "Yarın", label: () => pick({ tr: "Yarın", en: "Tomorrow", es: "Mañana" }) },
+];
 
 /** Yarının müsait (düşük trafik) saatleri — önceki günden bilinir, eğitim fırsatı. */
-const SLACK_WINDOWS = ["15:00–16:00 · sakin açılış", "12:30–13:30 · öğle düşüşü", "20:00–21:00 · kapanış öncesi"];
+const SLACK_WINDOWS: (() => string)[] = [
+  () => pick({ tr: "15:00–16:00 · sakin açılış", en: "15:00–16:00 · calm opening", es: "15:00–16:00 · apertura tranquila" }),
+  () => pick({ tr: "12:30–13:30 · öğle düşüşü", en: "12:30–13:30 · midday dip", es: "12:30–13:30 · bajada de mediodía" }),
+  () => pick({ tr: "20:00–21:00 · kapanış öncesi", en: "20:00–21:00 · before closing", es: "20:00–21:00 · antes del cierre" }),
+];
 
 /**
  * Usta Yolu — animasyonlu mentor↔mentee EŞLEŞME TABLOSU. Müsait saatler (slack)
@@ -25,13 +34,17 @@ const SLACK_WINDOWS = ["15:00–16:00 · sakin açılış", "12:30–13:30 · ö
 export function UstaYolu() {
   const t = useT();
   const [day, setDay] = useState("Yarın");
-  const [matches, setMatches] = useState<MentorMatch[]>(MENTOR_MATCHES);
+  const [optimized, setOptimized] = usePersistentState("usta.optimized", false);
   const [optimizing, setOptimizing] = useState(false);
+  // koç onayları görünüm değişiminde kaybolmasın
+  const [confirmed, setConfirmed] = usePersistentState<Record<string, boolean>>("usta.confirmed", {});
+  const toggleConfirm = (id: string) => setConfirmed((p) => ({ ...p, [id]: !p[id] }));
+  const matches: MentorMatch[] = optimized ? mentorMatchesOptimized() : mentorMatches();
 
   const optimize = () => {
     setOptimizing(true);
     setTimeout(() => {
-      setMatches(MENTOR_MATCHES_OPTIMIZED);
+      setOptimized(true);
       setOptimizing(false);
     }, 1200);
   };
@@ -42,14 +55,18 @@ export function UstaYolu() {
         <div>
           <Headline ital={t("t.usta.i")} roman={t("t.usta.r")} size={32} />
           <div className="pusula-sub">
-            Müsait saatler eğitim fırsatıdır — önceki günden bilinir, koç↔kişi eşleştirilir. Model öğrenir.
+            {pick({
+              tr: "Müsait saatler eğitim fırsatıdır — önceki günden bilinir, koç↔kişi eşleştirilir. Model öğrenir.",
+              en: "Free hours are training opportunities — known from the day before, coach↔person matched. The model learns.",
+              es: "Las horas libres son oportunidades de formación — conocidas desde el día anterior, coach↔persona emparejados. El modelo aprende.",
+            })}
           </div>
         </div>
         <div className="pusula-usta-controls">
           <div className="pusula-seg">
             {DAYS.map((d) => (
-              <button key={d} className={day === d ? "on" : ""} onClick={() => setDay(d)}>
-                {d}
+              <button key={d.key} className={day === d.key ? "on" : ""} onClick={() => setDay(d.key)}>
+                {d.label()}
               </button>
             ))}
           </div>
@@ -62,20 +79,20 @@ export function UstaYolu() {
 
       {/* müsait saat şeridi */}
       <div className="pusula-slack">
-        <span className="pusula-slack-eb"><Sparkles size={12} /> Yarının eğitim pencereleri</span>
-        {SLACK_WINDOWS.map((w) => (
-          <span key={w} className="pusula-slack-chip">{w}</span>
+        <span className="pusula-slack-eb"><Sparkles size={12} /> {pick({ tr: "Yarının eğitim pencereleri", en: "Tomorrow's training windows", es: "Ventanas de formación de mañana" })}</span>
+        {SLACK_WINDOWS.map((w, i) => (
+          <span key={i} className="pusula-slack-chip">{w()}</span>
         ))}
-        <span className="pusula-slack-note">düşük trafik = sahada koçluk zamanı</span>
+        <span className="pusula-slack-note">{pick({ tr: "düşük trafik = sahada koçluk zamanı", en: "low traffic = coaching time on the floor", es: "tráfico bajo = tiempo de coaching en la sala" })}</span>
       </div>
 
       {/* animasyonlu eşleşme tablosu */}
       <div className="pusula-matchtable">
         <div className="pusula-matchrow head">
-          <span>Eşleşme</span>
-          <span>Odak</span>
-          <span>Eğitim slotu</span>
-          <span>Güven</span>
+          <span>{pick({ tr: "Eşleşme", en: "Match", es: "Emparejamiento" })}</span>
+          <span>{pick({ tr: "Odak", en: "Focus", es: "Enfoque" })}</span>
+          <span>{pick({ tr: "Eğitim slotu", en: "Training slot", es: "Franja de formación" })}</span>
+          <span>{pick({ tr: "Güven", en: "Confidence", es: "Confianza" })}</span>
           <span />
         </div>
         <AnimatePresence mode="popLayout">
@@ -86,7 +103,7 @@ export function UstaYolu() {
               <motion.div
                 key={m.id}
                 layout
-                className="pusula-matchrow"
+                className={`pusula-matchrow ${confirmed[m.id] ? "confirmed" : ""}`}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.97 }}
@@ -96,13 +113,13 @@ export function UstaYolu() {
                   <PersonAvatar name={mentor?.name ?? "?"} dark={mentor?.level === MasteryLevel.Coach} size={28} />
                   <div className="pusula-match-names">
                     <strong>{mentor?.name?.split(" ")[0] ?? "—"}</strong>
-                    <span className="pusula-match-r">mentor</span>
+                    <span className="pusula-match-r">{pick({ tr: "mentor", en: "mentor", es: "mentor" })}</span>
                   </div>
                   <ArrowRight size={14} className="pusula-match-arrow" />
                   <PersonAvatar name={mentee?.name ?? "?"} dark={mentee?.level === MasteryLevel.Coach} size={28} />
                   <div className="pusula-match-names">
                     <strong>{mentee?.name?.split(" ")[0] ?? "—"}</strong>
-                    <span className="pusula-match-r">öğrenen</span>
+                    <span className="pusula-match-r">{pick({ tr: "öğrenen", en: "learner", es: "aprendiz" })}</span>
                   </div>
                 </div>
                 <div className="pusula-match-focus2">{m.focus}</div>
@@ -113,8 +130,16 @@ export function UstaYolu() {
                   <ConfidenceDots level={m.confidence} />
                 </div>
                 <div className="pusula-match-act2">
-                  <button className="pusula-match-yes">{t("b.confirm")}</button>
-                  <button className="pusula-match-edit">{t("b.edit")}</button>
+                  {confirmed[m.id] ? (
+                    <button className="pusula-match-yes on" onClick={() => toggleConfirm(m.id)}>
+                      <Check size={12} strokeWidth={2.4} /> {pick({ tr: "Onaylandı", en: "Confirmed", es: "Confirmado" })}
+                    </button>
+                  ) : (
+                    <>
+                      <button className="pusula-match-yes" onClick={() => toggleConfirm(m.id)}>{t("b.confirm")}</button>
+                      <button className="pusula-match-edit">{t("b.edit")}</button>
+                    </>
+                  )}
                 </div>
               </motion.div>
             );
@@ -125,18 +150,28 @@ export function UstaYolu() {
       <div className="pusula-usta-learn">
         <BrainCircuit size={18} strokeWidth={1.5} />
         <div>
-          <strong>Model nasıl öğreniyor?</strong>
+          <strong>{pick({ tr: "Model nasıl öğreniyor?", en: "How does the model learn?", es: "¿Cómo aprende el modelo?" })}</strong>
           <p>
-            Her onay/revizyonda Pusula saha dinamiklerini (kim kiminle uyumlu, yetkinlik artışı, müsait-saat doluluğu)
-            biraz daha iyi öğrenir; eşleşmelerin <em>güveni</em> yükselir. Koçluk sahada gerçekleştikçe — takvimde
-            görünmek değil, <em>birlikte geçen zaman + lift</em> — sinyal güçlenir.
+            {pick({
+              tr: "Her onay/revizyonda Pusula saha dinamiklerini (kim kiminle uyumlu, yetkinlik artışı, müsait-saat doluluğu) biraz daha iyi öğrenir; eşleşmelerin ",
+              en: "With each approval/revision Pusula learns the floor dynamics (who fits with whom, competency growth, slack-hour usage) a little better; the ",
+              es: "Con cada aprobación/revisión Pusula aprende mejor las dinámicas de sala (quién encaja con quién, crecimiento de competencia, uso de horas libres); la ",
+            })}
+            <em>{pick({ tr: "güveni", en: "confidence", es: "confianza" })}</em>
+            {pick({
+              tr: " yükselir. Koçluk sahada gerçekleştikçe — takvimde görünmek değil, ",
+              en: " of matches rises. As coaching actually happens on the floor — not appearing on the calendar, but ",
+              es: " de los emparejamientos sube. A medida que el coaching ocurre en la sala — no aparecer en el calendario, sino ",
+            })}
+            <em>{pick({ tr: "birlikte geçen zaman + lift", en: "time spent together + lift", es: "tiempo juntos + lift" })}</em>
+            {pick({ tr: " — sinyal güçlenir.", en: " — the signal strengthens.", es: " — la señal se fortalece." })}
           </p>
         </div>
       </div>
 
       <div className="pusula-assure pusula-assure-row">
-        <span>Karar koçundur — öneri, dayatma değil</span>
-        <span>Eğitimcinin de eğitimi: koç da öğrenen olabilir</span>
+        <span>{pick({ tr: "Karar koçundur — öneri, dayatma değil", en: "The decision is the coach's — a suggestion, not a mandate", es: "La decisión es del coach — sugerencia, no imposición" })}</span>
+        <span>{pick({ tr: "Eğitimcinin de eğitimi: koç da öğrenen olabilir", en: "Training the trainer too: a coach can also be a learner", es: "Formar al formador también: un coach también puede ser aprendiz" })}</span>
       </div>
     </div>
   );

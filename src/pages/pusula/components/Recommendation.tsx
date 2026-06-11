@@ -2,12 +2,14 @@ import { Check, RotateCcw } from "lucide-react";
 import { byId } from "../data";
 import { MasteryLevel, type Recommendation as Rec } from "../types";
 import { PersonAvatar } from "./PersonAvatar";
+import { pick, useT } from "../i18n";
 
-const KIND_LABEL: Record<Rec["kind"], string> = {
-  strength: "Güç",
-  synergy: "Sinerji",
-  growth: "Gelişim",
-  teaching: "Aktarım",
+const KIND_LABEL: Record<Rec["kind"], () => string> = {
+  strength: () => pick({ tr: "Güç", en: "Strength", es: "Fortaleza" }),
+  synergy: () => pick({ tr: "Sinerji", en: "Synergy", es: "Sinergia" }),
+  growth: () => pick({ tr: "Gelişim", en: "Growth", es: "Desarrollo" }),
+  teaching: () => pick({ tr: "Aktarım", en: "Transfer", es: "Transferencia" }),
+  discovery: () => pick({ tr: "Keşif", en: "Discovery", es: "Descubrimiento" }),
 };
 
 /**
@@ -23,6 +25,7 @@ export function RecommendationCard({
   accepted: boolean;
   onToggle: () => void;
 }) {
+  const t = useT();
   const person = byId(rec.employeeId);
   const buddy = rec.buddyId ? byId(rec.buddyId) : undefined;
 
@@ -38,7 +41,7 @@ export function RecommendationCard({
       </div>
       <div className="pusula-rec-body">
         <div className="pusula-rec-head">
-          <span className={`pusula-rec-kind ${rec.kind}`}>{KIND_LABEL[rec.kind]}</span>
+          <span className={`pusula-rec-kind ${rec.kind}`}>{KIND_LABEL[rec.kind]()}</span>
           <span className="pusula-rec-route">
             {person?.name ?? rec.employeeId}
             {buddy && ` · ${buddy.name}`} → {rec.toRole} · {rec.hours}
@@ -49,11 +52,11 @@ export function RecommendationCard({
         <button className={`pusula-rec-act ${accepted ? "on" : ""}`} onClick={onToggle}>
           {accepted ? (
             <>
-              <RotateCcw size={12} /> Geri al
+              <RotateCcw size={12} /> {t("b.undo")}
             </>
           ) : (
             <>
-              <Check size={12} /> Uygula
+              <Check size={12} /> {t("b.apply")}
             </>
           )}
         </button>

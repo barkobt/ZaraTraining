@@ -19,53 +19,15 @@ export const MasteryLevel = {
 } as const;
 export type MasteryLevel = (typeof MasteryLevel)[keyof typeof MasteryLevel];
 
-export const SkillStatus = {
-  Theory: "Teorik",
-  CanDo: "Yapabiliyor",
-  NeedImprovement: "Geliştirilmeli",
-  CanTeach: "Öğretebilir",
-} as const;
-export type SkillStatus = (typeof SkillStatus)[keyof typeof SkillStatus];
-
-export type Trend = "up" | "down" | "neutral";
-
-// KPI — kişinin "kanıtlanan" gücü; value NİTEL ("güçlü"/"iyi"/"gelişiyor"), sayı değil.
-export interface KPI {
-  label: string;
-  value: string;
-  trend: Trend;
-  evidence?: string; // ör. "14 vardiyadan"
-}
-
-export type AsaStatus = "strong" | "developing" | "neutral";
-
-// ASA — formdaki Ana Sorumluluk Alanı. provenBy = bunu hangi KPI "daha gerçek" kılıyor (#2).
-export interface ASA {
-  label: string;
-  weight: number; // formdaki % ağırlık (0–100)
-  status: AsaStatus;
-  provenBy?: string;
-}
-
-export interface Skill {
-  topic: string;
-  status: SkillStatus;
-}
-
+// Kişi çekirdeği — yetkinlik/kanıt katmanı AYRI yaşar (data-competency.ts):
+// 6 operasyonel yetkinlik + kanıt kanalları oradan render-time türetilir.
 export interface Employee {
   id: string;
   name: string;
   role: Role;
   level: MasteryLevel;
   tenure: string;
-  asaMap: ASA[];
-  skills: Skill[];
-  kpis: KPI[];
-  tendency: number[]; // 0–4 iç değer; UI'da SAYI DEĞİL, "gelişiyor/sabit" eğrisi olarak göster
   confidence: "emerging" | "medium" | "high"; // SOFT kanıt seviyesi — rakam değil
-  strongPoint: string;
-  growthEdge: string;
-  canTeach?: string; // varsa "Öğretebilir" olduğu konu
 }
 
 // Shift pozisyonları = gerçek solver rolleri. Job-family 'Role' ile KARIŞTIRMA.
@@ -87,7 +49,7 @@ export interface ChartCell {
 }
 export type ChartState = ChartCell[];
 
-export type RecKind = "strength" | "synergy" | "growth" | "teaching";
+export type RecKind = "strength" | "synergy" | "growth" | "teaching" | "discovery";
 
 // Öneri = morph'u tetikleyen ve KİŞİYİ kredilendiren birim. Kanıt burada, kişide değil.
 export interface Recommendation {

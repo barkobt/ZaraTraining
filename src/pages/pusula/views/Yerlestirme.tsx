@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Eyebrow, Headline } from "../../brain/primitives";
+import { usePersistentState } from "../session-store";
 import { useT } from "../i18n";
-import { pocket, recommendations } from "../data";
+import { pocket, getRecommendations } from "../data";
 import { applyMoves } from "../placement";
 import { ShiftChart } from "../components/ShiftChart";
 import { PocketMeter } from "../components/PocketMeter";
@@ -28,8 +28,13 @@ export function Yerlestirme({
   onApply: (v: boolean) => void;
 }) {
   const t = useT();
-  // accepted rec id listesi — applied=true ise hepsi açık başlasın (shell hatırası ile uyum)
-  const [accepted, setAccepted] = useState<string[]>(applied ? recommendations.map((r) => r.id) : []);
+  const recommendations = getRecommendations();
+  // accepted rec id listesi — session-store'da yaşar (görünüm değişiminde tek tek
+  // kabul edilenler kaybolmaz); ilk girişte shell hatırası (applied) ile uyumlu başlar.
+  const [accepted, setAccepted] = usePersistentState<string[]>(
+    "yer.accepted",
+    applied ? recommendations.map((r) => r.id) : [],
+  );
 
   const chart = applyMoves(accepted);
   const fraction = accepted.length / recommendations.length;
@@ -55,9 +60,7 @@ export function Yerlestirme({
       <div className="pusula-place-head">
         <div>
           <Headline ital={t("t.yer.i")} roman={t("t.yer.r")} size={32} />
-          <div className="pusula-sub">
-            Pusula önerir; koç tek tek uygular. Her kabul cebi biraz daha rahatlatır — öneri, dayatma değil.
-          </div>
+          <div className="pusula-sub">{t("t.yer.sub")}</div>
         </div>
         <div className="pusula-usta-controls">
           <button className="pusula-apply" onClick={all} disabled={fraction >= 1}>
@@ -83,7 +86,7 @@ export function Yerlestirme({
           <div className="pusula-recs-head">
             <Eyebrow>{t("e.thesis")}</Eyebrow>
             <span className="pusula-recs-count">
-              {accepted.length}/{recommendations.length} uygulandı
+              {accepted.length}/{recommendations.length} {t("l.applied")}
             </span>
           </div>
           <div className="pusula-recs">

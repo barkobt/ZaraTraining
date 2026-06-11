@@ -4,7 +4,11 @@ import { MasteryLevel, type Employee } from "../types";
 import { PersonAvatar } from "./PersonAvatar";
 import { MasteryChip } from "./MasteryChip";
 import { ConfidenceDots } from "./ConfidenceDots";
-import { AsaBar } from "./AsaBar";
+import { CompetencyCards } from "./CompetencyCards";
+import { UpcomingTrainings } from "./UpcomingTrainings";
+import { strongPointOf } from "../data-competency";
+import { sellingPersona } from "../data-program";
+import { upcomingTrainings } from "../data-profile";
 import { useT } from "../i18n";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
@@ -22,6 +26,8 @@ export function ProfileDrawer({
   onFull: () => void;
 }) {
   const t = useT();
+  const pa = person ? sellingPersona(person) : null;
+  const trainings = person ? upcomingTrainings(person) : [];
   return (
     <AnimatePresence>
       {person && (
@@ -49,29 +55,42 @@ export function ProfileDrawer({
                   <MasteryChip level={person.level} />
                 </div>
               </div>
-              <button className="pusula-drawer-x" onClick={onClose} aria-label="Kapat">
+              <button className="pusula-drawer-x" onClick={onClose} aria-label={t("a11y.close")}>
                 <X size={16} strokeWidth={1.6} />
               </button>
             </div>
 
-            <div className="pusula-drawer-strong">{person.strongPoint}</div>
+            {pa && (
+              <div className="pusula-drawer-persona">
+                <span className="pusula-drawer-persona-label">{pa.label}</span>
+                <span className="pusula-drawer-persona-energy">{pa.energy}</span>
+              </div>
+            )}
+
+            <div className="pusula-drawer-strong">{strongPointOf(person)}</div>
 
             <div className="pusula-drawer-conf">
-              <span>Güven</span>
+              <span>{t("l.confidence")}</span>
               <ConfidenceDots level={person.confidence} />
             </div>
 
-            <div className="pusula-drawer-asa">
-              {person.asaMap.map((a) => (
-                <AsaBar key={a.label} asa={a} />
-              ))}
+            {trainings.length > 0 && (
+              <div className="pusula-drawer-sec">
+                <span className="pusula-drawer-eb">{t("e.upcoming")}</span>
+                <UpcomingTrainings items={trainings.slice(0, 2)} compact />
+              </div>
+            )}
+
+            <div className="pusula-drawer-sec">
+              <span className="pusula-drawer-eb">{t("e.strongIn")}</span>
+              <CompetencyCards personId={person.id} compact />
             </div>
 
             <div className="pusula-drawer-foot">
               <button className="pusula-fulllink" onClick={onFull}>
                 {t("b.fullProfile")}
               </button>
-              <span className="pusula-drawer-note">Bu profili çalışan da görür.</span>
+              <span className="pusula-drawer-note">{t("a.worker")}</span>
             </div>
           </motion.aside>
         </>

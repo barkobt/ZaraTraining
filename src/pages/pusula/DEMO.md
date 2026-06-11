@@ -7,11 +7,16 @@
 Rota: **`/pusula`**. Üst nav **hover-click dropdown**: İNSAN · GELİŞİM · SONUÇ.
 
 ## İNSAN
-1. **Ekip** — 30 gerçek personel (Ada·Baran[koç]·Begüm·Fatma[Kabin ★★★★]·Şeyma…).
-   Her kart: ustalık çipi, güçlü/gelişen yan, soluk güven (●●●○). Profili yetkinlik
-   + tenure'dan NİTEL türetilir. Karta tıkla → drawer.
-2. **Profil** — derin okuma: ASA(+kanıt) · gelişim eğrisi · ASA→KPI köprüsü · beceri
-   matrisi (gerçek rol yetkinliklerinden) · (usta ise) Usta Aktarımı.
+1. **Ekip** — 30 gerçek personel (Ada·Baran[koç]·Begüm·Fatma[Kabin Akışı: usta]·Şeyma…).
+   Her kart: ustalık çipi, güçlü/gelişen yan, soluk güven (●●●○). Profil 6'lı KANIT
+   katmanından (data-competency) NİTEL türetilir. Karta tıkla → drawer.
+2. **Profil — hikâye akışı**: Kim (persona+okuma) → **Neyde güçlü** (6 operasyonel
+   yetkinlik kartı: nitel seviye + kanıt satırı [kabin sayacı / vardiya-kesişim KPI /
+   kitapçık / EAS / koç] + davranışsal taban şeridi + **keşfedilmemiş alanlar** =
+   boş bar değil keşif aksiyonu) → **Nerede parlar** (zone talebi × kanıt) →
+   **Nereye gidiyor** (yörünge+tahmin) → **Kanıt→Öneri→Onay** (aptitude döngüsü:
+   kanıt birikir, Pusula Orquest aptitude güncellemesi önerir, koç onaylar) →
+   Sıradaki adım (eğitimler · usta ise Usta Aktarımı).
 
 ## GELİŞİM (kişilerin eğitimi · öğrenen hafıza · eğitimcinin eğitimi)
 3. **Gelişim Defteri** — gerçek 3 kitapçıktan, **5 sekme**:
@@ -31,11 +36,16 @@ Rota: **`/pusula`**. Üst nav **hover-click dropdown**: İNSAN · GELİŞİM · 
 
 ## SONUÇ
 6. **Yerleştirme (kalp)** — GERÇEK akşam chart'ı (15–20, gerçek 8 kişilik ekip, roller
-   operasyonel sırada). **ÖNCE**: ustalar (Fatma·Şeyma ★★★★) arka zone/Sprinter'da boşa,
+   operasyonel sırada). **ÖNCE**: ustalar (Fatma·Şeyma) arka zone/Sprinter'da boşa,
    tepe kabin yeni ellerde (Asya·Gamze) → cep gergin. **Uygula** (tek tek, kademeli):
-   Pusula yetkinliğe göre ustaları **tepe kabine akıtır** (layoutId morph), yeniler sakin
-   zone'a; akşam cebi (kilitli 17–19) yumuşakça rahatlar. Gerçek saatlik eğri (Export.xlsx
-   2025: tepe trafik · dip conversion). Kanıt öneride. "Hepsini uygula / Sıfırla".
+   Pusula kanıta göre ustaları **tepe kabine akıtır** (layoutId morph), yeniler sakin
+   zone'a; akşam cebi (kilitli 17–19) yumuşakça rahatlar. 4 öneri türü+1: Güç · Sinerji ·
+   Gelişim · Aktarım · **Keşif** (Selin → Zone 3, sakin saatte sinyal toplar). Tez dili
+   KANIT dilidir (kabin sayacı · vardiya-kesişim). Gerçek saatlik eğri (Export.xlsx
+   2025: tepe trafik · dip conversion). "Hepsini uygula / Sıfırla".
+7. **Saha Krokisi** — zone'lar YER; her zone yetkinlik TALEP eder ("Bu zone ne ister"
+   çipleri + baskı sinyali) ve "Kim uyar" kanıt gerekçesiyle gelir; sakin zone'da
+   keşif adayı önerilir.
 
 ## His & sınır
 Sakin/editöryel/sıcak (Bodoni serif · porselen · pirinç). Güvenceler görünür: "Karar
@@ -43,7 +53,11 @@ sizde", "Sert kısıtlar korundu", "Bu profili/raporu çalışan da görür", "D
 gelişim için". Skor-tablosu değil.
 
 ## Mimari
-- `data-staff.ts`: 30 gerçek personel (seed) + yetkinlikten türetilen profiller + `STAFF_COMP`.
+- `data-staff.ts`: 30 gerçek personel (roster) + `STAFF_COMP` (yalnız İÇ TOHUM — UI okumaz).
+- `data-competency.ts`: **iki katman + keşif** modeli — 6 operasyonel yetkinlik
+  (karşılama · kabin · dolum · sell-through · ürün · kayıp), kanıt kanalları
+  (counter/attribution/booklet/eas/coach), durumlar (unexplored/emerging/proven),
+  zone talebi eşleşmesi (ROLE_NEEDS, zoneFit), aptitude önerileri, keşif önerisi.
 - `placement.ts`: gerçek-his chart motoru (disjoint swap'lar, kademeli) + tRPC seam
   (gerçekte `chart.generate` → `SolveResponse.chart`; UI değişmez).
 - `data-gelisim.ts` / `data-program.ts`: gerçek kitapçık topic'leri + dönem/yetkinlik/rapor türetimi.

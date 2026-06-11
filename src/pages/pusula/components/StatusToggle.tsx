@@ -1,5 +1,6 @@
 import { Award, BookOpen, Check, AlertCircle } from "lucide-react";
 import type { TopicStatus } from "../types-gelisim";
+import { pick } from "../i18n";
 
 /**
  * Konu öğrenme durumu — ETİKETLİ ve SIRALI (gelişim akışı):
@@ -10,12 +11,12 @@ const ORDER: Array<Exclude<TopicStatus, "Boş">> = ["Teorik", "Yapabiliyor", "Ge
 
 const META: Record<
   Exclude<TopicStatus, "Boş">,
-  { label: string; color: string; Icon: typeof Check }
+  { label: () => string; color: string; Icon: typeof Check }
 > = {
-  Teorik: { label: "Teorik", color: "var(--zara-ink)", Icon: BookOpen },
-  Yapabiliyor: { label: "Yapabiliyor", color: "var(--zara-sage-ink)", Icon: Check },
-  Geliştirilmeli: { label: "Geliştirilmeli", color: "var(--zara-gold-deep)", Icon: AlertCircle },
-  Öğretebilir: { label: "Öğretebilir", color: "var(--zara-ink)", Icon: Award },
+  Teorik: { label: () => pick({ tr: "Teorik", en: "Theory", es: "Teórico" }), color: "var(--zara-ink-soft)", Icon: BookOpen },
+  Yapabiliyor: { label: () => pick({ tr: "Yapabiliyor", en: "Can do", es: "Lo hace" }), color: "var(--zara-sage-ink)", Icon: Check },
+  Geliştirilmeli: { label: () => pick({ tr: "Geliştirilmeli", en: "To improve", es: "A mejorar" }), color: "var(--zara-gold-deep)", Icon: AlertCircle },
+  Öğretebilir: { label: () => pick({ tr: "Öğretebilir", en: "Can teach", es: "Puede enseñar" }), color: "var(--zara-gold-deep)", Icon: Award },
 };
 
 export function StatusToggle({
@@ -26,7 +27,7 @@ export function StatusToggle({
   onPick: (s: Exclude<TopicStatus, "Boş">) => void;
 }) {
   return (
-    <div className="pusula-statusrow" role="group" aria-label="Öğrenme durumu">
+    <div className="pusula-statusrow" role="group" aria-label={pick({ tr: "Öğrenme durumu", en: "Learning status", es: "Estado de aprendizaje" })}>
       {ORDER.map((s) => {
         const m = META[s];
         const active = status === s;
@@ -40,7 +41,7 @@ export function StatusToggle({
             aria-pressed={active}
           >
             <m.Icon size={12} strokeWidth={1.9} />
-            <span>{m.label}</span>
+            <span>{m.label()}</span>
           </button>
         );
       })}

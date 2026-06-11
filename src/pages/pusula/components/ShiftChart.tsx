@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { byId, chartHours, chartRoles } from "../data";
 import { MasteryLevel, type ChartState } from "../types";
+import { pick } from "../i18n";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
@@ -22,7 +23,7 @@ function personsAt(chart: ChartState, role: string, hour: string): string[] {
  */
 export function ShiftChart({ chart }: { chart: ChartState }) {
   return (
-    <div className="pusula-chart" role="table" aria-label="Akşam yerleşimi">
+    <div className="pusula-chart" role="table" aria-label={pick({ tr: "Akşam yerleşimi", en: "Evening placement", es: "Asignación vespertina" })}>
       <div
         className="pusula-chart-grid"
         style={{ gridTemplateColumns: `minmax(130px, 1.1fr) repeat(${chartHours.length}, 1fr)` }}
@@ -32,7 +33,7 @@ export function ShiftChart({ chart }: { chart: ChartState }) {
         {chartHours.map((h) => (
           <div key={h} className={`pusula-chart-hour ${isPeak(h) ? "peak" : ""}`}>
             {h}
-            {isPeak(h) && <span className="pusula-chart-peaktag">cep</span>}
+            {isPeak(h) && <span className="pusula-chart-peaktag">{pick({ tr: "cep", en: "pocket", es: "hueco" })}</span>}
           </div>
         ))}
 

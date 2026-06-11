@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import type { PocketState } from "../types";
+import { pick } from "../i18n";
 
 /**
  * Akşam cebi göstergesi — KADEMELİ: fraction (0..1) arttıkça gergin→rahat yumuşar.
@@ -11,15 +12,25 @@ const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 export function PocketMeter({ pocket, fraction }: { pocket: PocketState; fraction: number }) {
   const f = Math.max(0, Math.min(1, fraction));
   const eased = f > 0;
-  const label = f === 0 ? "Akşam cebi gergin" : f >= 1 ? "Akşam cebi rahatladı" : "Akşam cebi rahatlıyor";
-  const word = f === 0 ? "gergin" : f >= 1 ? "rahat" : "rahatlıyor";
+  const label =
+    f === 0
+      ? pick({ tr: "Akşam cebi gergin", en: "Evening pocket tense", es: "Hueco vespertino tenso" })
+      : f >= 1
+        ? pick({ tr: "Akşam cebi rahatladı", en: "Evening pocket eased", es: "Hueco vespertino relajado" })
+        : pick({ tr: "Akşam cebi rahatlıyor", en: "Evening pocket easing", es: "Hueco vespertino relajándose" });
+  const word =
+    f === 0
+      ? pick({ tr: "gergin", en: "tense", es: "tenso" })
+      : f >= 1
+        ? pick({ tr: "rahat", en: "calm", es: "tranquilo" })
+        : pick({ tr: "rahatlıyor", en: "easing", es: "relajándose" });
   const fill = 0.3 + 0.46 * f;
   const color = eased ? "var(--zara-sage)" : "rgba(191, 149, 80, 0.45)";
 
   return (
     <div className="pusula-pocket">
       <div className="pusula-pocket-head">
-        <span className="pusula-pocket-eb">Akşam Cebi · {pocket.window}</span>
+        <span className="pusula-pocket-eb">{pick({ tr: "Akşam Cebi", en: "Evening Pocket", es: "Hueco Vespertino" })} · {pocket.window}</span>
         <span className={`pusula-pocket-state ${eased ? "eased" : "tense"}`}>{label}</span>
       </div>
       <div className="pusula-pocket-track" style={{ background: "var(--zara-bg-alt)" }}>
@@ -31,7 +42,12 @@ export function PocketMeter({ pocket, fraction }: { pocket: PocketState; fractio
         />
       </div>
       <div className="pusula-pocket-foot">
-        Tepe trafik · düşük conversion. Dayanıklı/usta eller öne alınınca akış <em>{word}</em>.
+        {pick({
+          tr: "Tepe trafik · düşük conversion. Dayanıklı/usta eller öne alınınca akış ",
+          en: "Peak traffic · low conversion. As resilient/master hands come forward, the flow becomes ",
+          es: "Tráfico pico · baja conversión. Cuando entran manos resistentes/maestras, el flujo se vuelve ",
+        })}
+        <em>{word}</em>.
       </div>
     </div>
   );

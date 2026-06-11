@@ -1,17 +1,26 @@
 import { Eyebrow, Headline } from "../../brain/primitives";
-import { asaKpiMap, employees, teachingCard } from "../data";
+import { employees, jobTypeLabel, teachingCard, teachingText } from "../data";
 import { MasteryLevel, type Employee } from "../types";
 import { PersonAvatar } from "../components/PersonAvatar";
 import { MasteryChip } from "../components/MasteryChip";
 import { ConfidenceDots } from "../components/ConfidenceDots";
-import { AreaSignals } from "../components/AreaSignals";
-import { SkillMatrix } from "../components/SkillMatrix";
-import { TendencyCurve } from "../components/TendencyCurve";
-import { areaSignals, pusulaReading, sellingPersona } from "../data-program";
+import { CompetencyCards } from "../components/CompetencyCards";
+import { BehavioralStrip } from "../components/BehavioralStrip";
+import { ZoneFit } from "../components/ZoneFit";
+import { AptitudeStrip } from "../components/AptitudeStrip";
+import { GrowthTrajectory } from "../components/GrowthTrajectory";
+import { UpcomingTrainings } from "../components/UpcomingTrainings";
+import { pusulaReading, sellingPersona } from "../data-program";
+import { growthTrajectory, upcomingTrainings } from "../data-profile";
+import { aptitudeSuggestions } from "../data-competency";
+import { tenureOf } from "../data-staff";
+import { useT } from "../i18n";
 
 /**
- * Profil görünümü — seçili kişinin tam derin profili. Sol şerit kişi seçici.
- * ASA (+kanıt) · ASA→KPI köprüsü · beceri matrisi · gelişim eğrisi · (varsa) Usta Aktarımı.
+ * Profil — HİKÂYE AKIŞI: Kim → Neyde güçlü (kanıtlı 6 yetkinlik + davranışsal taban
+ * + keşfedilmemişler) → Nerede parlar (zone uyumu) → Nereye gidiyor (yörünge+tahmin)
+ * → Kanıt→Öneri→Onay (aptitude) → Sıradaki adım (eğitimler + aktarım).
+ * Skor/sıralama yok; bar yalnız bireysel gelişim görselidir, kanıt satırı yanındadır.
  */
 export function Profil({
   person,
@@ -23,11 +32,15 @@ export function Profil({
   const active = person ?? employees[0];
   const showTeaching = active.id === teachingCard.masterId;
   const pa = sellingPersona(active);
+  const traj = growthTrajectory(active);
+  const trainings = upcomingTrainings(active);
+  const apts = aptitudeSuggestions(active.id);
+  const t = useT();
 
   return (
     <div className="pusula-profile">
       <aside className="pusula-profile-rail">
-        <Eyebrow>Kişiler</Eyebrow>
+        <Eyebrow>{t("e.persons")}</Eyebrow>
         <div className="pusula-profile-list">
           {employees.map((p) => (
             <button
@@ -43,17 +56,18 @@ export function Profil({
       </aside>
 
       <div className="pusula-profile-main">
+        {/* ── KİM ── */}
         <div className="pusula-profile-head">
           <PersonAvatar name={active.name} dark={active.level === MasteryLevel.Coach} size={56} />
           <div>
-            <Headline ital={active.name} roman={active.role} size={30} />
+            <Headline ital={active.name} roman={jobTypeLabel(active.id)} size={30} />
             <div className="pusula-profile-meta">
               <MasteryChip level={active.level} />
               <ConfidenceDots level={active.confidence} />
-              <span className="pusula-card-tenure">{active.tenure}</span>
+              <span className="pusula-card-tenure">{tenureOf(active)}</span>
             </div>
             <div className="pusula-reading">
-              <span className="pusula-reading-eb">Pusula okuması</span>
+              <span className="pusula-reading-eb">{t("e.reading")}</span>
               {pusulaReading(active).replace(/\*\*/g, "")}
             </div>
           </div>
@@ -61,83 +75,82 @@ export function Profil({
 
         <div className="pusula-persona">
           <div className="pusula-persona-main">
-            <span className="pusula-persona-eb">Satış personası · enerji</span>
+            <span className="pusula-persona-eb">{t("e.personaEnergy")}</span>
             <div className="pusula-persona-label">{pa.label}</div>
             <div className="pusula-persona-energy">{pa.energy}</div>
           </div>
           <div className="pusula-persona-block">
-            <span className="pusula-persona-k">CX davranışı</span>
+            <span className="pusula-persona-k">{t("e.cxBehavior")}</span>
             <p>{pa.cx}</p>
           </div>
           <div className="pusula-persona-block">
-            <span className="pusula-persona-k">Pusula aksiyonu</span>
+            <span className="pusula-persona-k">{t("e.pusulaAction")}</span>
             <p>{pa.action}</p>
           </div>
         </div>
         <div className="pusula-persona-live">
-          <span className="pusula-persona-livek">Canlı güncelleme</span>
+          <span className="pusula-persona-livek">{t("e.liveUpdate")}</span>
           {pa.live}
         </div>
 
+        {/* ── NEYDE GÜÇLÜ · kanıtlı yetkinlikler + davranışsal taban ── */}
+        <section className="pusula-profile-block">
+          <Eyebrow gold>{t("e.strongIn")}</Eyebrow>
+          <CompetencyCards personId={active.id} />
+          <BehavioralStrip emp={active} />
+        </section>
+
         <div className="pusula-profile-cols">
-          {/* Sol kolon: ASA (+ kanıt) ve gelişim eğrisi */}
+          {/* ── NEREDE PARLAR · zone uyumu ── */}
           <div className="pusula-profile-col">
             <section className="pusula-profile-block">
-              <Eyebrow>Alan sinyalleri · dinamik</Eyebrow>
-              <AreaSignals signals={areaSignals(active)} />
-            </section>
-
-            <section className="pusula-profile-block">
-              <Eyebrow>Gelişim eğrisi</Eyebrow>
-              <TendencyCurve points={active.tendency} />
-              <div className="pusula-profile-curveword">Son haftalarda istikrarlı gelişiyor.</div>
-            </section>
-
-            <section className="pusula-profile-block">
-              <Eyebrow>ASA → kanıt KPI</Eyebrow>
-              <div className="pusula-asakpi">
-                {asaKpiMap.map((m) => (
-                  <div key={m.asa} className="pusula-asakpi-row">
-                    <span className="pusula-asakpi-asa">{m.asa}</span>
-                    <span className="pusula-asakpi-arrow">→</span>
-                    <span className="pusula-asakpi-kpi">{m.kpi}</span>
-                  </div>
-                ))}
-              </div>
+              <Eyebrow>{t("e.shines")}</Eyebrow>
+              <ZoneFit emp={active} />
             </section>
           </div>
 
-          {/* Sağ kolon: ASA→KPI köprüsü, beceri matrisi, (varsa) Usta Aktarımı */}
+          {/* ── NEREYE GİDİYOR · yörünge + tahmin ── */}
           <div className="pusula-profile-col">
             <section className="pusula-profile-block">
-              <Eyebrow>Kanıtlanan güç · KPI</Eyebrow>
-              <div className="pusula-kpis">
-                {active.kpis.map((k) => (
-                  <div key={k.label} className="pusula-kpi">
-                    <span className="pusula-kpi-label">{k.label}</span>
-                    <span className="pusula-kpi-val">{k.value}</span>
-                    {k.evidence && <span className="pusula-kpi-ev">{k.evidence}</span>}
-                  </div>
-                ))}
-              </div>
+              <Eyebrow>{t("e.trajectory")}</Eyebrow>
+              <GrowthTrajectory traj={traj} />
             </section>
+          </div>
+        </div>
 
-            <section className="pusula-profile-block">
-              <Eyebrow>Beceri matrisi</Eyebrow>
-              <SkillMatrix skills={active.skills} />
+        {/* ── KANIT → ÖNERİ → ONAY · aptitude döngüsü ── */}
+        {apts.length > 0 && (
+          <section className="pusula-profile-block">
+            <Eyebrow gold>{t("e.aptitude")}</Eyebrow>
+            <AptitudeStrip items={apts} />
+          </section>
+        )}
+
+        {/* ── SIRADAKİ ADIM · eğitimler + (varsa) usta aktarımı ── */}
+        <div className="pusula-profile-cols">
+          <div className="pusula-profile-col">
+            <section className="pusula-profile-block pusula-upcoming-block">
+              <Eyebrow>{t("e.nextStep")}</Eyebrow>
+              <UpcomingTrainings items={trainings} />
             </section>
-
-            {showTeaching && (
+          </div>
+          {showTeaching && (
+            <div className="pusula-profile-col">
               <section className="pusula-profile-block">
-                <Eyebrow gold>Usta Aktarımı</Eyebrow>
-                <div className="pusula-teach">
-                  <div className="pusula-teach-topic">{teachingCard.topic}</div>
-                  <div className="pusula-teach-method">{teachingCard.method}</div>
-                  <div className="pusula-teach-confirm">{teachingCard.confirmPrompt}</div>
-                </div>
+                <Eyebrow gold>{t("e.teaching")}</Eyebrow>
+                {(() => {
+                  const tc = teachingText();
+                  return (
+                    <div className="pusula-teach">
+                      <div className="pusula-teach-topic">{tc.topic}</div>
+                      <div className="pusula-teach-method">{tc.method}</div>
+                      <div className="pusula-teach-confirm">{tc.confirmPrompt}</div>
+                    </div>
+                  );
+                })()}
               </section>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

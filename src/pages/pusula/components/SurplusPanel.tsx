@@ -1,5 +1,6 @@
 import { ArrowUpRight, Users } from "lucide-react";
 import { ROSTER_TODAY, PEAK_NEED, balanceByHour, flexPeople } from "../staffing";
+import { pick } from "../i18n";
 
 /**
  * Kadro dengesi + SURPLUS. Trafiğe göre gerekli kişi vs vardiyadaki kişi → boşta
@@ -18,24 +19,24 @@ export function SurplusPanel() {
         <div className="pusula-surplus-stat">
           <Users size={16} strokeWidth={1.6} />
           <span className="pusula-surplus-big">{roster}</span>
-          <span className="pusula-surplus-k">vardiyada</span>
+          <span className="pusula-surplus-k">{pick({ tr: "vardiyada", en: "on shift", es: "en turno" })}</span>
         </div>
         <div className="pusula-surplus-arrow">→</div>
         <div className="pusula-surplus-stat">
           <span className="pusula-surplus-big">{PEAK_NEED}</span>
-          <span className="pusula-surplus-k">tepe-saat ihtiyacı</span>
+          <span className="pusula-surplus-k">{pick({ tr: "tepe-saat ihtiyacı", en: "peak-hour need", es: "necesidad en hora pico" })}</span>
         </div>
         <div className="pusula-surplus-arrow">→</div>
         <div className="pusula-surplus-stat gold">
           <span className="pusula-surplus-big">{roster - PEAK_NEED}</span>
-          <span className="pusula-surplus-k">esnek (boşta)</span>
+          <span className="pusula-surplus-k">{pick({ tr: "esnek (boşta)", en: "flexible (idle)", es: "flexible (libre)" })}</span>
         </div>
 
         {/* saatlik gerekli vs esnek mini */}
         <div className="pusula-surplus-bal">
           {balance.map((b) => (
             <div key={b.hour} className="pusula-surplus-col">
-              <div className="pusula-surplus-bar" style={{ height: `${(b.need / maxNeed) * 100}%` }} title={`${b.hour} · gerekli ${b.need} · esnek ${b.flex}`} />
+              <div className="pusula-surplus-bar" style={{ height: `${(b.need / maxNeed) * 100}%` }} title={`${b.hour} · ${pick({ tr: "gerekli", en: "need", es: "necesario" })} ${b.need} · ${pick({ tr: "esnek", en: "flex", es: "flex" })} ${b.flex}`} />
               <span className="pusula-surplus-h">{b.hour.slice(0, 2)}</span>
             </div>
           ))}
@@ -43,7 +44,7 @@ export function SurplusPanel() {
       </div>
 
       <div className="pusula-surplus-flex">
-        <span className="pusula-period-key">Pusula esnekleri desteğe yönlendiriyor</span>
+        <span className="pusula-period-key">{pick({ tr: "Pusula esnekleri desteğe yönlendiriyor", en: "Pusula routes the flexible to support", es: "Pusula dirige a los flexibles al apoyo" })}</span>
         <div className="pusula-surplus-list">
           {flex.map((f) => (
             <div key={f.id} className="pusula-surplus-row">
@@ -55,8 +56,17 @@ export function SurplusPanel() {
           ))}
         </div>
         <div className="pusula-surplus-note">
-          Off-peak (15–16 · 20–21) ihtiyaç daha düşük → daha çok kişi esner. Pusula fazlalığı <em>dinamik</em> izler;
-          boşta kalanı otomatik desteğe gönderir — manuel chart revizi derdi biter, prod artar.
+          {pick({
+            tr: "Off-peak (15–16 · 20–21) ihtiyaç daha düşük → daha çok kişi esner. Pusula fazlalığı ",
+            en: "Off-peak (15–16 · 20–21) the need is lower → more people flex. Pusula watches the surplus ",
+            es: "Off-peak (15–16 · 20–21) la necesidad es menor → más gente flexibiliza. Pusula observa el excedente de forma ",
+          })}
+          <em>{pick({ tr: "dinamik", en: "dynamically", es: "dinámica" })}</em>
+          {pick({
+            tr: " izler; boşta kalanı otomatik desteğe gönderir — manuel chart revizi derdi biter, prod artar.",
+            en: "; it sends the idle to support automatically — no more manual chart revisions, prod rises.",
+            es: "; envía a los libres al apoyo automáticamente — se acaba la revisión manual del cuadro, sube la prod.",
+          })}
         </div>
       </div>
     </div>
