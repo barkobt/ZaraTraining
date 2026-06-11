@@ -23,6 +23,12 @@ export function usePersistentState<T>(key: string, initial: T) {
   return [value, set] as const;
 }
 
+/** Anlık okuma (reaktif DEĞİL) — menü sayaçları gibi her render'da tazelenen
+ *  yerler için; abone olmaz, mount kopyası tutmaz. */
+export function peekSession<T>(key: string, fallback: T): T {
+  return key in stores ? (stores[key] as T) : fallback;
+}
+
 /** Demo sıfırlama gerekirse (şimdilik UI'dan çağrılmıyor). */
 export function resetPusulaSession() {
   for (const k of Object.keys(stores)) delete stores[k];

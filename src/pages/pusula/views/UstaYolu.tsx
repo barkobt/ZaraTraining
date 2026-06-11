@@ -61,6 +61,7 @@ export function UstaYolu() {
               es: "Las horas libres son oportunidades de formación — conocidas desde el día anterior, coach↔persona emparejados. El modelo aprende.",
             })}
           </div>
+          <div className="pv4-how">{t("how.usta")}</div>
         </div>
         <div className="pusula-usta-controls">
           <div className="pusula-seg">

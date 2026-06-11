@@ -61,6 +61,7 @@ export function Yerlestirme({
         <div>
           <Headline ital={t("t.yer.i")} roman={t("t.yer.r")} size={32} />
           <div className="pusula-sub">{t("t.yer.sub")}</div>
+          <div className="pv4-how">{t("how.yerlestirme")}</div>
         </div>
         <div className="pusula-usta-controls">
           <button className="pusula-apply" onClick={all} disabled={fraction >= 1}>

@@ -41,6 +41,7 @@ export function Ekip({ onPeek }: { onPeek: (p: Employee) => void }) {
       <div className="pusula-team-head">
         <Headline ital={t("t.ekip.i")} roman={t("t.ekip.r")} size={32} />
         <div className="pusula-sub">{t("t.ekipSub")}</div>
+        <div className="pv4-how">{t("how.ekip")}</div>
       </div>
 
       <div className="pusula-filterbar">

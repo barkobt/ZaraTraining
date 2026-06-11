@@ -84,6 +84,7 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
       {/* manşet satırı */}
       <div className="pv3-masthead">
         <span className="pv3-date">{today}</span>
+        <span className="pv4-how">{t("how.bugun")}</span>
         <span className="pv3-store">ZARA · BORNOVA 3643</span>
       </div>
 

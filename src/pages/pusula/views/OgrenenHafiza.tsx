@@ -80,6 +80,7 @@ export function OgrenenHafiza() {
           <div className="pusula-sub">
             {pick({ tr: "Her gözlem tarihiyle, koçuyla birikir — aktarılan bilgi kaybolmaz.", en: "Every observation accrues with its date and coach — transferred knowledge is never lost.", es: "Cada observación se acumula con su fecha y su coach — el conocimiento transferido no se pierde." })}
           </div>
+          <div className="pv4-how">{t("how.hafiza")}</div>
         </div>
       </div>
 

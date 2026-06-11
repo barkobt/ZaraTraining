@@ -2239,3 +2239,74 @@
 
 @media (max-width: 1100px) { .pv3-grid { grid-template-columns: 1fr 1fr; } .pv3-lead { grid-column: 1 / -1; border-right: none; border-bottom: 1px solid var(--zara-line); } .pv3-col { border-bottom: 1px solid var(--zara-line); } .pv3-col:nth-child(even) { border-right: none; } }
 @media (max-width: 640px) { .pv3-grid { grid-template-columns: 1fr; } .pv3-col { border-right: none; } .pv3-crumb-sub { display: none; } .pv3-menubtn { letter-spacing: 0.14em; } }
+
+/* ══ PUSULA v3.1 · ERİŞİLEBİLİRLİK + FERAHLIK ═══════════════ */
+/* ── kalıcı ikon rayı (desktop) — hover'da genişler ── */
+.pv4-rail { position: fixed; left: 0; top: 0; bottom: 0; z-index: 70; width: 58px; background: var(--zara-bg); border-right: 1px solid var(--zara-line); display: flex; flex-direction: column; align-items: stretch; padding: 14px 0 16px; gap: 2px; overflow: hidden; transition: width 280ms var(--ease-atelier); }
+.pv4-rail:hover { width: 218px; box-shadow: 12px 0 32px -24px rgba(0,0,0,0.18); }
+.pv4-rail-mark { padding: 4px 0 16px; text-align: center; font-family: var(--ff-display); font-style: italic; font-size: 19px; color: var(--zara-ink); flex-shrink: 0; }
+.pv4-rail:hover .pv4-rail-mark { text-align: left; padding-left: 21px; }
+.pv4-rail-item { position: relative; display: flex; align-items: center; gap: 14px; border: none; background: transparent; cursor: pointer; padding: 11px 0 11px 21px; color: var(--zara-ink-40); transition: color 200ms var(--ease-atelier), background 200ms; white-space: nowrap; }
+.pv4-rail-item:hover { color: var(--zara-ink); background: var(--zara-bg-alt); }
+.pv4-rail-item.on { color: var(--zara-ink); }
+.pv4-rail-item.on::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 2px; background: var(--zara-ink); }
+.pv4-rail-item svg { flex-shrink: 0; }
+.pv4-rail-label { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0; transform: translateX(-6px); transition: opacity 220ms var(--ease-atelier), transform 220ms var(--ease-atelier); }
+.pv4-rail-label i { font-style: normal; color: var(--zara-ink-30); margin-right: 6px; }
+.pv4-rail:hover .pv4-rail-label { opacity: 1; transform: translateX(0); }
+.pv4-rail-foot { margin-top: auto; padding-left: 21px; flex-shrink: 0; }
+.pv4-withrail .pv4-body { margin-left: 58px; }
+@media (max-width: 900px) { .pv4-rail { display: none; } .pv4-withrail .pv4-body { margin-left: 0; } }
+
+/* ── menü: Zara-web iki kolon ── */
+.pv3-menu-cols { flex: 1; display: grid; grid-template-columns: 1.25fr 1fr; gap: clamp(24px, 5vw, 72px); align-items: start; }
+.pv3-menu-cols .pv3-menu-list { padding-top: 14px; }
+.pv3-menu-label { font-size: clamp(26px, 4.4vw, 44px); }
+.pv3-menu-quick { padding-top: 26px; display: flex; flex-direction: column; gap: 22px; border-left: 1px solid var(--zara-line); padding-left: clamp(20px, 3vw, 44px); }
+.pv3-quick-eb { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pv3-quick-group { display: flex; flex-direction: column; gap: 4px; }
+.pv3-quick-gid { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-50); margin-bottom: 6px; }
+.pv3-quick-item { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; width: 100%; text-align: left; border: none; background: transparent; cursor: pointer; padding: 7px 0; font-family: var(--ff-sans); font-size: 14.5px; color: var(--zara-ink); border-bottom: 1px solid var(--zara-line); transition: padding 200ms var(--ease-atelier); }
+.pv3-quick-item:hover { padding-left: 8px; }
+.pv3-quick-item i { font-style: normal; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.08em; color: #fff; background: var(--zara-ink-soft); border-radius: 2px; padding: 2px 7px; }
+@media (max-width: 760px) { .pv3-menu-cols { grid-template-columns: 1fr; } .pv3-menu-quick { border-left: none; padding-left: 0; border-top: 1px solid var(--zara-line); padding-top: 20px; } }
+
+/* ── giriş ekranı: ferah editorial ── */
+.pv4-login { display: grid; place-items: center; padding: 24px; }
+.pv4-login-card { width: min(420px, 92vw); display: flex; flex-direction: column; gap: 14px; text-align: center; padding: clamp(28px, 6vh, 56px) 0; }
+.pv4-login-eb { display: inline-flex; align-items: center; gap: 7px; justify-content: center; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--zara-ink-50); }
+.pv4-login-mark { font-family: var(--ff-display); font-style: italic; font-size: clamp(52px, 9vw, 72px); line-height: 1; color: var(--zara-ink); }
+.pv4-login-store { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pv4-login-sub { font-family: var(--ff-sans); font-size: 13px; line-height: 1.6; color: var(--zara-ink-65); margin: 14px auto 6px; max-width: 34ch; }
+.pv4-login-input { border: none; border-bottom: 1px solid var(--zara-line-strong); background: transparent; padding: 12px 4px; font-family: var(--ff-sans); font-size: 16px; text-align: center; letter-spacing: 0.3em; color: var(--zara-ink); outline: none; }
+.pv4-login-input:focus { border-bottom-color: var(--zara-ink); }
+.pv4-login-input::placeholder { letter-spacing: 0.1em; color: var(--zara-ink-30); font-style: italic; }
+.pv4-login-err { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-destructive, #b3261e); }
+.pv4-login-btn { width: 100%; justify-content: center; margin-top: 6px; }
+.pv4-login-foot { margin-top: 26px; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-30); }
+
+/* ── "nasıl kullanılır" şeridi — her bölümün başında ── */
+.pv4-how { display: inline-flex; align-items: center; gap: 9px; margin-top: 12px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-ink-50); }
+.pv4-how::before { content: "↳"; font-size: 12px; color: var(--zara-ink); }
+
+/* ── ferahlık: ana yüzey nefes payı ── */
+.pusula-main { padding-top: 30px; }
+.pusula-place-head { margin-bottom: 34px; }
+@media (min-width: 901px) { .pusula-main { padding-left: clamp(28px, 4vw, 64px); padding-right: clamp(28px, 4vw, 64px); } }
+
+/* ── v3.1 geri bildirim: sade üst bar + ray ayarları + pusula gülü ── */
+.pv4-rail-mark { display: grid; place-items: center; color: var(--zara-ink); }
+.pv4-rail:hover .pv4-rail-mark { place-items: start; }
+.pv4-rail-foot { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-left: 0; }
+.pv4-rail:hover .pv4-rail-foot { align-items: flex-start; padding-left: 21px; }
+.pv4-rail-lang { display: flex; flex-direction: column; gap: 1px; }
+.pv4-rail-lang .pusula-lang-b { padding: 4px 8px; }
+/* dil üst barda yalnız mobil (desktop'ta rayda) */
+@media (min-width: 901px) { .pv4-lang-top { display: none; } }
+.pv4-login-compass { display: grid; place-items: center; color: var(--zara-ink); margin-bottom: 2px; }
+/* crumb mobilde de belirgin dokunma alanı */
+@media (max-width: 900px) { .pv3-crumb { padding: 10px 16px; } }
+/* how şeridi blok varyantı (Profil ana kolonu) */
+.pv4-how-block { display: flex; margin: 0 0 18px; }
+/* Bugün mastheadinde how ortada kalsın, taşarsa gizlensin */
+@media (max-width: 900px) { .pv3-masthead .pv4-how { display: none; } }

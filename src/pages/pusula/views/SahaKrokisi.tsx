@@ -86,6 +86,7 @@ export function SahaKrokisi() {
               es: "Pusula reconoce el plano y las zonas — cada zona alimentada por su métrica; Welcome por visitas + alarma de producto, la sala por sell-through.",
             })}
           </div>
+          <div className="pv4-how">{t("how.saha")}</div>
         </div>
         <span className="pkroki-badge">
           <Compass size={12} strokeWidth={1.8} /> {FLOOR_ZONES.filter((z) => z.area === "on").length} {pick({ tr: "zone tanındı", en: "zones recognized", es: "zonas reconocidas" })}

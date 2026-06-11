@@ -205,6 +205,7 @@ export function GelisimDefteri() {
           <div className="pusula-sub">
             {plang({ tr: "8 haftalık saha programı", en: "8-week floor program", es: "Programa de sala de 8 semanas" })} · {emp.name} · {plang({ tr: "Koç", en: "Coach", es: "Coach" })}: Sevim Y.
           </div>
+          <div className="pv4-how">{t("how.defter")}</div>
         </div>
         <label className="pusula-book-emp">
           <span>{plang({ tr: "Aday", en: "Candidate", es: "Candidato" })}</span>
