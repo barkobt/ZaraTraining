@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileText, Sparkles, Check, RotateCcw, CheckCircle2, Circle } from "lucide-react";
+import { FileText, Sparkles, Check, RotateCcw, CheckCircle2, Circle, BrainCircuit } from "lucide-react";
 import { Eyebrow, Headline } from "../../brain/primitives";
 import { pick, useT } from "../i18n";
-import { employees } from "../data";
-import { NOTED_IDS, notesFor } from "../data-hafiza";
+import { byId, employees } from "../data";
+import { NOTED_IDS, notePatterns, notesFor } from "../data-hafiza";
+import { PersonAvatar } from "../components/PersonAvatar";
+import { usePersistentState } from "../session-store";
 import type { ArchiveNote, NoteKind } from "../types-gelisim";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
@@ -42,8 +44,18 @@ export function OgrenenHafiza() {
   const t = useT();
   const [empId, setEmpId] = useState(NOTED_IDS[0] ?? employees[0].id);
   const emp = employees.find((e) => e.id === empId) ?? employees[0];
-  const notes = notesFor(empId);
+  // koçun oturumda eklediği notlar — onaylanan gözlem GERÇEKTEN arşive düşer
+  const [addedNotes, setAddedNotes] = usePersistentState<Record<string, ArchiveNote[]>>("hafiza.added", {});
+  const notes = [...(addedNotes[empId] ?? []), ...notesFor(empId)].sort((a, b) => b.date.localeCompare(a.date));
   const [selected, setSelected] = useState<ArchiveNote | null>(notes[0] ?? null);
+
+  // örüntüler — eklenen notlar kümelere CANLI düşer; öneri onayı kalıcı
+  const patterns = notePatterns(Object.values(addedNotes).flat());
+  const [patOk, setPatOk] = usePersistentState<Record<string, boolean>>("hafiza.patterns", {});
+
+  // kişi duvarı katlama: notu olanlar önde, kalanı istenince
+  const [showAllPeople, setShowAllPeople] = useState(false);
+  const noteCountOf = (id: string) => (addedNotes[id]?.length ?? 0) + notesFor(id).length;
 
   // koçluk anı (extract-then-confirm)
   const [draft, setDraft] = useState("");
@@ -57,7 +69,7 @@ export function OgrenenHafiza() {
 
   const onSelectEmp = (id: string) => {
     setEmpId(id);
-    const n = notesFor(id);
+    const n = [...(addedNotes[id] ?? []), ...notesFor(id)].sort((a, b) => b.date.localeCompare(a.date));
     setSelected(n[0] ?? null);
     setDraft("");
     setExtracted(null);
@@ -70,6 +82,25 @@ export function OgrenenHafiza() {
     const first = text.split(/[.!?\n]/)[0].trim();
     setExtracted(first.length > 4 ? first : text);
     setConfirmed(false);
+  };
+
+  // onay = gözlem arşive İŞLENİR (zaman çizelgesi + örüntü sayaçları canlı güncellenir)
+  const saveExtracted = () => {
+    if (!extracted) return;
+    const newNote: ArchiveNote = {
+      id: `s${Date.now()}`,
+      employeeId: empId,
+      date: new Date().toISOString().slice(0, 10),
+      kind: "Koçluk",
+      topic: extracted,
+      note: draft.trim(),
+      author: pick({ tr: "Koç (oturum)", en: "Coach (session)", es: "Coach (sesión)" }),
+      signed: true,
+      tone: "steady",
+    };
+    setAddedNotes((p) => ({ ...p, [empId]: [newNote, ...(p[empId] ?? [])] }));
+    setSelected(newNote);
+    setConfirmed(true);
   };
 
   return (
@@ -104,12 +135,66 @@ export function OgrenenHafiza() {
         </div>
       </div>
 
-      {/* kişi seçici — notu olanlar önce, not sayısı rozetli */}
+      {/* ÖRÜNTÜLER — hafıza ne öğreniyor: tekrar eden tema → müfredat önerisi */}
+      <div className="pusula-patterns">
+        <div className="pusula-patterns-head">
+          <span className="pusula-patterns-eb">
+            <BrainCircuit size={13} strokeWidth={1.6} />
+            {pick({ tr: "Örüntüler · hafıza ne öğreniyor", en: "Patterns · what the memory is learning", es: "Patrones · qué aprende la memoria" })}
+          </span>
+          <span className="pusula-patterns-sub">
+            {pick({ tr: "tekrar eden tema → müfredat önerisi · koç onaylamadan işlenmez", en: "recurring theme → curriculum suggestion · nothing lands without coach approval", es: "tema recurrente → sugerencia curricular · nada se aplica sin el coach" })}
+          </span>
+        </div>
+        <div className="pusula-patterns-grid">
+          {patterns.map((p, i) => (
+            <motion.div
+              key={p.id}
+              className="pusula-pattern"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.07, ease: EASE }}
+            >
+              <div className="pusula-pattern-top">
+                <em>{p.noteCount}</em>
+                <div>
+                  <span className="pusula-pattern-theme">{p.theme}</span>
+                  <span className="pusula-pattern-meta">
+                    {p.noteCount} {pick({ tr: "not", en: "notes", es: "notas" })} · {p.peopleIds.length} {pick({ tr: "kişi", en: "people", es: "personas" })}
+                  </span>
+                </div>
+                <span className="pusula-pattern-faces">
+                  {p.peopleIds.slice(0, 3).map((id) => (
+                    <PersonAvatar key={id} name={byId(id)?.name ?? id} size={22} />
+                  ))}
+                </span>
+              </div>
+              <p className="pusula-pattern-insight">{p.insight}</p>
+              <div className="pusula-pattern-sugg">
+                <span>{pick({ tr: "Müfredat önerisi", en: "Curriculum suggestion", es: "Sugerencia curricular" })}</span>
+                <p>{p.suggestion}</p>
+                {patOk[p.id] ? (
+                  <span className="pv3-done">
+                    <Check size={11} strokeWidth={2.2} /> {pick({ tr: "Müfredata işlendi", en: "Written to curriculum", es: "Aplicado al currículo" })}
+                  </span>
+                ) : (
+                  <button className="pv3-act" onClick={() => setPatOk((m) => ({ ...m, [p.id]: true }))}>
+                    <Check size={11} strokeWidth={2.2} /> {t("b.approveApt")}
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* kişi seçici — notu olanlar önce, kalanı katlı (+N kişi) */}
       <div className="pusula-pills pusula-mem-people">
         {[...employees]
-          .sort((a, b) => (NOTED_IDS.includes(b.id) ? 1 : 0) - (NOTED_IDS.includes(a.id) ? 1 : 0))
+          .sort((a, b) => noteCountOf(b.id) - noteCountOf(a.id))
+          .filter((e) => showAllPeople || noteCountOf(e.id) > 0 || e.id === empId)
           .map((e) => {
-            const cnt = notesFor(e.id).length;
+            const cnt = noteCountOf(e.id);
             return (
               <button
                 key={e.id}
@@ -121,6 +206,11 @@ export function OgrenenHafiza() {
               </button>
             );
           })}
+        <button className="pusula-pill pusula-pill-more" onClick={() => setShowAllPeople((v) => !v)}>
+          {showAllPeople
+            ? pick({ tr: "− daralt", en: "− collapse", es: "− contraer" })
+            : `+${employees.filter((e) => noteCountOf(e.id) === 0 && e.id !== empId).length} ${pick({ tr: "kişi", en: "people", es: "personas" })}`}
+        </button>
       </div>
 
       <div className="pusula-mem-grid">
@@ -254,7 +344,7 @@ export function OgrenenHafiza() {
                     {pick({ tr: "Yöntemini şöyle anladım:", en: "Here's how I understood your method:", es: "Así entendí tu método:" })} <em>“{extracted}”</em> — {pick({ tr: "doğru mu?", en: "is that right?", es: "¿es correcto?" })}
                   </p>
                   <div className="pusula-coach-actions">
-                    <button className="pusula-coach-yes" onClick={() => setConfirmed(true)}>
+                    <button className="pusula-coach-yes" onClick={saveExtracted}>
                       <Check size={14} /> {pick({ tr: "Doğru, kaydet", en: "Correct, save", es: "Correcto, guardar" })}
                     </button>
                     <button className="pusula-coach-no" onClick={() => setExtracted(null)}>

@@ -127,3 +127,94 @@ export function notesFor(employeeId: string): ArchiveNote[] {
 
 /** Arşiv kaydı olan kişiler (Hafıza varsayılan seçimi için) — dil-bağımsız. */
 export const NOTED_IDS = ["Asya", "Fatma", "Kaan", "Aysu", "Sevim", "Gamze"];
+
+// ── ÖRÜNTÜLER — hafıza ne öğreniyor? ────────────────────────
+// Notlar tema kümelerinde birikir; tekrar eden tema müfredat ÖNERİSİNE dönüşür
+// (extract-then-confirm: koç onaylamadan müfredata işlenmez). Koçun oturum içinde
+// eklediği yeni notlar anahtar kelimeyle kümeye düşer → sayaç CANLI büyür.
+export interface NotePattern {
+  id: string;
+  theme: string;
+  noteCount: number;
+  peopleIds: string[];
+  insight: string;
+  suggestion: string;
+}
+
+const PATTERN_DEFS: Array<{
+  id: string;
+  base: string[]; // çekirdek not id'leri
+  kw: RegExp; // koçun yeni notları bu kümeye hangi kelimelerle düşer
+  theme: { tr: string; en: string; es: string };
+  insight: { tr: string; en: string; es: string };
+  suggestion: { tr: string; en: string; es: string };
+}> = [
+  {
+    id: "p1",
+    base: ["n1", "n3", "n4"],
+    kw: /kabin|tepe|fitting|probador|peak|pico|yoğun/i,
+    theme: { tr: "Tepe-saat kabin yoğunluğu", en: "Peak-hour fitting pressure", es: "Presión de probador en pico" },
+    insight: {
+      tr: "Ayrı koçlardan aynı tema: kabin tepe saatte ekibi zorluyor; Fatma'nın yöntemi işliyor.",
+      en: "Same theme from different coaches: the fitting room strains the team at peak; Fatma's method works.",
+      es: "Mismo tema de distintos coaches: el probador exige en pico; el método de Fatma funciona.",
+    },
+    suggestion: {
+      tr: "'Tepe-saat kabin akışı' modülü Başlangıç planında öne alınsın; Fatma'nın yöntemi (göz teması + tek elden toplama) ders içeriğine işlensin.",
+      en: "Move the 'peak-hour fitting flow' module earlier in the Starter plan; write Fatma's method (eye contact + one-hand consolidation) into the lesson.",
+      es: "Adelantar el módulo de 'flujo de probador en pico' en el plan inicial; incorporar el método de Fatma a la lección.",
+    },
+  },
+  {
+    id: "p2",
+    base: ["n2", "n5"],
+    kw: /karşılama|temas|welcome|greet|contact|bienvenida|acercamiento/i,
+    theme: { tr: "Karşılama & ilk temas", en: "Greeting & first contact", es: "Bienvenida y primer contacto" },
+    insight: {
+      tr: "Yeni başlayanlarda ilk temas çekingen; sıcak karşılama conversion'ı belirgin yükseltiyor.",
+      en: "First contact is shy among new starters; a warm greeting clearly lifts conversion.",
+      es: "El primer contacto es tímido en los nuevos; una bienvenida cálida sube la conversión.",
+    },
+    suggestion: {
+      tr: "Aysu'nun karşılama akışı, yeni başlayan planına gölge seansı olarak eklensin.",
+      en: "Add Aysu's greeting flow to the starter plan as a shadow session.",
+      es: "Añadir el flujo de bienvenida de Aysu al plan inicial como sesión de acompañamiento.",
+    },
+  },
+  {
+    id: "p3",
+    base: ["n6", "n7"],
+    kw: /refakat|eşlik|kıdemli|yeni|eğitimcinin|shadow|trainer|sénior|senior/i,
+    theme: { tr: "Refakatli başlangıç", en: "Accompanied onboarding", es: "Inicio acompañado" },
+    insight: {
+      tr: "Çok yeniler refakatle hızlı oturuyor; 'tek bırakma' kuralı işliyor — eğitimcinin eğitimi de sürüyor.",
+      en: "Very new people settle fast when accompanied; the 'never alone' rule works — training the trainer continues.",
+      es: "Los muy nuevos se asientan rápido acompañados; la regla de 'nunca solos' funciona.",
+    },
+    suggestion: {
+      tr: "İlk 2 hafta refakat kuralı Evre Planı'na sabitlensin; koçun kendi gelişim döngüsü kapanmasın.",
+      en: "Pin the 2-week accompaniment rule into the Stage Plan; keep the coach's own growth loop open.",
+      es: "Fijar la regla de acompañamiento de 2 semanas en el Plan por Etapas.",
+    },
+  },
+];
+
+/** Örüntüler — koçun oturumda eklediği notlar (extra) kümelere CANLI düşer. */
+export function notePatterns(extra: ArchiveNote[] = []): NotePattern[] {
+  const all = archiveNotes();
+  return PATTERN_DEFS.map((d) => {
+    const core = d.base
+      .map((id) => all.find((n) => n.id === id))
+      .filter((n): n is ArchiveNote => !!n);
+    const matched = extra.filter((n) => d.kw.test(`${n.topic} ${n.note}`));
+    const notes = [...core, ...matched];
+    return {
+      id: d.id,
+      theme: pick(d.theme),
+      noteCount: notes.length,
+      peopleIds: [...new Set(notes.map((n) => n.employeeId))],
+      insight: pick(d.insight),
+      suggestion: pick(d.suggestion),
+    };
+  });
+}

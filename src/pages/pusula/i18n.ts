@@ -163,6 +163,9 @@ const S: Record<string, Tri> = {
   "m.todayPair": { tr: "Bugünün eşleşmesi", en: "Today's pairing", es: "Emparejamiento de hoy" },
   "m.pocket": { tr: "Akşam cebi", en: "Evening pocket", es: "Hueco vespertino" },
   "m.zoneNeeds": { tr: "Zone talepleri", en: "Zone demands", es: "Demandas de zona" },
+  "item.etki": { tr: "Etki", en: "Impact", es: "Impacto" },
+  "sub.etki": { tr: "gelişim → performans", en: "growth → performance", es: "desarrollo → rendimiento" },
+  "how.etki": { tr: "Eğri kişi geliştikçe yükselir; kesik çizgi gelişmeden-kalan referansıdır · sayılar temsilî", en: "The curve rises as the person grows; the dashed line is the never-grown reference · figures are representative", es: "La curva sube al crecer la persona; la línea discontinua es la referencia sin crecer · cifras representativas" },
   "a11y.close": { tr: "Kapat", en: "Close", es: "Cerrar" },
   "a11y.backBrain": { tr: "Brain'e dön", en: "Back to Brain", es: "Volver a Brain" },
 

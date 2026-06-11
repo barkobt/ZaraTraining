@@ -12,6 +12,7 @@ import {
   Newspaper,
   Plus,
   Search,
+  TrendingUp,
   Users,
 } from "lucide-react";
 import { Icon, LiveDot } from "../brain/primitives";
@@ -30,11 +31,12 @@ import { GelisimDefteri } from "./views/GelisimDefteri";
 import { OgrenenHafiza } from "./views/OgrenenHafiza";
 import { UstaYolu } from "./views/UstaYolu";
 import { SahaKrokisi } from "./views/SahaKrokisi";
+import { Etki } from "./views/Etki";
 import { ProfileDrawer } from "./components/ProfileDrawer";
 import { useAuthGate } from "../shift-organizer/auth-gate";
 import { LangCtx, LANGS, tr, setActiveLang, type Lang } from "./i18n";
 
-type ViewId = "bugun" | "ekip" | "profil" | "defter" | "hafiza" | "usta" | "yerlestirme" | "saha";
+type ViewId = "bugun" | "ekip" | "profil" | "defter" | "hafiza" | "usta" | "yerlestirme" | "saha" | "etki";
 
 /** Tek düz liste — Zara menüsü gibi: dev tipografi, indeks, grup ayraçları. */
 const MENU: Array<{ id: ViewId; labelKey: string; subKey: string; group?: string; Ico: typeof Users }> = [
@@ -46,6 +48,7 @@ const MENU: Array<{ id: ViewId; labelKey: string; subKey: string; group?: string
   { id: "usta", labelKey: "item.usta", subKey: "sub.usta", Ico: GraduationCap },
   { id: "yerlestirme", labelKey: "item.yerlestirme", subKey: "sub.yerlestirme", group: "nav.sonuc", Ico: LayoutGrid },
   { id: "saha", labelKey: "item.saha", subKey: "sub.saha", Ico: Map },
+  { id: "etki", labelKey: "item.etki", subKey: "sub.etki", Ico: TrendingUp },
 ];
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
@@ -197,6 +200,7 @@ function PusulaInner() {
       items: [
         { label: tr("m.pocket", lang), meta: `${pocket.window} · %${pocket.convBefore[0]}`, to: "yerlestirme" },
         { label: tr("m.zoneNeeds", lang), to: "saha" },
+        { label: tr("item.etki", lang), meta: "+9", to: "etki" },
       ],
     },
   ];
@@ -386,6 +390,7 @@ function PusulaInner() {
             {view === "usta" && <UstaYolu />}
             {view === "yerlestirme" && <Yerlestirme applied={applied} onApply={setApplied} />}
             {view === "saha" && <SahaKrokisi />}
+            {view === "etki" && <Etki />}
           </motion.div>
         </AnimatePresence>
       </main>

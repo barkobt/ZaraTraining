@@ -264,6 +264,32 @@ export function GelisimDefteri() {
                   </button>
                 ))}
               </div>
+              {/* NABIZ BANDI — defterin tek bakışta durumu (cockpit dili) */}
+              <div className="pusula-pulse">
+                <div className="pusula-pulse-cell">
+                  <em>
+                    {marked}
+                    <i>/{section?.topics.length ?? 0}</i>
+                  </em>
+                  <span>{plang({ tr: "işaretli konu", en: "topics marked", es: "temas marcados" })}</span>
+                  <u><b style={{ width: `${section?.topics.length ? (marked / section.topics.length) * 100 : 0}%` }} /></u>
+                </div>
+                <div className="pusula-pulse-cell">
+                  <em>{teachable}</em>
+                  <span>{plang({ tr: "öğretebilir", en: "can teach", es: "puede enseñar" })}</span>
+                </div>
+                <div className="pusula-pulse-cell">
+                  <em className="word">
+                    {plang(SCALE[Math.round(comp.reduce((s, r) => s + (compEdits[`${r.name}:3`] ?? r.periods[3]), 0) / Math.max(1, comp.length))] ?? SCALE[0])}
+                  </em>
+                  <span>{plang({ tr: "davranışsal · son dönem", en: "behavioral · last period", es: "conductual · último periodo" })}</span>
+                </div>
+                <div className="pusula-pulse-cell">
+                  <em>{Object.values(history).filter((m) => m.date === TODAY).length}</em>
+                  <span>{plang({ tr: "bugün işlenen", en: "logged today", es: "registrado hoy" })}</span>
+                </div>
+              </div>
+
               <div className="pusula-book-legend">
                 <span>{section?.topics.length} {plang({ tr: "konu", en: "topics", es: "temas" })} · {roleLabel(role)} · {section?.weeks}</span>
                 <span className="pusula-book-legend-stats">
@@ -371,16 +397,27 @@ export function GelisimDefteri() {
               </div>
               <div className="pusula-comp-head">
                 <span />
-                {PERIOD_HEADS().map((p) => (
-                  <span key={p} className="pusula-comp-period">{p}</span>
+                {PERIOD_HEADS().map((p, i) => (
+                  <span key={p} className={`pusula-comp-period ${i === 3 ? "now" : ""}`}>
+                    {p}
+                    {i === 3 && <i> · {plang({ tr: "şimdi", en: "now", es: "ahora" })}</i>}
+                  </span>
                 ))}
               </div>
               {comp.map((row) => {
                 const prio = compPrio[row.name] ?? row.priority;
                 const noteVal = compNotes[row.name];
+                const lvAt = (i: number) => compEdits[`${row.name}:${i}`] ?? row.periods[i];
+                const drift = lvAt(3) - lvAt(0);
                 return (
                   <div key={row.name} className={`pusula-comp-row ${prio ? "prio" : ""}`}>
                     <div className="pusula-comp-name">
+                      <span
+                        className={`pusula-comp-trend ${drift > 0 ? "up" : drift < 0 ? "down" : ""}`}
+                        title={plang({ tr: "4 dönemlik yön", en: "4-period direction", es: "dirección en 4 periodos" })}
+                      >
+                        {drift > 0 ? "↗" : drift < 0 ? "↘" : "→"}
+                      </span>
                       <button className="pusula-comp-nameb" onClick={() => togglePrio(row.name, row.priority)} title={plang({ tr: "eğitim önceliği aç/kapa", en: "toggle training priority", es: "alternar prioridad" })}>
                         {row.name}
                       </button>
@@ -444,6 +481,9 @@ export function GelisimDefteri() {
                       {a.week}
                       <span className="pusula-period-prog">{a.priorities.filter((p) => doneItems[`${empId}:${a.week}:${p}`]).length}/{a.priorities.length}</span>
                     </div>
+                    <i className="pusula-period-bar" aria-hidden>
+                      <b style={{ width: `${a.priorities.length ? (a.priorities.filter((p) => doneItems[`${empId}:${a.week}:${p}`]).length / a.priorities.length) * 100 : 0}%` }} />
+                    </i>
                     <div className="pusula-period-block">
                       <span className="pusula-period-key">{plang({ tr: "Öncelikler", en: "Priorities", es: "Prioridades" })}</span>
                       <div className="pusula-period-checks">
