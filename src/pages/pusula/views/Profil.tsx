@@ -13,9 +13,17 @@ import { GrowthTrajectory } from "../components/GrowthTrajectory";
 import { UpcomingTrainings } from "../components/UpcomingTrainings";
 import { pusulaReading, sellingPersona } from "../data-program";
 import { growthTrajectory, upcomingTrainings } from "../data-profile";
-import { aptitudeSuggestions } from "../data-competency";
+import {
+  aptitudeSuggestions,
+  channelLabel,
+  compLabel,
+  discoveryFor,
+  personCompetencies,
+  provenWord,
+} from "../data-competency";
+import { notesFor } from "../data-hafiza";
 import { tenureOf } from "../data-staff";
-import { useT } from "../i18n";
+import { pick, useT } from "../i18n";
 
 /**
  * Profil — HİKÂYE AKIŞI: Kim → Neyde güçlü (kanıtlı 6 yetkinlik + davranışsal taban
@@ -129,6 +137,64 @@ export function Profil({
             <section className="pusula-profile-block">
               <Eyebrow>{t("e.trajectory")}</Eyebrow>
               <GrowthTrajectory traj={traj} />
+            </section>
+
+            {/* ── AI'IN KATKILARI · tahmin + güven + kanıt + onay hakkı ──
+                 Her satır 4 parçalı sunulur (mimari rapor): TAHMİN, GÜVEN(SOFT),
+                 KANIT KANALI, ONAY KOÇTA. Keşfedilmemiş ≠ zayıf. */}
+            <section className="pusula-profile-block">
+              <Eyebrow gold>{pick({ tr: "AI'ın katkıları · tahmin & kanıt", en: "AI contributions · prediction & evidence", es: "Aportes de la IA · predicción y evidencia" })}</Eyebrow>
+              <div className="pusula-aic">
+                {apts[0] && (
+                  <div className="pusula-aic-row">
+                    <span className="k">{pick({ tr: "Tahmin", en: "Prediction", es: "Predicción" })}</span>
+                    <div className="b">
+                      <p>
+                        {compLabel(apts[0].comp)}: {provenWord(apts[0].from)} <i>→</i> {provenWord(apts[0].to)}{" "}
+                        {pick({ tr: "(2 dönem içinde · temsilî)", en: "(within 2 periods · representative)", es: "(en 2 periodos · representativo)" })}
+                      </p>
+                      <span className="m">
+                        {pick({ tr: "kanıt", en: "evidence", es: "evidencia" })}: {channelLabel(apts[0].evidence.channel)} · {pick({ tr: "onay koçta", en: "coach approves", es: "aprueba el coach" })}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {(() => {
+                  const d = discoveryFor(active.id);
+                  return d ? (
+                    <div className="pusula-aic-row">
+                      <span className="k disc">{pick({ tr: "Keşif", en: "Discovery", es: "Exploración" })}</span>
+                      <div className="b">
+                        <p>
+                          {compLabel(d.comp)} {pick({ tr: "alanında veri yok — yargı değil; sakin saatte", en: "has no data — not a judgment; in a calm hour,", es: "sin datos — no es juicio; en hora tranquila," })} {d.buddyName} {pick({ tr: "eşliğinde keşif önerildi.", en: "an accompanied discovery shift is suggested.", es: "se sugiere un turno de exploración acompañado." })}
+                        </p>
+                        <span className="m">{pick({ tr: "soğuk başlangıç — geniş aralık, genel öneri", en: "cold start — wide interval, generic suggestion", es: "arranque frío — intervalo amplio" })}</span>
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+                <div className="pusula-aic-row">
+                  <span className="k">{pick({ tr: "Yerleştirme", en: "Placement", es: "Ubicación" })}</span>
+                  <div className="b">
+                    <p>
+                      {personCompetencies(active.id).filter((c) => c.state.kind === "proven").length}{" "}
+                      {pick({ tr: "kanıtlı alan zone eşleşmesini besliyor — akşam cebi önerilerinde aday.", en: "proven areas feed zone matching — a candidate in evening-pocket suggestions.", es: "áreas comprobadas alimentan el emparejamiento de zonas." })}
+                    </p>
+                    <span className="m">{pick({ tr: "kanıt kişide değil, öneridedir", en: "evidence lives on the suggestion, not the person", es: "la evidencia vive en la sugerencia" })}</span>
+                  </div>
+                </div>
+                {notesFor(active.id).length > 0 && (
+                  <div className="pusula-aic-row">
+                    <span className="k">{pick({ tr: "Hafıza", en: "Memory", es: "Memoria" })}</span>
+                    <div className="b">
+                      <p>
+                        {notesFor(active.id).length} {pick({ tr: "koç notu örüntü motorunu besliyor — yöntemler kurumda kalır.", en: "coach notes feed the pattern engine — methods stay with the company.", es: "notas alimentan el motor de patrones — los métodos quedan en la empresa." })}
+                      </p>
+                      <span className="m">{pick({ tr: "kanal: kitapçık + koç", en: "channel: booklet + coach", es: "canal: cuadernillo + coach" })}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </section>
           </div>
         </div>

@@ -39,9 +39,20 @@ export function Ekip({ onPeek }: { onPeek: (p: Employee) => void }) {
   return (
     <div className="pusula-team">
       <div className="pusula-team-head">
-        <Headline ital={t("t.ekip.i")} roman={t("t.ekip.r")} size={32} />
-        <div className="pusula-sub">{t("t.ekipSub")}</div>
-        <div className="pv4-how">{t("how.ekip")}</div>
+        <div>
+          <Headline ital={t("t.ekip.i")} roman={t("t.ekip.r")} size={32} />
+          <div className="pusula-sub">{t("t.ekipSub")}</div>
+          <div className="pv4-how">{t("how.ekip")}</div>
+        </div>
+        {/* ekip nabzı — evre dağılımı (masthead'in sağı boş kalmasın, sayfa konuşsun) */}
+        <div className="pusula-team-pulse" aria-hidden>
+          {LIFES.slice(1).map((l) => (
+            <div key={String(l.id)}>
+              <em>{employees.filter((e) => e.level === l.id).length}</em>
+              <span>{l.label()}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="pusula-filterbar">
