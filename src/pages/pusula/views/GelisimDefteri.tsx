@@ -106,7 +106,11 @@ const PERIOD_HEADS = (): string[] => {
   return [wk(2), wk(4), wk(6), wk(8)];
 };
 
-type Mark = { status: Exclude<TopicStatus, "Boş">; date: string; note: string };
+/** Statü-başına BAĞIMSIZ günlük: her pill'in kendi tarihi + notu olur; işaret
+ *  kaldırılsa bile günlük korunur (status "Boş" → işaretsiz ama geçmiş durur). */
+type MarkStatus = Exclude<TopicStatus, "Boş">;
+type Mark = { status: TopicStatus; log: Partial<Record<MarkStatus, { date: string; note: string }>> };
+const STATUS_ORDER: MarkStatus[] = ["Teorik", "Yapabiliyor", "Geliştirilmeli", "Öğretebilir"];
 const TODAY = new Date().toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit" });
 const CAT_ORDER = ["Müşteri", "Ürün", "Satış", "Süreçler", "Kasa", "Depo", "Sistem"];
 
@@ -136,7 +140,9 @@ export function GelisimDefteri() {
   const [history, setHistory] = usePersistentState<Record<string, Mark>>("defter.history", {});
   const [edits, setEdits] = usePersistentState<Record<string, string>>("defter.edits", {});
   const [search, setSearch] = useState("");
-  const [hoverStage, setHoverStage] = useState<string | null>(null);
+  // Evre haritası: hover değil TIKLAMA ile seçilir (hover-expand bug'ı kalktı);
+  // seçim yoksa adayın kendi evresi gösterilir.
+  const [selStage, setSelStage] = useState<string | null>(null);
   const [tFilter, setTFilter] = useState<"all" | "unmarked" | "teach">("all");
   // Yetkinlik etkileşimi — hücre seviyesi, gözlem notu, eğitim önceliği (takip edilir)
   const [compEdits, setCompEdits] = usePersistentState<Record<string, number>>("defter.compEdits", {});
@@ -157,19 +163,24 @@ export function GelisimDefteri() {
   const section = sectionFor(role, level);
   const emp = employees.find((e) => e.id === empId) ?? employees[0];
 
-  // tek mark modeli: aynı duruma tekrar tıkla → kaldır; farklı → güncelle (not korunur).
+  // günlük modeli: aynı duruma tekrar tıkla → işaret kalkar (günlük KORUNUR);
+  // farklı duruma tıkla → o statünün KENDİ girdisi açılır (tarih + bağımsız not).
   const curStatus = (id: string, base: TopicStatus): TopicStatus => history[id]?.status ?? base;
-  const setMark = (id: string, s: Exclude<TopicStatus, "Boş">) =>
+  const setMark = (id: string, s: MarkStatus) =>
     setHistory((prev) => {
-      if (prev[id]?.status === s) {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      }
-      return { ...prev, [id]: { status: s, date: prev[id]?.date ?? TODAY, note: prev[id]?.note ?? "" } };
+      const cur = prev[id];
+      if (cur?.status === s) return { ...prev, [id]: { ...cur, status: "Boş" } };
+      const log = { ...(cur?.log ?? {}) };
+      if (!log[s]) log[s] = { date: TODAY, note: "" };
+      return { ...prev, [id]: { status: s, log } };
     });
-  const setMarkNote = (id: string, note: string) =>
-    setHistory((prev) => (prev[id] ? { ...prev, [id]: { ...prev[id], note } } : prev));
+  const setMarkNote = (id: string, s: MarkStatus, note: string) =>
+    setHistory((prev) => {
+      const cur = prev[id];
+      const entry = cur?.log[s];
+      if (!cur || !entry) return prev;
+      return { ...prev, [id]: { ...cur, log: { ...cur.log, [s]: { ...entry, note } } } };
+    });
   const marked = section ? section.topics.filter((tp) => curStatus(tp.id, tp.status) !== "Boş").length : 0;
   const teachable = section ? section.topics.filter((tp) => curStatus(tp.id, tp.status) === "Öğretebilir").length : 0;
   const visibleTopics = (section?.topics ?? []).filter((tp) => {
@@ -285,7 +296,7 @@ export function GelisimDefteri() {
                   <span>{plang({ tr: "davranışsal · son dönem", en: "behavioral · last period", es: "conductual · último periodo" })}</span>
                 </div>
                 <div className="pusula-pulse-cell">
-                  <em>{Object.values(history).filter((m) => m.date === TODAY).length}</em>
+                  <em>{Object.values(history).filter((m) => m.status !== "Boş" && m.log[m.status as MarkStatus]?.date === TODAY).length}</em>
                   <span>{plang({ tr: "bugün işlenen", en: "logged today", es: "registrado hoy" })}</span>
                 </div>
               </div>
@@ -350,17 +361,26 @@ export function GelisimDefteri() {
                             </div>
                           )}
 
-                          {/* TEK işaret + hover ile açılan tek not */}
-                          {mark && (
-                            <div className="pusula-mark cur">
-                              <span className="pusula-mark-status">{topicStatusLabel(mark.status)}</span>
-                              <span className="pusula-mark-date">{mark.date}</span>
-                              <input
-                                className="pusula-mark-note"
-                                placeholder={plang({ tr: "+ not ekle", en: "+ add note", es: "+ añadir nota" })}
-                                value={mark.note}
-                                onChange={(e) => setMarkNote(t.id, e.target.value)}
-                              />
+                          {/* STATÜ YOLCULUĞU — her ulaşılan statünün kendi tarihi + bağımsız notu */}
+                          {mark && isMarked && (
+                            <div className="pusula-mark-journey">
+                              {STATUS_ORDER.filter((s) => mark.log[s]).map((s) => {
+                                const entry = mark.log[s];
+                                if (!entry) return null;
+                                const isCur = mark.status === s;
+                                return (
+                                  <div key={s} className={`pusula-mark ${isCur ? "cur" : "past"}`}>
+                                    <span className="pusula-mark-status">{topicStatusLabel(s)}</span>
+                                    <span className="pusula-mark-date">{entry.date}</span>
+                                    <input
+                                      className="pusula-mark-note"
+                                      placeholder={plang({ tr: "+ bu statüye not", en: "+ note for this status", es: "+ nota para este estado" })}
+                                      value={entry.note}
+                                      onChange={(e) => setMarkNote(t.id, s, e.target.value)}
+                                    />
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </motion.div>
@@ -438,7 +458,21 @@ export function GelisimDefteri() {
                           onClick={() => cycleCell(key, lv)}
                           title={plang({ tr: "tıkla: seviye değiştir", en: "click: change level", es: "clic: cambiar nivel" })}
                         >
-                          {plang(SCALE[lv])}
+                          {/* seviye değişince içerik yeniden doğar (key=lv) — değişim GÖZLE görülür */}
+                          <motion.span
+                            key={lv}
+                            className="pusula-comp-cellin"
+                            initial={{ opacity: 0.3, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.28, ease: EASE }}
+                          >
+                            {plang(SCALE[lv])}
+                            <i className="pusula-comp-ticks" aria-hidden>
+                              {[1, 2, 3, 4, 5].map((n) => (
+                                <b key={n} className={n <= lv ? "f" : ""} />
+                              ))}
+                            </i>
+                          </motion.span>
                           {modified && <i className="pusula-comp-dot" />}
                         </button>
                       );
@@ -563,57 +597,99 @@ export function GelisimDefteri() {
             </div>
           )}
 
-          {/* ── EVRE PLANLARI (her evre için ayrı, hover ile açılan tablo) ── */}
+          {/* ── EVRE PLANLARI — yaşam-yolculuğu HARİTASI (tıkla-seç; Takip'e derin bağ) ──
+               Takip'ten farkı: Takip TEK seviyenin işaretleme masasıdır; burası 4 evrelik
+               kariyer haritası — kişi nerede, her evrenin planı ne, ilerleme yüzdesi kaç. */}
           {mode === "evre" && (
             <div className="pusula-stages">
               <div className="pusula-edit-hint">
                 <span className="pusula-ai-badge">{plang({ tr: "Yaşam evresi", en: "Lifecycle stage", es: "Etapa de carrera" })}</span>
-                {plang({ tr: "Her evrenin eğitim planı farklıdır — üstüne gelince tablosu açılır.", en: "Each stage has a different training plan — hover to open its table.", es: "Cada etapa tiene un plan de formación distinto — pasa el ratón para abrir su tabla." })}{" "}
+                {plang({ tr: "Soldan sağa kariyer yolculuğu — evreye tıkla, planını incele; «Takip'te aç» ile işaretlemeye geç.", en: "The career journey, left to right — click a stage to inspect its plan; «Open in Tracking» jumps to marking.", es: "El viaje de carrera, de izquierda a derecha — clic en una etapa para ver su plan; «Abrir en Seguimiento» salta al marcado." })}{" "}
                 <em>{emp.name.split(" ")[0]}</em> {plang({ tr: "şu an", en: "is currently in the", es: "está ahora en la etapa" })} <strong>{stageLabelOf(adayStage)}</strong> {plang({ tr: "evresinde.", en: "stage.", es: "." })}
               </div>
-              {STAGES.map((s) => {
-                const open = hoverStage === s.id || (hoverStage === null && adayStage === s.id);
-                const topics = s.level ? (sectionFor(role, s.level)?.topics ?? []) : null;
-                return (
-                  <div
-                    key={s.id}
-                    className={`pusula-stage ${open ? "open" : ""} ${adayStage === s.id ? "active" : ""}`}
-                    onMouseEnter={() => setHoverStage(s.id)}
-                    onMouseLeave={() => setHoverStage(null)}
-                  >
-                    <div className="pusula-stage-bar">
+
+              {/* harita: 4 evre kartı yan yana */}
+              <div className="pusula-stagemap">
+                {STAGES.map((s, i) => {
+                  const topics = s.level ? (sectionFor(role, s.level)?.topics ?? []) : null;
+                  const done = topics ? topics.filter((tp) => curStatus(tp.id, tp.status) !== "Boş").length : null;
+                  const sel = (selStage ?? adayStage) === s.id;
+                  const here = adayStage === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      className={`pusula-stagecard ${sel ? "sel" : ""} ${here ? "here" : ""}`}
+                      onClick={() => setSelStage(s.id)}
+                    >
+                      <span className="pusula-stagecard-idx">{String(i + 1).padStart(2, "0")}</span>
                       <span className="pusula-stage-name">{s.label()}</span>
-                      <span className="pusula-stage-focus">{s.focus()}</span>
-                      {adayStage === s.id && (
+                      <span className="pusula-stage-meta">
+                        {s.level ? `${levelLabel(s.level)} · ${levelWeeks(s.level)}` : plang({ tr: "koçluk planı", en: "coaching plan", es: "plan de coaching" })}
+                      </span>
+                      {topics && done !== null && (
+                        <span className="pusula-stagecard-prog">
+                          <u><b style={{ width: `${topics.length ? (done / topics.length) * 100 : 0}%` }} /></u>
+                          <i>{done}/{topics.length}</i>
+                        </span>
+                      )}
+                      {here && (
                         <span className="pusula-stage-here">{emp.name.split(" ")[0]} {plang({ tr: "burada", en: "is here", es: "está aquí" })}</span>
                       )}
-                      <span className="pusula-stage-meta">{s.level ? `${levelLabel(s.level)} · ${plang({ tr: "plan", en: "plan", es: "plan" })}` : plang({ tr: "koçluk planı", en: "coaching plan", es: "plan de coaching" })}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* seçili evrenin plan özeti */}
+              {(() => {
+                const s = STAGES.find((x) => x.id === (selStage ?? adayStage)) ?? STAGES[0];
+                const topics = s.level ? (sectionFor(role, s.level)?.topics ?? []) : null;
+                return (
+                  <motion.div
+                    key={s.id}
+                    className="pusula-stagedetail"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: EASE }}
+                  >
+                    <div className="pusula-stagedetail-head">
+                      <span className="pusula-stagedetail-eb">{s.label()} · {plang({ tr: "odak", en: "focus", es: "enfoque" })}</span>
+                      <p>{s.focus()}</p>
                     </div>
-                    <div className="pusula-stage-table">
-                      <div className="pusula-stage-inner">
-                        {topics
-                          ? topics.slice(0, 8).map((t) => (
-                              <div key={t.id} className="pusula-stage-row">
-                                <span className="pusula-stage-cat">{categoryLabel(t.category)}</span>
-                                <span className="pusula-stage-topic">
-                                  <span className="pusula-topic-no">{t.no}.</span> {t.title}
-                                </span>
-                              </div>
-                            ))
-                          : KOC_PLAN.map((k, i) => (
-                              <div key={i} className="pusula-stage-row">
-                                <span className="pusula-stage-cat">{plang({ tr: "Koçluk", en: "Coaching", es: "Coaching" })}</span>
-                                <span className="pusula-stage-topic">{k()}</span>
-                              </div>
-                            ))}
-                        {topics && topics.length > 8 && (
-                          <div className="pusula-stage-more">+{topics.length - 8} {plang({ tr: "konu daha — Takip'te", en: "more topics — in Tracking", es: "temas más — en Seguimiento" })}</div>
-                        )}
-                      </div>
+                    <div className="pusula-stage-inner">
+                      {topics
+                        ? topics.slice(0, 8).map((tp) => (
+                            <div key={tp.id} className="pusula-stage-row">
+                              <span className="pusula-stage-cat">{categoryLabel(tp.category)}</span>
+                              <span className="pusula-stage-topic">
+                                <span className="pusula-topic-no">{tp.no}.</span> {tp.title}
+                              </span>
+                            </div>
+                          ))
+                        : KOC_PLAN.map((k, i) => (
+                            <div key={i} className="pusula-stage-row">
+                              <span className="pusula-stage-cat">{plang({ tr: "Koçluk", en: "Coaching", es: "Coaching" })}</span>
+                              <span className="pusula-stage-topic">{k()}</span>
+                            </div>
+                          ))}
+                      {topics && topics.length > 8 && (
+                        <div className="pusula-stage-more">+{topics.length - 8} {plang({ tr: "konu daha — Takip'te", en: "more topics — in Tracking", es: "temas más — en Seguimiento" })}</div>
+                      )}
                     </div>
-                  </div>
+                    {s.level && (
+                      <button
+                        className="pusula-apply pusula-stagedetail-go"
+                        onClick={() => {
+                          setLevel(s.level as GuidebookLevel);
+                          setMode("takip");
+                        }}
+                      >
+                        {plang({ tr: "Takip'te aç — işaretlemeye geç", en: "Open in Tracking — start marking", es: "Abrir en Seguimiento — empezar a marcar" })}
+                      </button>
+                    )}
+                  </motion.div>
                 );
-              })}
+              })()}
             </div>
           )}
 

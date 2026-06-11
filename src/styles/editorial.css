@@ -1489,16 +1489,16 @@
 .pusula-teach-moment span { font-family: var(--ff-sans); font-size: 12px; line-height: 1.5; color: var(--zara-ink-2); }
 .pusula-teach-moment strong { font-family: var(--ff-display); font-style: italic; color: var(--zara-gold-deep); }
 
-/* tik geçmişi — durum + tarih + pill-başına not */
-.pusula-mark { display: flex; align-items: center; gap: 12px; border-top: 1px dashed var(--zara-line); padding-top: 11px; margin-top: 3px; }
+/* STATÜ YOLCULUĞU — ulaşılan her statünün kendi satırı: durum + tarih + BAĞIMSIZ not.
+   Not alanı hover'a saklanmaz: işaretli konuda her zaman görünür ve düzenlenebilir. */
+.pusula-mark-journey { display: flex; flex-direction: column; }
+.pusula-mark { display: flex; align-items: center; gap: 12px; border-top: 1px dashed var(--zara-line); padding-top: 9px; margin-top: 8px; }
 .pusula-mark-status { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-bg); background: var(--zara-ink-soft); padding: 4px 9px; border-radius: 0; white-space: nowrap; min-width: 92px; text-align: center; box-shadow: none; }
+.pusula-mark.past .pusula-mark-status { background: transparent; color: var(--zara-ink-50); border: 1px solid var(--zara-line-strong); }
+.pusula-mark.past .pusula-mark-date { color: var(--zara-ink-40); }
 .pusula-mark-date { font-family: var(--ff-mono); font-size: 9px; color: var(--zara-gold-deep); white-space: nowrap; }
-/* not: işaretlenince hover/odakla görünür; doluysa hep görünür (tek not / konu) */
-.pusula-mark-note { flex: 1; border: none; border-bottom: 1px dashed transparent; background: transparent; padding: 3px 2px; font-family: var(--ff-sans); font-size: 12px; font-style: italic; color: var(--zara-ink-2); outline: none; opacity: 0; transition: opacity 200ms var(--ease-atelier), border-color 200ms; }
-.pusula-topic:hover .pusula-mark-note, .pusula-mark-note:focus, .pusula-mark-note:not(:placeholder-shown) { opacity: 1; border-bottom-color: var(--zara-line-strong); }
-/* dokunmatikte hover yok — not alanı işaretli konuda HER ZAMAN görünür */
-@media (hover: none) { .pusula-mark-note { opacity: 1; border-bottom-color: var(--zara-line-strong); } }
-.pusula-mark-note:focus { border-bottom-color: var(--zara-gold); }
+.pusula-mark-note { flex: 1; border: none; border-bottom: 1px dashed var(--zara-line-strong); background: transparent; padding: 3px 2px; font-family: var(--ff-sans); font-size: 12px; font-style: italic; color: var(--zara-ink-2); outline: none; transition: border-color 200ms; }
+.pusula-mark-note:focus { border-bottom-color: var(--zara-gold); border-bottom-style: solid; }
 .pusula-mark-note::placeholder { color: var(--zara-ink-30); font-style: italic; }
 
 /* müfredat sinyali (koç notlarından plan revizyonu) */
@@ -1676,6 +1676,11 @@
 .pusula-comp-cell:hover { box-shadow: inset 0 0 0 1px var(--zara-gold-soft); }
 .pusula-comp-cell.mod { border-color: var(--zara-gold-soft); }
 .pusula-comp-dot { position: absolute; top: 4px; right: 5px; width: 4px; height: 4px; border-radius: 50%; background: var(--zara-gold); }
+/* hücre içi: etiket + 5 kademeli tik-metre — seviye sayı basmadan görselleşir */
+.pusula-comp-cellin { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.pusula-comp-ticks { display: inline-flex; gap: 3px; }
+.pusula-comp-ticks b { width: 8px; height: 3px; background: var(--zara-line-strong); transition: background 250ms var(--ease-atelier); }
+.pusula-comp-ticks b.f { background: currentColor; }
 .pusula-comp-note { grid-column: 1 / -1; margin-top: 4px; border: none; border-bottom: 1px dashed var(--zara-line-strong); background: transparent; padding: 5px 2px; font-family: var(--ff-sans); font-size: 12px; font-style: italic; color: var(--zara-ink-2); outline: none; transition: border-color 200ms; }
 .pusula-comp-note:focus { border-bottom-color: var(--zara-gold); }
 .pusula-comp-note::placeholder { color: var(--zara-ink-30); }
@@ -1831,19 +1836,37 @@
 .pusula-persona-livek { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); font-style: normal; white-space: nowrap; }
 
 /* ── Evre Planları — her evre için ayrı, hover ile açılan tablo ── */
-.pusula-stages { display: flex; flex-direction: column; gap: 10px; }
-.pusula-stage { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); overflow: hidden; transition: border-color 220ms var(--ease-atelier); }
-.pusula-stage:hover { border-color: var(--zara-ink); }
-.pusula-stage.active { border-color: var(--zara-gold-soft); }
-.pusula-stage-bar { display: flex; align-items: center; gap: 16px; padding: 14px 18px; cursor: pointer; }
-.pusula-stage-name { font-family: var(--ff-display); font-style: italic; font-size: 22px; color: var(--zara-ink); min-width: 90px; }
-.pusula-stage.active .pusula-stage-name { color: var(--zara-gold-deep); }
-.pusula-stage-focus { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-50); flex: 1; }
+/* EVRE HARİTASI — 4 evre kartı yan yana; tıkla-seç (hover-expand kalktı) */
+.pusula-stages { display: flex; flex-direction: column; gap: 14px; }
+.pusula-stagemap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--zara-line); }
+.pusula-stagecard {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0;
+  padding: 18px 18px 16px; border: none; border-right: 1px solid var(--zara-line);
+  background: transparent; cursor: pointer; text-align: left;
+  transition: background 220ms var(--ease-atelier);
+}
+.pusula-stagecard:last-child { border-right: none; }
+.pusula-stagecard:hover { background: var(--zara-gold-tint); }
+.pusula-stagecard.sel { box-shadow: inset 0 -3px 0 var(--zara-ink); }
+.pusula-stagecard-idx { font-family: var(--ff-mono); font-size: 9px; color: var(--zara-ink-30); }
+.pusula-stagecard.sel .pusula-stagecard-idx { color: var(--zara-ink); }
+.pusula-stage-name { font-family: var(--ff-display); font-style: italic; font-size: 22px; color: var(--zara-ink); }
+.pusula-stagecard-prog { display: flex; flex-direction: column; gap: 3px; width: 100%; margin-top: 2px; }
+.pusula-stagecard-prog u { display: block; width: 100%; height: 2px; background: var(--zara-line); text-decoration: none; }
+.pusula-stagecard-prog b { display: block; height: 100%; background: var(--zara-ink); transition: width 400ms var(--ease-atelier); }
+.pusula-stagecard-prog i { font-style: normal; font-family: var(--ff-mono); font-size: 8px; color: var(--zara-ink-40); }
 .pusula-stage-here { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); background: var(--zara-gold-tint); border: 1px solid var(--zara-gold-soft); padding: 4px 9px; border-radius: 0; white-space: nowrap; }
 .pusula-stage-meta { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); white-space: nowrap; }
-.pusula-stage-table { max-height: 0; overflow: hidden; transition: max-height 400ms var(--ease-atelier); }
-.pusula-stage.open .pusula-stage-table { max-height: 620px; }
-.pusula-stage-inner { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--zara-line); padding-top: 12px; }
+.pusula-stagedetail { border: 1px solid var(--zara-line); padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+.pusula-stagedetail-eb { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--zara-ink); display: block; padding-bottom: 8px; border-bottom: 1px solid var(--zara-ink); }
+.pusula-stagedetail-head p { font-family: var(--ff-sans); font-size: 13px; line-height: 1.6; color: var(--zara-ink-65); margin-top: 10px; }
+.pusula-stagedetail-go { align-self: flex-start; }
+.pusula-stage-inner { display: flex; flex-direction: column; gap: 6px; }
+@media (max-width: 860px) {
+  .pusula-stagemap { grid-template-columns: 1fr 1fr; }
+  .pusula-stagecard { border-bottom: 1px solid var(--zara-line); }
+  .pusula-stagecard:nth-child(even) { border-right: none; }
+}
 .pusula-stage-row { display: flex; align-items: baseline; gap: 12px; }
 .pusula-stage-cat { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-gold-deep); min-width: 72px; }
 .pusula-stage-topic { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-2); }
