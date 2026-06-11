@@ -218,3 +218,45 @@ export function notePatterns(extra: ArchiveNote[] = []): NotePattern[] {
     };
   });
 }
+
+// ── GÖZLEM ETİKET ÇIKARIMI — serbest metin → Senaryo + Yöntem çifti.
+// Mimari rapor §5: gözlem "ilk cümle" değil, sabit taksonomiye eşlenir
+// (Senaryo = 6 yetkinlik, Yöntem = koçluk yöntemi sözlüğü). Anahtar-kelime
+// eşleşmesi demo çözümüdür; ileri fazda NLP (§10). Koç her zaman düzeltebilir.
+import type { CompKey } from "./data-competency";
+import type { MethodId } from "./data-curriculum";
+
+const SCENARIO_KW: Array<[CompKey, RegExp]> = [
+  ["kabin", /kabin|prova|deneme|fitting|probador|sıra|kuyruk|queue/i],
+  ["karsilama", /karşılama|selam|ilk temas|welcome|greet|yaklaş|bienvenida|acercamiento/i],
+  ["dolum", /dolum|raf|reyon|iade|sprinter|sevkiyat|refill|shelf|estante|reposici/i],
+  ["urun", /kombin|ürün|mix|stil|outfit|product|prenda|upt/i],
+  ["kayip", /alarm|eas|kayıp|güvenlik|loss|merma|hurto/i],
+  ["sellthrough", /sell[- ]?through|devir|satış hızı|rotaci/i],
+];
+const METHOD_KW: Array<[MethodId, RegExp]> = [
+  ["golge", /gölge|shadow|eşlik|izle|sombra|refakat/i],
+  ["maruz", /maruz|tepe[- ]saat|yoğunluk|bırak|exposure|pico|peak/i],
+  ["prova", /prova|rol|deneme|rehears|ensayo|senaryo çalış/i],
+  ["es", /eş[- ]çalışma|birlikte|ikili|mentor|pair|pareja/i],
+];
+
+export interface InferredTags {
+  scenario: CompKey;
+  method: MethodId;
+  /** eşleşme bulundu mu — bulunamadıysa koçun seçmesi beklenir */
+  scenarioHit: boolean;
+  methodHit: boolean;
+}
+
+/** Metinden Senaryo+Yöntem tahmini — bulunamazsa makul varsayılan + "seç" daveti. */
+export function inferTags(text: string): InferredTags {
+  const s = SCENARIO_KW.find(([, re]) => re.test(text));
+  const m = METHOD_KW.find(([, re]) => re.test(text));
+  return {
+    scenario: s?.[0] ?? "karsilama",
+    method: m?.[0] ?? "golge",
+    scenarioHit: !!s,
+    methodHit: !!m,
+  };
+}

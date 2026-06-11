@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileText, Sparkles, Check, RotateCcw, CheckCircle2, Circle, BrainCircuit } from "lucide-react";
+import { FileText, Sparkles, Check, RotateCcw, BrainCircuit } from "lucide-react";
 import { Eyebrow, Headline } from "../../brain/primitives";
 import { pick, useT } from "../i18n";
 import { byId, employees } from "../data";
-import { NOTED_IDS, notePatterns, notesFor } from "../data-hafiza";
+import { NOTED_IDS, inferTags, notePatterns, notesFor, type InferredTags } from "../data-hafiza";
+import { COMP_KEYS, compShort, type CompKey } from "../data-competency";
+import { METHOD_IDS, methodLabel, type MethodId } from "../data-curriculum";
 import { PersonAvatar } from "../components/PersonAvatar";
 import { usePersistentState } from "../session-store";
 import type { ArchiveNote, NoteKind } from "../types-gelisim";
@@ -26,14 +28,20 @@ const kindLabel = (k: NoteKind): string =>
       ? pick({ tr: "Koçluk", en: "Coaching", es: "Coaching" })
       : pick({ tr: "Değerlendirme", en: "Evaluation", es: "Evaluación" });
 
-/** Günün koçluk aksiyonları — "sıradaki öğretilecekler" kuyruğu (tiklenir, ilerler). */
-const DAY_ACTIONS: Array<{ who: string; what: () => string }> = [
-  { who: "Asya", what: () => pick({ tr: "Kabin temelleri → 2. gölge seansı (Fatma ile)", en: "Fitting-room basics → 2nd shadow session (with Fatma)", es: "Básicos de probador → 2ª sesión de acompañamiento (con Fatma)" }) },
-  { who: "Asya", what: () => pick({ tr: "Müşteri yaklaşımı → ilk temas pratiği", en: "Customer approach → first-contact practice", es: "Acercamiento al cliente → práctica de primer contacto" }) },
-  { who: "Kaan", what: () => pick({ tr: "Tepe-saat dayanıklılığı → 16:00 kontrollü maruziyet", en: "Peak-hour resilience → 16:00 controlled exposure", es: "Resistencia en hora pico → exposición controlada a las 16:00" }) },
-  { who: "Gamze", what: () => pick({ tr: "Sprinter akışı → mola ve araç düzeni", en: "Sprinter flow → breaks and equipment order", es: "Flujo Sprinter → descansos y orden de herramientas" }) },
-  { who: "Fatma", what: () => pick({ tr: "Usta aktarımı → Asya'ya kabin sıra-yönetimi", en: "Mastery transfer → fitting-room queue management to Asya", es: "Transferencia de maestría → gestión de cola de probador a Asya" }) },
+/** Günün koçluk aksiyonları — kaynaklı takip defteri: her satırın saati, kişisi,
+ *  KAYNAĞI (defter/örüntü/usta yolu) ve kalıcı tamam durumu vardır. */
+const DAY_ACTIONS: Array<{ who: string; slot: string; src: "defter" | "orunto" | "usta"; what: () => string }> = [
+  { who: "Asya", slot: "11:30", src: "defter", what: () => pick({ tr: "Kabin temelleri → 2. gölge seansı (Fatma ile)", en: "Fitting-room basics → 2nd shadow session (with Fatma)", es: "Básicos de probador → 2ª sesión de acompañamiento (con Fatma)" }) },
+  { who: "Asya", slot: "13:00", src: "orunto", what: () => pick({ tr: "Müşteri yaklaşımı → ilk temas pratiği", en: "Customer approach → first-contact practice", es: "Acercamiento al cliente → práctica de primer contacto" }) },
+  { who: "Kaan", slot: "16:00", src: "defter", what: () => pick({ tr: "Tepe-saat dayanıklılığı → kontrollü maruziyet", en: "Peak-hour resilience → controlled exposure", es: "Resistencia en hora pico → exposición controlada" }) },
+  { who: "Gamze", slot: "17:30", src: "orunto", what: () => pick({ tr: "Sprinter akışı → mola ve araç düzeni", en: "Sprinter flow → breaks and equipment order", es: "Flujo Sprinter → descansos y orden de herramientas" }) },
+  { who: "Fatma", slot: "20:00", src: "usta", what: () => pick({ tr: "Usta aktarımı → Asya'ya kabin sıra-yönetimi", en: "Mastery transfer → fitting-room queue management to Asya", es: "Transferencia de maestría → gestión de cola de probador a Asya" }) },
 ];
+const SRC_LABEL: Record<"defter" | "orunto" | "usta", () => string> = {
+  defter: () => pick({ tr: "Defterden", en: "From booklet", es: "Del cuadernillo" }),
+  orunto: () => pick({ tr: "Örüntüden", en: "From pattern", es: "Del patrón" }),
+  usta: () => pick({ tr: "Usta Yolu", en: "Mentor path", es: "Ruta de mentor" }),
+};
 
 /**
  * Öğrenen Hafıza — koçluk gözlem arşivi (bilgi kaybolmasın). Zaman çizelgesi +
@@ -57,42 +65,44 @@ export function OgrenenHafiza() {
   const [showAllPeople, setShowAllPeople] = useState(false);
   const noteCountOf = (id: string) => (addedNotes[id]?.length ?? 0) + notesFor(id).length;
 
-  // koçluk anı (extract-then-confirm)
+  // koçluk anı (extract-then-confirm) — çıkarım Senaryo+Yöntem ÇİFTİDİR
+  // (ilk cümle değil): başlık taksonomiden doğar, koç çipleri düzeltebilir.
   const [draft, setDraft] = useState("");
-  const [extracted, setExtracted] = useState<string | null>(null);
+  const [tags, setTags] = useState<InferredTags | null>(null);
   const [confirmed, setConfirmed] = useState(false);
 
-  // günün aksiyonları kuyruğu
-  const [doneActions, setDoneActions] = useState<number[]>([]);
-  const toggleAction = (i: number) =>
-    setDoneActions((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
+  // günün aksiyonları — görünüm değişiminde KAYBOLMAZ (session-store)
+  const [doneActions, setDoneActions] = usePersistentState<Record<number, boolean>>("hafiza.dayq", {});
+  const doneCount = DAY_ACTIONS.filter((_, i) => doneActions[i]).length;
+  const toggleAction = (i: number) => setDoneActions((p) => ({ ...p, [i]: !p[i] }));
 
   const onSelectEmp = (id: string) => {
     setEmpId(id);
     const n = [...(addedNotes[id] ?? []), ...notesFor(id)].sort((a, b) => b.date.localeCompare(a.date));
     setSelected(n[0] ?? null);
     setDraft("");
-    setExtracted(null);
+    setTags(null);
     setConfirmed(false);
   };
 
   const extract = () => {
     const text = draft.trim();
     if (!text) return;
-    const first = text.split(/[.!?\n]/)[0].trim();
-    setExtracted(first.length > 4 ? first : text);
+    setTags(inferTags(text));
     setConfirmed(false);
   };
 
+  const titleOf = (tg: InferredTags) => `${compShort(tg.scenario)} · ${methodLabel(tg.method)}`;
+
   // onay = gözlem arşive İŞLENİR (zaman çizelgesi + örüntü sayaçları canlı güncellenir)
   const saveExtracted = () => {
-    if (!extracted) return;
+    if (!tags) return;
     const newNote: ArchiveNote = {
       id: `s${Date.now()}`,
       employeeId: empId,
       date: new Date().toISOString().slice(0, 10),
       kind: "Koçluk",
-      topic: extracted,
+      topic: titleOf(tags),
       note: draft.trim(),
       author: pick({ tr: "Koç (oturum)", en: "Coach (session)", es: "Coach (sesión)" }),
       signed: true,
@@ -115,22 +125,40 @@ export function OgrenenHafiza() {
         </div>
       </div>
 
-      {/* günün koçluk aksiyonları — sıradaki öğretilecekler kuyruğu */}
+      {/* günün koçluk aksiyonları — kaynaklı takip defteri (saat·kişi·kaynak·durum) */}
       <div className="pusula-dayq">
         <div className="pusula-dayq-head">
-          <span>{pick({ tr: "Bugünün koçluk aksiyonları · sıradaki öğretilecekler", en: "Today's coaching actions · what to teach next", es: "Acciones de coaching de hoy · qué enseñar después" })}</span>
-          <span className="pusula-dayq-prog">{doneActions.length}/{DAY_ACTIONS.length} {pick({ tr: "tamam", en: "done", es: "hecho" })}</span>
+          <span>{pick({ tr: "Bugünün koçluk aksiyonları · takip defteri", en: "Today's coaching actions · tracking ledger", es: "Acciones de coaching de hoy · registro" })}</span>
+          <span className="pusula-dayq-prog">
+            <u><b style={{ width: `${(doneCount / DAY_ACTIONS.length) * 100}%` }} /></u>
+            {doneCount}/{DAY_ACTIONS.length} {pick({ tr: "tamam", en: "done", es: "hecho" })}
+          </span>
         </div>
         <div className="pusula-dayq-list">
           {DAY_ACTIONS.map((a, i) => {
-            const done = doneActions.includes(i);
+            const done = !!doneActions[i];
             return (
-              <button key={i} className={`pusula-dayq-item ${done ? "done" : ""}`} onClick={() => toggleAction(i)}>
-                {done ? <CheckCircle2 size={15} strokeWidth={1.7} /> : <Circle size={15} strokeWidth={1.5} />}
-                <span className="pusula-dayq-who">{a.who}</span>
+              <div key={i} className={`pusula-dayq-item ${done ? "done" : ""}`}>
+                <span className="pusula-dayq-slot">{a.slot}</span>
+                <span className="pusula-dayq-who">
+                  <PersonAvatar name={a.who} size={22} /> {a.who}
+                </span>
                 <span className="pusula-dayq-what">{a.what()}</span>
-              </button>
+                <span className={`pusula-dayq-src s-${a.src}`}>{SRC_LABEL[a.src]()}</span>
+                <button className={`pusula-dayq-tick ${done ? "on" : ""}`} onClick={() => toggleAction(i)}>
+                  {done
+                    ? <><Check size={11} strokeWidth={2.2} /> {pick({ tr: "Yapıldı", en: "Done", es: "Hecho" })}</>
+                    : pick({ tr: "Yapıldı işaretle", en: "Mark done", es: "Marcar hecho" })}
+                </button>
+              </div>
             );
+          })}
+        </div>
+        <div className="pusula-dayq-note">
+          {pick({
+            tr: "Her satırın kaynağı görünür — aksiyon defterden, örüntüden ya da Usta Yolu'ndan doğar; tamamlanan, dönem raporunda 'kapanan döngü' olur.",
+            en: "Every row shows its source — actions come from the booklet, a pattern, or the Mentor Path; completed ones become 'closed loops' in the period report.",
+            es: "Cada fila muestra su origen — del cuadernillo, de un patrón o de la Ruta de Mentor; lo completado cierra el ciclo en el informe.",
           })}
         </div>
       </div>
@@ -217,20 +245,46 @@ export function OgrenenHafiza() {
         {/* sol: gidişat + zaman çizelgesi */}
         <div className="pusula-mem-left">
           <div className="pusula-mem-trend">
-            <span className="pusula-pocket-eb">{pick({ tr: "Gidişat", en: "Trajectory", es: "Trayectoria" })}</span>
-            <div className="pusula-mem-trend-dots">
-              {[...notes].reverse().map((n) => (
-                <span
-                  key={n.id}
-                  className="pusula-mem-trend-dot"
-                  style={{ height: 6 + TONE_LEVEL[n.tone] * 6, opacity: 0.35 + TONE_LEVEL[n.tone] * 0.2 }}
-                  title={`${n.date} · ${TONE_WORD[n.tone]()}`}
-                />
-              ))}
+            <div className="pusula-mem-trend-top">
+              <span className="pusula-pocket-eb">{pick({ tr: "Gidişat", en: "Trajectory", es: "Trayectoria" })}</span>
+              <span className="pusula-mem-trend-word">
+                {pick({ tr: "son kayıt:", en: "latest:", es: "último:" })} <em>{notes[0] ? TONE_WORD[notes[0].tone]() : "—"}</em>
+              </span>
             </div>
-            <span className="pusula-mem-trend-word">
-              {pick({ tr: "son kayıt:", en: "latest:", es: "último:" })} <em>{notes[0] ? TONE_WORD[notes[0].tone]() : "—"}</em>
-            </span>
+            {/* nitel sparkline: x = zaman, y = ton (gelişiyor→güçlü); sayı basılmaz */}
+            {(() => {
+              const chron = [...notes].reverse();
+              const W = 280;
+              const H = 58;
+              const px = (i: number) => (chron.length > 1 ? 8 + (i * (W - 16)) / (chron.length - 1) : W / 2);
+              const py = (n: ArchiveNote) => H - 10 - (TONE_LEVEL[n.tone] - 1) * ((H - 24) / 2);
+              const path = chron.map((n, i) => `${i === 0 ? "M" : "L"}${px(i).toFixed(1)},${py(n).toFixed(1)}`).join(" ");
+              return (
+                <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} className="pusula-mem-spark" role="img"
+                  aria-label={pick({ tr: "Gözlem tonu gidişatı", en: "Observation tone trajectory", es: "Trayectoria del tono" })}>
+                  {[1, 2, 3].map((lv) => (
+                    <line key={lv} x1={8} x2={W - 8} y1={H - 10 - (lv - 1) * ((H - 24) / 2)} y2={H - 10 - (lv - 1) * ((H - 24) / 2)}
+                      stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
+                  ))}
+                  {chron.length > 1 && (
+                    <path d={`${path} L${px(chron.length - 1)},${H - 4} L${px(0)},${H - 4} Z`} fill="rgba(0,0,0,0.04)" />
+                  )}
+                  <path d={path} fill="none" stroke="var(--zara-ink)" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
+                  {chron.map((n, i) => (
+                    <circle key={n.id} cx={px(i)} cy={py(n)} r={i === chron.length - 1 ? 3.4 : 2.2}
+                      fill={i === chron.length - 1 ? "var(--zara-ink)" : "var(--zara-bg-white, #fff)"}
+                      stroke="var(--zara-ink)" strokeWidth={1.2}>
+                      <title>{`${n.date} · ${TONE_WORD[n.tone]()}`}</title>
+                    </circle>
+                  ))}
+                </svg>
+              );
+            })()}
+            <div className="pusula-mem-trend-axis">
+              <span>{TONE_WORD.developing()}</span>
+              <span>{TONE_WORD.steady()}</span>
+              <span>{TONE_WORD.strong()}</span>
+            </div>
           </div>
 
           <div className="pusula-mem-timeline">
@@ -283,7 +337,7 @@ export function OgrenenHafiza() {
                     <div className="pusula-paper-key">{pick({ tr: "Koç / Gözlemci", en: "Coach / Observer", es: "Coach / Observador" })}</div>
                     <div className="pusula-paper-author">{selected.author}</div>
                   </div>
-                  {selected.signed && <div className="pusula-paper-sign">{selected.author.replace(/[. ]/g, "")}</div>}
+                  {selected.signed && <div className="pusula-paper-sign">{selected.author.replace(/\./g, "").replace(/\s+/g, " ").trim()}</div>}
                 </div>
                 <span className="pusula-paper-mark">{pick({ tr: "ARŞİV", en: "ARCHIVE", es: "ARCHIVO" })}</span>
               </motion.div>
@@ -304,25 +358,25 @@ export function OgrenenHafiza() {
           <textarea
             className="pusula-coach-input"
             placeholder={pick({
-              tr: `${emp.name} için bugünkü gözlemini yaz… (Pusula yöntemi çıkarıp onayını ister)`,
-              en: `Write today's observation for ${emp.name}… (Pusula extracts the method and asks you to confirm)`,
-              es: `Escribe la observación de hoy para ${emp.name}… (Pusula extrae el método y te pide confirmación)`,
+              tr: `${emp.name.split(" ")[0]} için bugünkü gözlemini yaz…`,
+              en: `Write today's observation for ${emp.name.split(" ")[0]}…`,
+              es: `Escribe la observación de hoy para ${emp.name.split(" ")[0]}…`,
             })}
             value={draft}
             onChange={(e) => {
               setDraft(e.target.value);
-              setExtracted(null);
+              setTags(null);
               setConfirmed(false);
             }}
             rows={2}
           />
           <button className="pusula-coach-btn" onClick={extract} disabled={!draft.trim()}>
-            <Sparkles size={14} /> {pick({ tr: "Yöntemi çıkar", en: "Extract method", es: "Extraer método" })}
+            <Sparkles size={14} /> {pick({ tr: "Etiketle", en: "Tag it", es: "Etiquetar" })}
           </button>
         </div>
 
         <AnimatePresence>
-          {extracted && (
+          {tags && (
             <motion.div
               className="pusula-coach-confirm"
               initial={{ opacity: 0, y: 8 }}
@@ -333,22 +387,51 @@ export function OgrenenHafiza() {
               {confirmed ? (
                 <div className="pusula-coach-done">
                   <Check size={15} /> {pick({
-                    tr: `Yöntem ${emp.name}'in hafızasına eklendi — bir sonraki koça aktarılabilir.`,
-                    en: `The method was added to ${emp.name}'s memory — it can be passed to the next coach.`,
-                    es: `El método se añadió a la memoria de ${emp.name} — puede transmitirse al siguiente coach.`,
+                    tr: `“${titleOf(tags)}” ${emp.name.split(" ")[0]}'in hafızasına işlendi — bir sonraki koça aktarılabilir.`,
+                    en: `“${titleOf(tags)}” was written to ${emp.name.split(" ")[0]}'s memory — it can be passed to the next coach.`,
+                    es: `“${titleOf(tags)}” se añadió a la memoria de ${emp.name.split(" ")[0]} — puede transmitirse al siguiente coach.`,
                   })}
                 </div>
               ) : (
                 <>
                   <p>
-                    {pick({ tr: "Yöntemini şöyle anladım:", en: "Here's how I understood your method:", es: "Así entendí tu método:" })} <em>“{extracted}”</em> — {pick({ tr: "doğru mu?", en: "is that right?", es: "¿es correcto?" })}
+                    {tags.scenarioHit || tags.methodHit
+                      ? pick({ tr: "Gözlemi şöyle etiketledim — yanlışsa çiplerden düzelt:", en: "I tagged the observation like this — fix via the chips if wrong:", es: "Etiqueté la observación así — corrige con los chips:" })
+                      : pick({ tr: "Metinden etiket çıkaramadım — senaryo ve yöntemi sen seç:", en: "I couldn't infer tags from the text — pick the scenario and method:", es: "No pude inferir etiquetas — elige escenario y método:" })}
+                  </p>
+                  <div className="pusula-tagrow">
+                    <span className="pusula-tagrow-k">{pick({ tr: "Senaryo", en: "Scenario", es: "Escenario" })}</span>
+                    {COMP_KEYS.map((k: CompKey) => (
+                      <button
+                        key={k}
+                        className={`pusula-tagchip ${tags.scenario === k ? "on" : ""}`}
+                        onClick={() => setTags({ ...tags, scenario: k, scenarioHit: true })}
+                      >
+                        {compShort(k)}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="pusula-tagrow">
+                    <span className="pusula-tagrow-k">{pick({ tr: "Yöntem", en: "Method", es: "Método" })}</span>
+                    {METHOD_IDS.map((m: MethodId) => (
+                      <button
+                        key={m}
+                        className={`pusula-tagchip ${tags.method === m ? "on" : ""}`}
+                        onClick={() => setTags({ ...tags, method: m, methodHit: true })}
+                      >
+                        {methodLabel(m)}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="pusula-tagtitle">
+                    {pick({ tr: "Başlık", en: "Title", es: "Título" })}: <em>“{titleOf(tags)}”</em>
                   </p>
                   <div className="pusula-coach-actions">
                     <button className="pusula-coach-yes" onClick={saveExtracted}>
                       <Check size={14} /> {pick({ tr: "Doğru, kaydet", en: "Correct, save", es: "Correcto, guardar" })}
                     </button>
-                    <button className="pusula-coach-no" onClick={() => setExtracted(null)}>
-                      <RotateCcw size={14} /> {pick({ tr: "Düzelt", en: "Fix", es: "Corregir" })}
+                    <button className="pusula-coach-no" onClick={() => setTags(null)}>
+                      <RotateCcw size={14} /> {pick({ tr: "Vazgeç", en: "Cancel", es: "Cancelar" })}
                     </button>
                   </div>
                 </>
