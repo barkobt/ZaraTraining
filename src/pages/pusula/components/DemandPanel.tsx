@@ -47,6 +47,7 @@ export function DemandPanel() {
         <div className="pusula-demand-row">
           {head.map((h) => (
             <div key={h.hour} className="pusula-demand-col">
+              <i className="pusula-demand-n">{h.n}</i>
               <div
                 className={`pusula-demand-bar ${h.peak ? "peak" : ""}`}
                 style={{ height: `${(h.n / maxN) * 100}%` }}

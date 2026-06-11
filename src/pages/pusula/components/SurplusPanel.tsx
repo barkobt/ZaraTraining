@@ -34,6 +34,7 @@ export function SurplusPanel() {
 
         {/* saatlik gerekli vs esnek mini */}
         <div className="pusula-surplus-bal">
+          <span className="pusula-surplus-balk">{pick({ tr: "gerekli / saat", en: "need / hour", es: "necesario / hora" })}</span>
           {balance.map((b) => (
             <div key={b.hour} className="pusula-surplus-col">
               <div className="pusula-surplus-bar" style={{ height: `${(b.need / maxNeed) * 100}%` }} title={`${b.hour} · ${pick({ tr: "gerekli", en: "need", es: "necesario" })} ${b.need} · ${pick({ tr: "esnek", en: "flex", es: "flex" })} ${b.flex}`} />

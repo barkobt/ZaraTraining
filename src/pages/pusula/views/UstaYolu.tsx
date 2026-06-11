@@ -4,8 +4,11 @@ import { ArrowRight, BrainCircuit, Check, Clock, RefreshCw, Sparkles } from "luc
 import { Headline } from "../../brain/primitives";
 import { usePersistentState } from "../session-store";
 import { pick, useT } from "../i18n";
-import { byId } from "../data";
+import { byId, employees } from "../data";
 import { mentorMatches, mentorMatchesOptimized } from "../data-mentor";
+import { inferTags } from "../data-hafiza";
+import { compShort, personCompetencies } from "../data-competency";
+import { methodLabel } from "../data-curriculum";
 import { MasteryLevel } from "../types";
 import type { MentorMatch } from "../types-gelisim";
 import { PersonAvatar } from "../components/PersonAvatar";
@@ -78,6 +81,33 @@ export function UstaYolu() {
         </div>
       </div>
 
+      {/* bu ekranın hikâyesi: öğretebilir bayrağı → eşleşme → yöntem kurumda kalır */}
+      <div className="pusula-usta-story" aria-hidden>
+        <span>{pick({ tr: "Öğretebilir bayrağı", en: "Can-teach flag", es: "Insignia 'puede enseñar'" })}</span>
+        <i>→</i>
+        <span>{pick({ tr: "Müsait saatte eşleşme", en: "Match in a slack hour", es: "Emparejado en hora libre" })}</span>
+        <i>→</i>
+        <span>{pick({ tr: "Yöntem aktarılır", en: "Method is transferred", es: "El método se transfiere" })}</span>
+        <i>→</i>
+        <span className="last">{pick({ tr: "Usta ayrılsa da yöntem kurumda kalır", en: "Even if the master leaves, the method stays", es: "Aunque el maestro se vaya, el método queda" })}</span>
+      </div>
+
+      {/* öğretebilir havuzu — bayrak nereden doğuyor */}
+      <div className="pusula-teachpool">
+        <span className="pusula-slack-eb">{pick({ tr: "Öğretebilir havuzu · mentor adayları", en: "Can-teach pool · mentor candidates", es: "Grupo 'puede enseñar' · candidatos a mentor" })}</span>
+        {employees
+          .map((e) => ({ e, n: personCompetencies(e.id).filter((c) => c.state.kind === "proven" && c.state.teachable).length }))
+          .filter((x) => x.n > 0)
+          .sort((a, b) => b.n - a.n)
+          .slice(0, 5)
+          .map(({ e, n }) => (
+            <span key={e.id} className="pusula-teachpool-chip">
+              <PersonAvatar name={e.name} size={20} dark={e.level === MasteryLevel.Coach} />
+              {e.name.split(" ")[0]} <em>{n} {pick({ tr: "konu", en: "topics", es: "temas" })}</em>
+            </span>
+          ))}
+      </div>
+
       {/* müsait saat şeridi */}
       <div className="pusula-slack">
         <span className="pusula-slack-eb"><Sparkles size={12} /> {pick({ tr: "Yarının eğitim pencereleri", en: "Tomorrow's training windows", es: "Ventanas de formación de mañana" })}</span>
@@ -123,12 +153,33 @@ export function UstaYolu() {
                     <span className="pusula-match-r">{pick({ tr: "öğrenen", en: "learner", es: "aprendiz" })}</span>
                   </div>
                 </div>
-                <div className="pusula-match-focus2">{m.focus}</div>
+                <div className="pusula-match-focus2">
+                  {m.focus}
+                  {/* aktarılan yöntem etiketi — eşleşme "kişi eşleştirme" değil, BİLGİ AKTARIMI */}
+                  {(() => {
+                    const tg = inferTags(m.focus);
+                    return (
+                      <span className="pusula-match-method">
+                        {compShort(tg.scenario)} · {methodLabel(tg.method)}
+                        {confirmed[m.id] && (
+                          <em>{pick({ tr: "✓ hafızaya kodlandı", en: "✓ written to memory", es: "✓ codificado en memoria" })}</em>
+                        )}
+                      </span>
+                    );
+                  })()}
+                </div>
                 <div className="pusula-match-slot">
                   <Clock size={12} strokeWidth={1.7} /> {m.slot}
                 </div>
                 <div className="pusula-match-conf">
                   <ConfidenceDots level={m.confidence} />
+                  <span className="pusula-match-confw">
+                    {m.confidence === "high"
+                      ? pick({ tr: "yüksek", en: "high", es: "alta" })
+                      : m.confidence === "medium"
+                        ? pick({ tr: "orta", en: "medium", es: "media" })
+                        : pick({ tr: "filizlenen", en: "emerging", es: "incipiente" })}
+                  </span>
                 </div>
                 <div className="pusula-match-act2">
                   {confirmed[m.id] ? (

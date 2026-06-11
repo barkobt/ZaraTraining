@@ -19,14 +19,23 @@ const LEVEL_TONE: Record<string, string> = {
   Sakin: "var(--zara-line-strong)",
 };
 
-/** Üç reyon bölümü → ayırt edici ton (kullanıcının beyaz çizgilerle ayırdığı bölümler). */
-// monokromda bölümler TONLA ayrışır: kadın = dolu siyah · çocuk = açık grİ · erkek = orta grİ
+/** Üç reyon bölümü → ayırt edici ton. Gri üçlüsü haritada OKUNMUYORDU;
+ *  harita bir kodlama yüzeyidir — ölçülü, editoryal üç renk: siyah / toprak / petrol.
+ *  (Renk yalnız krokide yaşar; uygulamanın monokrom dili bozulmaz.) */
 const DEPT_TONE: Record<Exclude<Dept, null>, string> = {
   kadin: "#0a0a0a",
-  cocuk: "rgba(0,0,0,0.34)",
-  erkek: "#6f6f6f",
+  cocuk: "#a8763e",
+  erkek: "#56707f",
 };
 const deptTone = (d: Dept): string => (d ? DEPT_TONE[d] : "var(--zara-line-strong)");
+
+/** Kanıt yoğunluğu — zone'un BİRİNCİL talebinde kanıtı (proven) olan kişi sayısı.
+ *  Baskı yüksek + kanıt düşük = AÇIK: yerleştirme önerisinin doğduğu yer. */
+function evidenceDensity(needs: CompNeed[]): number {
+  if (!needs.length) return 0;
+  const primary = [...needs].sort((a, b) => b.weight - a.weight)[0].comp;
+  return employees.filter((e) => personCompetencies(e.id).find((p) => p.comp === primary)?.state.kind === "proven").length;
+}
 
 const DRIVER_ICON: Record<ZoneDriver, typeof Footprints> = {
   footfall: Footprints,
@@ -57,6 +66,8 @@ function discoveryCandidate(needs: CompNeed[]): { name: string; comp: CompKey } 
 export function SahaKrokisi() {
   const t = useT();
   const [selId, setSelId] = useState("welcome");
+  // kroki katmanı: BASKI (canlı trafik) ↔ KANIT (zone talebinde kanıtlı el sayısı)
+  const [layer, setLayer] = useState<"baski" | "kanit">("baski");
   // eklenen müsait eller görünüm değişiminde kaybolmasın
   const [added, setAdded] = usePersistentState<Record<string, string>>("saha.added", {}); // zoneId → eklenen flex id
   const sel = FLOOR_ZONES.find((z) => z.id === selId) ?? FLOOR_ZONES[0];
@@ -93,13 +104,27 @@ export function SahaKrokisi() {
         </span>
       </div>
 
-      {/* bölüm lejantı — Kadın / Çocuk / Erkek */}
+      {/* bölüm lejantı + katman seçici */}
       <div className="pkroki-legend">
         {DEPTS.map((d) => (
           <span key={d} className="pkroki-legend-item">
             <i style={{ background: DEPT_TONE[d] }} /> {deptLabel(d)}
           </span>
         ))}
+        <span className="pkroki-layer">
+          <span className="pkroki-layer-k">{pick({ tr: "Katman", en: "Layer", es: "Capa" })}</span>
+          <button className={`pkroki-layer-b ${layer === "baski" ? "on" : ""}`} onClick={() => setLayer("baski")}>
+            {pick({ tr: "Baskı", en: "Pressure", es: "Presión" })}
+          </button>
+          <button className={`pkroki-layer-b ${layer === "kanit" ? "on" : ""}`} onClick={() => setLayer("kanit")}>
+            {pick({ tr: "Kanıt", en: "Evidence", es: "Evidencia" })}
+          </button>
+        </span>
+        {layer === "kanit" && (
+          <span className="pkroki-layer-note">
+            {pick({ tr: "kesik halka = baskı yüksek, kanıt az → AÇIK (yerleştirme buradan doğar)", en: "dashed ring = high pressure, thin evidence → GAP (placement is born here)", es: "anillo discontinuo = presión alta, poca evidencia → BRECHA" })}
+          </span>
+        )}
       </div>
 
       <div className="pkroki-grid">
@@ -107,14 +132,16 @@ export function SahaKrokisi() {
         <div className="pkroki-stage">
           <img src="/pusula-plan.png" alt={pick({ tr: "Mağaza krokisi", en: "Store floor plan", es: "Plano de la tienda" })} className="pkroki-plan" />
           {FLOOR_ZONES.map((z) => {
-            const size = markerSize(z.traffic);
-            const hot = z.traffic >= 85;
+            const density = evidenceDensity(z.needs);
+            const gap = layer === "kanit" && z.traffic >= 62 && density <= 2 && z.needs.length > 0;
+            const size = layer === "baski" ? markerSize(z.traffic) : 24 + Math.min(density, 6) * 4;
+            const hot = layer === "baski" && z.traffic >= 85;
             const on = selId === z.id;
             const tone = deptTone(z.dept);
             return (
               <button
                 key={z.id}
-                className={`pkroki-marker ${on ? "on" : ""} ${z.area === "context" ? "ctx" : ""}`}
+                className={`pkroki-marker ${on ? "on" : ""} ${z.area === "context" ? "ctx" : ""} ${gap ? "gap" : ""}`}
                 style={{ left: `${z.x}%`, top: `${z.y}%`, ["--dept" as string]: tone }}
                 onClick={() => setSelId(z.id)}
               >
@@ -123,7 +150,16 @@ export function SahaKrokisi() {
                   <MapPin size={Math.round(size * 0.38)} strokeWidth={1.6} />
                 </span>
                 <span className="pkroki-lab">
-                  {zoneLabel(z).split(" · ")[0]} <em>· {trafficLabel(z.traffic).toLowerCase()}</em>
+                  {zoneLabel(z).split(" · ")[0]}{" "}
+                  <em>
+                    {layer === "baski"
+                      ? `· ${trafficLabel(z.traffic).toLowerCase()}`
+                      : gap
+                        ? `· ${pick({ tr: "açık!", en: "gap!", es: "¡brecha!" })}`
+                        : z.needs.length
+                          ? `· ${density} ${pick({ tr: "kanıtlı el", en: "proven hands", es: "manos probadas" })}`
+                          : ""}
+                  </em>
                 </span>
               </button>
             );
