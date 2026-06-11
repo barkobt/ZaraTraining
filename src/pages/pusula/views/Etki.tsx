@@ -1,19 +1,45 @@
 import { motion } from "framer-motion";
 import { Headline } from "../../brain/primitives";
-import { HIT_RATE, impactCurve, impactNote, impactStats } from "../data-impact";
+import { HIT_RATE, impactCurve, impactNote, impactStats, maturityStages } from "../data-impact";
+import { peekSession } from "../session-store";
 import { pick, useT } from "../i18n";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
+/** Bu OTURUMDA kapanan döngüler — gerçek tıklamalardan canlı sayılır
+ *  (onaylanan aptitude + planlanan keşif + onaylanan eşleşme + işlenen örüntü +
+ *  uygulanan öncelik + tamamlanan koçluk aksiyonu). */
+function sessionClosedLoops(): number {
+  const c = (o: Record<string, unknown>) => Object.values(o).filter(Boolean).length;
+  return (
+    c(peekSession("apt.approved", {})) +
+    c(peekSession("disc.planned", {})) +
+    c(peekSession("usta.confirmed", {})) +
+    c(peekSession("hafiza.patterns", {})) +
+    c(peekSession("defter.doneItems", {})) +
+    c(peekSession("hafiza.dayq", {}))
+  );
+}
+
 /**
- * ETKİ — gelişim → performans (people hikâyesinin kalbi, slayt 7/9'un ekranı).
- * Seviye ekseninde bireysel conversion: GELİŞEN eğri yükselir; GELİŞMEDEN-KALAN
- * düz çizgide kalır — aradaki fark insan gelişiminden gelir. Sayılar TEMSİLÎ.
+ * ETKİ — geri-besleme döngüsünün yüzü. Sıralama fizibiliteye göre savunulabilirlik
+ * sırasıdır: ① öneri isabeti (sistemin İÇ tutarlılığı — en sağlam iddia),
+ * ② kapanan döngüler (süreç metriği; bu oturumdan CANLI), ③ gelişim→conversion
+ * eğrisi (güven bandı + "modelin tahmini" etiketiyle — mutlak iddia ARKA planda),
+ * ④ olgunlaşma şeridi (soğuk başlangıç dürüstlüğü). Sayılar TEMSİLÎ.
  */
 export function Etki() {
   const t = useT();
   const stages = impactCurve();
   const stats = impactStats();
+  const closed = sessionClosedLoops();
+
+  // isabet çizgisi geometrisi
+  const HW = 300;
+  const HH = 150;
+  const hx = (i: number) => 34 + (i * (HW - 60)) / (HIT_RATE.length - 1);
+  const hy = (v: number) => 18 + (1 - (v - 50) / 45) * (HH - 52);
+  const hitPath = HIT_RATE.map((v, i) => `${i === 0 ? "M" : "L"}${hx(i)},${hy(v)}`).join(" ");
 
   // eğri geometrisi
   const W = 640;
@@ -26,7 +52,13 @@ export function Etki() {
   const x = (i: number) => padX + (i * (W - padX * 2)) / (stages.length - 1);
   const y = (v: number) => padTop + (1 - (v - yMin) / (yMax - yMin)) * (H - padTop - padBot);
   const grownPath = stages.map((s, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(s.grown)}`).join(" ");
-  const areaPath = `${grownPath} L${x(stages.length - 1)},${y(stages[0].flat)} L${x(0)},${y(stages[0].flat)} Z`;
+  // güven bandı: kanıt biriktikçe daralır (başta ±2.2, sonda ±0.8)
+  const bw = (i: number) => 2.2 - (i * 1.4) / (stages.length - 1);
+  const bandTop = stages.map((s, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(s.grown + bw(i))}`).join(" ");
+  const bandBot = [...stages].reverse().map((s, ri) => {
+    const i = stages.length - 1 - ri;
+    return `L${x(i)},${y(s.grown - bw(i))}`;
+  }).join(" ");
   const gain = stages[stages.length - 1].grown - stages[stages.length - 1].flat;
 
   return (
@@ -40,61 +72,129 @@ export function Etki() {
           />
           <div className="pusula-sub">
             {pick({
-              tr: "İnsan ana sahnedir; performans onun sonucudur — kişi geliştikçe bireysel conversion gelir.",
-              en: "People are the main stage; performance is the result — as a person grows, individual conversion follows.",
-              es: "La persona es el escenario principal; el rendimiento es su resultado.",
+              tr: "Döngünün kapandığı yer: öneri → koç kararı → gerçekleşen sonuç geri yazılır. En sağlam iddia isabettir.",
+              en: "Where the loop closes: suggestion → coach decision → realized outcome written back. The soundest claim is accuracy.",
+              es: "Donde se cierra el ciclo: sugerencia → decisión del coach → resultado reescrito. La afirmación más sólida es el acierto.",
             })}
           </div>
           <div className="pv4-how">{t("how.etki")}</div>
         </div>
+        {/* canlı: bu oturumda kapanan döngüler */}
+        <div className="petki-live">
+          <em>{closed}</em>
+          <span>{pick({ tr: "kapanan döngü · bu oturum", en: "closed loops · this session", es: "ciclos cerrados · esta sesión" })}</span>
+          <small>{pick({ tr: "onay + plan + işlenen örüntü — gerçek tıklamalardan", en: "approvals + plans + patterns — from real clicks", es: "vistos + planes + patrones — de clics reales" })}</small>
+        </div>
       </div>
 
       <div className="petki-grid">
-        {/* ana eğri */}
+        {/* ① ÖNERİ İSABETİ — başköşe (savunulabilirliğin tepesi) */}
         <motion.section
-          className="petki-chart"
+          className="petki-hitcard"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: EASE }}
         >
           <div className="pv3-eb">
-            {pick({ tr: "Bireysel conversion · seviye ekseni", en: "Individual conversion · by stage", es: "Conversión individual · por etapa" })}
+            {pick({ tr: "Öneri isabeti · dönem dönem (geriye dönük test)", en: "Suggestion accuracy · by period (backtest)", es: "Acierto de sugerencias · por periodo (backtest)" })}
+          </div>
+          <svg viewBox={`0 0 ${HW} ${HH}`} width="100%" className="petki-hitsvg" role="img"
+            aria-label={pick({ tr: "İsabet eğrisi", en: "Accuracy curve", es: "Curva de acierto" })}>
+            {[60, 70, 80, 90].map((v) => (
+              <line key={v} x1={34} x2={HW - 26} y1={hy(v)} y2={hy(v)} stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
+            ))}
+            <motion.path d={hitPath} fill="none" stroke="#0a0a0a" strokeWidth={2}
+              strokeLinecap="round" strokeLinejoin="round"
+              initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.9, ease: EASE }} />
+            {HIT_RATE.map((v, i) => (
+              <g key={i}>
+                <circle cx={hx(i)} cy={hy(v)} r={i === HIT_RATE.length - 1 ? 3.6 : 2.6} fill="#0a0a0a" />
+                <text x={hx(i)} y={hy(v) - 9} textAnchor="middle" className="petki-val">%{v}</text>
+                <text x={hx(i)} y={HH - 10} textAnchor="middle" className="petki-stage">D{i + 1}</text>
+              </g>
+            ))}
+          </svg>
+          <p className="petki-hit-p">
+            {pick({
+              tr: "Her kapanan döngü modeli keskinleştirir: koç onayı + gerçekleşen sonuç geri yazılır — isabet 62'den 86'ya. Bu, sistemin kendi iç tutarlılığıdır; dış nedensellik iddiası değildir.",
+              en: "Every closed loop sharpens the model: approvals + outcomes are written back — accuracy from 62 to 86. This is the system's internal consistency, not an external causal claim.",
+              es: "Cada ciclo cerrado afina el modelo: aprobaciones y resultados se reescriben — el acierto sube de 62 a 86. Es consistencia interna, no causalidad externa.",
+            })}
+          </p>
+        </motion.section>
+
+        {/* ④ OLGUNLAŞMA — dürüstlük özelliktir */}
+        <motion.section
+          className="petki-mat"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: EASE }}
+        >
+          <div className="pv3-eb">
+            {pick({ tr: "Olgunlaşma · sistem ilk hafta emin değildir", en: "Maturing · the system isn't sure in week one", es: "Maduración · el sistema no está seguro la primera semana" })}
+          </div>
+          <div className="petki-mat-track">
+            {maturityStages().map((m, i) => (
+              <div key={m.span} className="petki-mat-step" style={{ opacity: 0.55 + i * 0.15 }}>
+                <span className="s">{m.span}</span>
+                <em>{m.word}</em>
+                <small>{m.detail}</small>
+              </div>
+            ))}
+          </div>
+          <p className="petki-hit-p">
+            {pick({
+              tr: "Soğuk başlangıçta öneriler geneldir ve aralık geniştir; kanıt kanalları beslemeye başlayınca aralık daralır. Bu sınır saklanmaz — özelliktir.",
+              en: "At cold start suggestions are generic and the interval is wide; as evidence channels feed in, it narrows. This limit isn't hidden — it's a feature.",
+              es: "Al inicio las sugerencias son genéricas y el intervalo amplio; al alimentar los canales, se estrecha. Ese límite no se oculta — es una característica.",
+            })}
+          </p>
+        </motion.section>
+
+        {/* ③ GELİŞİM→CONVERSION — güven bandı + dürüstlük etiketiyle, arka planda */}
+        <motion.section
+          className="petki-chart"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.18, ease: EASE }}
+        >
+          <div className="pv3-eb petki-eb-row">
+            <span>{pick({ tr: "Bireysel conversion · seviye ekseni", en: "Individual conversion · by stage", es: "Conversión individual · por etapa" })}</span>
+            <span className="petki-rep">{pick({ tr: "temsilî pilot hedefi", en: "representative pilot target", es: "objetivo piloto representativo" })}</span>
           </div>
           <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="petki-svg" role="img"
             aria-label={pick({ tr: "Gelişen kişi ile gelişmeden kalan kıyası", en: "Grown vs not-grown comparison", es: "Comparación crecido vs sin crecer" })}>
-            {/* y kılavuzları */}
             {[16, 20, 24, 28].map((v) => (
               <g key={v}>
                 <line x1={padX} x2={W - padX} y1={y(v)} y2={y(v)} stroke="rgba(0,0,0,0.07)" strokeWidth={1} />
                 <text x={padX - 10} y={y(v) + 3} textAnchor="end" className="petki-ax">%{v}</text>
               </g>
             ))}
-            {/* kazanç alanı */}
-            <motion.path d={areaPath} fill="rgba(0,0,0,0.05)"
+            {/* güven bandı — kanıt biriktikçe daralır */}
+            <motion.path d={`${bandTop} ${bandBot} Z`} fill="rgba(0,0,0,0.07)"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.6 }} />
-            {/* gelişmeden-kalan: düz, kesik */}
+            {/* gelişmeden-kalan: modelin tahmini, gerçek değil */}
             <line x1={x(0)} x2={x(stages.length - 1)} y1={y(stages[0].flat)} y2={y(stages[0].flat)}
               stroke="rgba(0,0,0,0.35)" strokeWidth={1.4} strokeDasharray="5 5" />
-            <text x={x(stages.length - 1) + 8} y={y(stages[0].flat) + 3} className="petki-lab dim">
-              {pick({ tr: "gelişmeden kalsaydı", en: "if never grown", es: "sin crecer" })}
+            <text x={x(0)} y={y(stages[0].flat) + 14} className="petki-lab dim">
+              {pick({ tr: "gelişmeden kalsaydı — modelin tahmini, gerçek değil", en: "if never grown — the model's estimate, not reality", es: "sin crecer — estimación del modelo, no realidad" })}
             </text>
-            {/* gelişen eğri */}
             <motion.path d={grownPath} fill="none" stroke="#0a0a0a" strokeWidth={2.2}
               strokeLinecap="round" strokeLinejoin="round"
               initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.1, ease: EASE }} />
             {stages.map((s, i) => (
               <g key={s.key}>
                 <circle cx={x(i)} cy={y(s.grown)} r={3.4} fill="#0a0a0a" />
-                <text x={x(i)} y={y(s.grown) - 10} textAnchor="middle" className="petki-val">%{s.grown}</text>
+                <text x={x(i)} y={y(s.grown) - 10 - bw(i) * 4} textAnchor="middle" className="petki-val">%{s.grown}</text>
                 <text x={x(i)} y={H - 18} textAnchor="middle" className="petki-stage">{s.label}</text>
               </g>
             ))}
-            {/* +9 rozeti */}
+            {/* +9 rozeti — outline (dolu siyah veri bloğu değil) */}
             <motion.g initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.0, ease: EASE }}>
-              <rect x={x(stages.length - 1) - 34} y={(y(stages[stages.length - 1].grown) + y(stages[0].flat)) / 2 - 13}
-                width={68} height={24} fill="#141414" rx={2} />
+              <rect x={x(stages.length - 1) - 36} y={(y(stages[stages.length - 1].grown) + y(stages[0].flat)) / 2 - 13}
+                width={72} height={24} fill="#fff" stroke="#0a0a0a" strokeWidth={1.2} rx={2} />
               <text x={x(stages.length - 1)} y={(y(stages[stages.length - 1].grown) + y(stages[0].flat)) / 2 + 3}
-                textAnchor="middle" className="petki-badge">
+                textAnchor="middle" className="petki-badge ink">
                 +{gain} {pick({ tr: "puan", en: "pts", es: "ptos" })}
               </text>
             </motion.g>
@@ -102,38 +202,16 @@ export function Etki() {
           <div className="petki-note">{impactNote()}</div>
         </motion.section>
 
-        {/* yan panel: isabet + göstergeler */}
+        {/* ② RAMP + örtük bilgi vb. göstergeler */}
         <motion.aside
           className="petki-side"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.12, ease: EASE }}
+          transition={{ duration: 0.5, delay: 0.24, ease: EASE }}
         >
           <div className="pv3-eb">
-            {pick({ tr: "Öneri isabeti · dönem dönem", en: "Suggestion accuracy · by period", es: "Acierto de sugerencias · por periodo" })}
+            {pick({ tr: "Pilot hedefleri · A/B çerçevesi", en: "Pilot targets · A/B framing", es: "Objetivos piloto · marco A/B" })}
           </div>
-          <div className="petki-hit">
-            {HIT_RATE.map((v, i) => (
-              <div key={i} className="petki-hit-col">
-                <motion.i
-                  initial={{ height: 0 }}
-                  animate={{ height: `${(v / 100) * 100}%` }}
-                  transition={{ delay: 0.3 + i * 0.1, duration: 0.6, ease: EASE }}
-                  style={{ opacity: 0.35 + i * 0.2 }}
-                />
-                <em>%{v}</em>
-                <span>D{i + 1}</span>
-              </div>
-            ))}
-          </div>
-          <p className="petki-hit-p">
-            {pick({
-              tr: "Her kapanan döngü modeli keskinleştirir: koç onayı + gerçekleşen sonuç geri yazılır, isabet yükselir.",
-              en: "Every closed loop sharpens the model: coach approvals + realized outcomes are written back, accuracy rises.",
-              es: "Cada ciclo cerrado afina el modelo: aprobaciones y resultados reales se reescriben, el acierto sube.",
-            })}
-          </p>
-
           <div className="pusula-pulse petki-pulse">
             {stats.map((s) => (
               <div key={s.k} className="pusula-pulse-cell">

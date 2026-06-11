@@ -65,3 +65,35 @@ export const impactNote = (): string =>
     en: "Indicators are representative pilot targets — validated by backtesting as real floor data arrives.",
     es: "Los indicadores son objetivos piloto representativos — se validan con backtesting al llegar datos reales.",
   });
+
+/** Olgunlaşma şeridi — soğuk başlangıç dürüstlüğü: sistem ilk hafta emin değildir,
+ *  kanıt biriktikçe keskinleşir (fizibilite: "asimptotik güçlü"). */
+export interface MaturityStage {
+  span: string;
+  word: string;
+  detail: string;
+}
+export function maturityStages(): MaturityStage[] {
+  return [
+    {
+      span: pick({ tr: "Hafta 1–2", en: "Weeks 1–2", es: "Sem. 1–2" }),
+      word: pick({ tr: "öğreniyor", en: "learning", es: "aprendiendo" }),
+      detail: pick({ tr: "geniş aralık · genel öneri", en: "wide interval · generic suggestions", es: "intervalo amplio · sugerencias genéricas" }),
+    },
+    {
+      span: pick({ tr: "Hafta 3–4", en: "Weeks 3–4", es: "Sem. 3–4" }),
+      word: pick({ tr: "daralan aralık", en: "narrowing", es: "estrechándose" }),
+      detail: pick({ tr: "kanallar beslemeye başlar", en: "channels start feeding", es: "los canales empiezan a alimentar" }),
+    },
+    {
+      span: pick({ tr: "Hafta 5–8", en: "Weeks 5–8", es: "Sem. 5–8" }),
+      word: pick({ tr: "kişiselleşmiş", en: "personalized", es: "personalizado" }),
+      detail: pick({ tr: "öneri kişiye özgü, isabet yükselir", en: "suggestions are individual, accuracy rises", es: "sugerencias individuales, sube el acierto" }),
+    },
+    {
+      span: pick({ tr: "Dönem 2+", en: "Period 2+", es: "Periodo 2+" }),
+      word: pick({ tr: "keskin", en: "sharp", es: "afilado" }),
+      detail: pick({ tr: "kapanan döngüler modeli sürekli düzeltir", en: "closed loops keep correcting the model", es: "los ciclos cerrados corrigen el modelo" }),
+    },
+  ];
+}

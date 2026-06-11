@@ -2617,7 +2617,24 @@
 @media (max-width: 900px) { .pusula-patterns-grid { grid-template-columns: 1fr; } .pusula-pattern { border-right: none; border-bottom: 1px solid var(--zara-line); } .pusula-pattern:last-child { border-bottom: none; } }
 
 /* ── ETKİ — gelişim → performans paneli ─────────────────── */
-.petki-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0; border: 1px solid var(--zara-line); }
+/* 2×2 editorial grid: ① isabet (başköşe) ② olgunlaşma ③ conversion (band) ④ pilot */
+.petki-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 0; border: 1px solid var(--zara-line); }
+.petki-hitcard { padding: 24px 28px; border-right: 1px solid var(--zara-line); border-bottom: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 14px; }
+.petki-hitsvg { display: block; }
+.petki-mat { padding: 24px 26px; border-bottom: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 14px; }
+.petki-mat-track { display: grid; grid-template-columns: repeat(4, 1fr); }
+.petki-mat-step { display: flex; flex-direction: column; gap: 4px; padding: 4px 12px; border-left: 1px solid var(--zara-line); min-width: 0; }
+.petki-mat-step:first-child { border-left: none; padding-left: 0; }
+.petki-mat-step .s { font-family: var(--ff-mono); font-size: 7px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
+.petki-mat-step em { font-family: var(--ff-display); font-style: italic; font-size: 14px; color: var(--zara-ink); }
+.petki-mat-step small { font-family: var(--ff-sans); font-size: 9.5px; font-style: italic; color: var(--zara-ink-50); line-height: 1.4; }
+.petki-live { display: flex; flex-direction: column; gap: 4px; text-align: right; }
+.petki-live em { font-family: var(--ff-display); font-style: italic; font-size: 38px; line-height: 1; }
+.petki-live span { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink); }
+.petki-live small { font-family: var(--ff-sans); font-size: 10px; font-style: italic; color: var(--zara-ink-40); }
+.petki-eb-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.petki-rep { letter-spacing: 0.12em; color: var(--zara-ink-40); border: 1px dashed var(--zara-line-strong); padding: 3px 7px; }
+.petki-badge.ink { fill: #0a0a0a; }
 .petki-chart { padding: 24px 28px; border-right: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 16px; }
 .petki-svg { display: block; }
 .petki-ax { font-family: var(--ff-mono); font-size: 8.5px; fill: rgba(0,0,0,0.4); }
@@ -2638,4 +2655,9 @@
 .petki-pulse .pusula-pulse-cell:nth-child(-n+2) { border-bottom: 1px solid var(--zara-line); }
 .petki-pulse .pusula-pulse-cell:nth-child(2n) { border-right: none; }
 .petki-pulse .pusula-pulse-cell small { font-family: var(--ff-sans); font-size: 10px; font-style: italic; color: var(--zara-ink-40); }
-@media (max-width: 900px) { .petki-grid { grid-template-columns: 1fr; } .petki-chart { border-right: none; border-bottom: 1px solid var(--zara-line); } }
+@media (max-width: 900px) {
+  .petki-grid { grid-template-columns: 1fr; }
+  .petki-chart, .petki-hitcard { border-right: none; border-bottom: 1px solid var(--zara-line); }
+  .petki-mat-track { grid-template-columns: 1fr 1fr; row-gap: 12px; }
+  .petki-live { text-align: left; }
+}
