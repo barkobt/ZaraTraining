@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link } from "react-router";
 import {
   Archive,
   BookOpen,
@@ -15,7 +14,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { Icon, LiveDot } from "../brain/primitives";
+import { LiveDot } from "../brain/primitives";
 import { PusulaMark } from "./components/PusulaMark";
 import { trpc } from "@/providers/trpc";
 import type { Employee } from "./types";
@@ -245,17 +244,14 @@ function PusulaInner() {
 
       <div className="pv4-body">
       <header className="pusula-top">
-        <div className="pusula-brand">
-          <Link to="/brain" className="pusula-brand-back" aria-label={tr("a11y.backBrain", lang)}>
-            <Icon name="arrow-up-right" size={13} style={{ transform: "rotate(-135deg)" }} />
-          </Link>
+        <button className="pusula-brand pusula-brand-home" onClick={() => go("bugun")} aria-label={tr("a11y.home", lang)}>
           <div>
             <div className="pusula-brand-name">
               <em>Pusula</em>
             </div>
             <div className="pusula-brand-sub">ZARA · ATELYE · BORNOVA</div>
           </div>
-        </div>
+        </button>
 
         {/* bölüm künyesi — tıklayınca menü açılır */}
         <button className="pv3-crumb" onClick={() => setMenuOpen(true)}>

@@ -167,7 +167,7 @@ const S: Record<string, Tri> = {
   "sub.etki": { tr: "gelişim → performans", en: "growth → performance", es: "desarrollo → rendimiento" },
   "how.etki": { tr: "Eğri kişi geliştikçe yükselir; kesik çizgi gelişmeden-kalan referansıdır · sayılar temsilî", en: "The curve rises as the person grows; the dashed line is the never-grown reference · figures are representative", es: "La curva sube al crecer la persona; la línea discontinua es la referencia sin crecer · cifras representativas" },
   "a11y.close": { tr: "Kapat", en: "Close", es: "Cerrar" },
-  "a11y.backBrain": { tr: "Brain'e dön", en: "Back to Brain", es: "Volver a Brain" },
+  "a11y.home": { tr: "Ana ekran — Bugün", en: "Home — Today", es: "Inicio — Hoy" },
 
   // ── iş tipi (jobType) ──
   "job.mudur": { tr: "Müdür", en: "Manager", es: "Gerente" },

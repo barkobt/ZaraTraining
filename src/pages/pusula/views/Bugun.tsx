@@ -1,3 +1,4 @@
+import { useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, CalendarPlus, Check, Compass, Sparkles } from "lucide-react";
 import { Headline } from "../../brain/primitives";
@@ -33,12 +34,22 @@ function pendingAptitudes(approved: Record<string, boolean>): Array<AptitudeSugg
   return out;
 }
 
+type QKind = "onay" | "kesif" | "eslesme" | "defter";
+
+interface QRow {
+  id: string;
+  kind: QKind;
+  who: ReactNode;
+  body: ReactNode;
+  tail: ReactNode;
+}
+
 /**
- * BUGÜN — koçun ön sayfası (gazete kapağı kurgusu).
- * Tüm modüllerden o günün aksiyonları tek yüzeyde toplanır ve YERİNDE alınır:
- * akşam cebi (manşet) · onay kuyruğu · keşif fırsatları · günün eşleşmesi ·
- * defterde açık konular. Her satır ilgili bölüme derin-bağlanır; durumlar
- * session-store üzerinden bölüm ekranlarıyla AYNI kaynağı paylaşır.
+ * BUGÜN — koçun ön sayfası. Üstte manşet (akşam cebi hikâyesi + saatlik akış),
+ * altında GÜNÜN KUYRUĞU: onay/keşif/eşleşme/defter aksiyonları TEK tam-genişlik
+ * defterde, türe göre filtrelenebilir. Aksiyon kendi kolonunda yaşar — dar
+ * kolon sıkışması olmaz. Durumlar session-store üzerinden bölüm ekranlarıyla
+ * AYNI kaynağı paylaşır.
  */
 export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p: Employee) => void }) {
   const t = useT();
@@ -48,6 +59,7 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
   const [confirmed, setConfirmed] = usePersistentState<Record<string, boolean>>("usta.confirmed", {});
   const [defterHistory] = usePersistentState<Record<string, unknown>>("defter.history", {});
   const [, setDefterEmp] = usePersistentState("defter.empId", employees[2]?.id ?? employees[0].id);
+  const [flt, setFlt] = useState<QKind | "all">("all");
 
   const apts = pendingAptitudes(approved).slice(0, 4);
   const discs = employees
@@ -79,6 +91,131 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
     pick({ tr: `mentor eşleşmesi hazır · ${matches.length}`, en: `mentor pairings ready · ${matches.length}`, es: `emparejamientos listos · ${matches.length}` }),
   ];
 
+  // ── günün kuyruğu: dört kaynaktan tek defter ──
+  const rows: QRow[] = [];
+  for (const s of apts) {
+    rows.push({
+      id: s.id,
+      kind: "onay",
+      who: (
+        <button className="pv3-who" onClick={() => onPeek(s.person)}>
+          <PersonAvatar name={s.person.name} size={26} />
+          <span>{s.person.name.split(" ")[0]}</span>
+        </button>
+      ),
+      body: (
+        <>
+          <span className="pv3-row-main">
+            {compLabel(s.comp)}: {provenWord(s.from)} <i>→</i> {provenWord(s.to)}
+          </span>
+          <span className="pv3-row-sub">{channelLabel(s.evidence.channel)}</span>
+        </>
+      ),
+      tail: (
+        <button className="pv3-act" onClick={() => setApproved((p) => ({ ...p, [s.id]: true }))}>
+          <Check size={11} strokeWidth={2.2} /> {t("b.approveApt")}
+        </button>
+      ),
+    });
+  }
+  for (const { e, d } of discs) {
+    rows.push({
+      id: `disc-${e.id}-${d.comp}`,
+      kind: "kesif",
+      who: (
+        <button className="pv3-who" onClick={() => onPeek(e)}>
+          <PersonAvatar name={e.name} size={26} />
+          <span>{e.name.split(" ")[0]}</span>
+        </button>
+      ),
+      body: (
+        <>
+          <span className="pv3-row-main">
+            <Compass size={11} strokeWidth={1.8} /> {compLabel(d.comp)}
+          </span>
+          <span className="pv3-row-sub">
+            {pick({ tr: `15–16 · ${d.buddyName} eşliğinde`, en: `15–16 · with ${d.buddyName}`, es: `15–16 · con ${d.buddyName}` })}
+          </span>
+        </>
+      ),
+      tail: (
+        <button className="pv3-act" onClick={() => setPlanned((p) => ({ ...p, [`${e.id}:${d.comp}`]: true }))}>
+          <CalendarPlus size={11} strokeWidth={2} /> {t("b.plan")}
+        </button>
+      ),
+    });
+  }
+  for (const m of matches) {
+    const mentor = byId(m.mentorId);
+    const mentee = byId(m.menteeId);
+    const ok = confirmed[m.id];
+    rows.push({
+      id: m.id,
+      kind: "eslesme",
+      who: (
+        <span className="pv3-pair">
+          <PersonAvatar name={mentor?.name ?? m.mentorId} size={24} />
+          <PersonAvatar name={mentee?.name ?? m.menteeId} size={24} />
+        </span>
+      ),
+      body: (
+        <>
+          <span className="pv3-row-main">{m.focus}</span>
+          <span className="pv3-row-sub">{m.slot}</span>
+        </>
+      ),
+      tail: ok ? (
+        <span className="pv3-done">
+          <Check size={11} strokeWidth={2.2} /> {t("l.approved").split(" ")[0]}
+        </span>
+      ) : (
+        <button className="pv3-act" onClick={() => setConfirmed((p) => ({ ...p, [m.id]: true }))}>
+          <Check size={11} strokeWidth={2.2} /> {t("b.approveApt")}
+        </button>
+      ),
+    });
+  }
+  for (const e of freshFolk) {
+    rows.push({
+      id: `open-${e.id}`,
+      kind: "defter",
+      who: (
+        <button className="pv3-who" onClick={() => onPeek(e)}>
+          <PersonAvatar name={e.name} size={26} />
+          <span>{e.name.split(" ")[0]}</span>
+        </button>
+      ),
+      body: (
+        <>
+          <span className="pv3-row-main">
+            {openOf(e.id)} {t("l.openTopicsN")}
+          </span>
+          <span className="pv3-row-sub">{pick({ tr: "Başlangıç planı", en: "Starter plan", es: "Plan inicial" })}</span>
+        </>
+      ),
+      tail: (
+        <button
+          className="pvq-open"
+          onClick={() => {
+            setDefterEmp(e.id);
+            onGo("defter");
+          }}
+        >
+          {pick({ tr: "Defteri aç", en: "Open booklet", es: "Abrir cuaderno" })} <ArrowRight size={11} strokeWidth={1.8} />
+        </button>
+      ),
+    });
+  }
+
+  const kindLabel: Record<QKind, string> = {
+    onay: pick({ tr: "Onay", en: "Approval", es: "Visto" }),
+    kesif: pick({ tr: "Keşif", en: "Discovery", es: "Hallazgo" }),
+    eslesme: pick({ tr: "Eşleşme", en: "Pairing", es: "Mentoría" }),
+    defter: pick({ tr: "Defter", en: "Booklet", es: "Cuaderno" }),
+  };
+  const countOf = (k: QKind) => rows.filter((r) => r.kind === k).length;
+  const shown = flt === "all" ? rows : rows.filter((r) => r.kind === flt);
+
   return (
     <div className="pv3-cockpit">
       {/* manşet satırı */}
@@ -99,14 +236,14 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
         </div>
       </div>
 
-      <div className="pv3-grid">
-        {/* MANŞET: akşam cebi */}
-        <motion.section
-          className="pv3-lead"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE }}
-        >
+      {/* HERO — akşam cebi hikâyesi + saatlik akış */}
+      <motion.section
+        className="pvh"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: EASE }}
+      >
+        <div className="pvh-left">
           <span className="pv3-eb">{t("e.eveningPocket")} · {pocket.window}</span>
           <Headline
             ital={pick({ tr: "Trafik zirvede,", en: "Traffic peaks,", es: "El tráfico sube," })}
@@ -120,130 +257,70 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
               es: `${pocket.trafficPeak} visitantes entran en el pico; la conversión cae al ${pocket.convBefore[0]}%. Con las manos correctas el hueco se relaja — las sugerencias están listas.`,
             })}
           </p>
-          <HourlySpark />
           <button className="pusula-apply pv3-cta" onClick={() => onGo("yerlestirme")}>
             {t("b.goPlacement")} <ArrowRight size={14} strokeWidth={2} />
           </button>
-        </motion.section>
-
-        {/* ONAY KUYRUĞU */}
-        <motion.section
-          className="pv3-col"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.08, ease: EASE }}
-        >
-          <span className="pv3-eb">{t("e.approvalQueue")} · Orquest</span>
-          {apts.length === 0 && <div className="pv3-empty">{t("l.allClear")}</div>}
-          {apts.map((s) => (
-            <div key={s.id} className="pv3-row">
-              <button className="pv3-who" onClick={() => onPeek(s.person)}>
-                <PersonAvatar name={s.person.name} size={26} />
-                <span>{s.person.name.split(" ")[0]}</span>
-              </button>
-              <div className="pv3-row-body">
-                <span className="pv3-row-main">
-                  {compLabel(s.comp)}: {provenWord(s.from)} <i>→</i> {provenWord(s.to)}
-                </span>
-                <span className="pv3-row-sub">{channelLabel(s.evidence.channel)}</span>
-              </div>
-              <button className="pv3-act" onClick={() => setApproved((p) => ({ ...p, [s.id]: true }))}>
-                <Check size={11} strokeWidth={2.2} /> {t("b.approveApt")}
-              </button>
+        </div>
+        <div className="pvh-right">
+          <div className="pvh-stats">
+            <div>
+              <em>{pocket.window}</em>
+              <span>{pick({ tr: "cep penceresi", en: "pocket window", es: "ventana del hueco" })}</span>
             </div>
-          ))}
-        </motion.section>
-
-        {/* KEŞİF FIRSATLARI */}
-        <motion.section
-          className="pv3-col"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.14, ease: EASE }}
-        >
-          <span className="pv3-eb">{t("e.discoveries")}</span>
-          {discs.length === 0 && <div className="pv3-empty">{t("l.allClear")}</div>}
-          {discs.map(({ e, d }) => (
-            <div key={e.id} className="pv3-row">
-              <button className="pv3-who" onClick={() => onPeek(e)}>
-                <PersonAvatar name={e.name} size={26} />
-                <span>{e.name.split(" ")[0]}</span>
-              </button>
-              <div className="pv3-row-body">
-                <span className="pv3-row-main">
-                  <Compass size={11} strokeWidth={1.8} /> {compLabel(d.comp)}
-                </span>
-                <span className="pv3-row-sub">
-                  {pick({ tr: `15–16 · ${d.buddyName} eşliğinde`, en: `15–16 · with ${d.buddyName}`, es: `15–16 · con ${d.buddyName}` })}
-                </span>
-              </div>
-              <button className="pv3-act" onClick={() => setPlanned((p) => ({ ...p, [`${e.id}:${d.comp}`]: true }))}>
-                <CalendarPlus size={11} strokeWidth={2} /> {t("b.plan")}
-              </button>
+            <div>
+              <em>{pocket.trafficPeak}</em>
+              <span>{pick({ tr: "tepe trafik", en: "peak traffic", es: "tráfico pico" })}</span>
             </div>
-          ))}
-        </motion.section>
+            <div>
+              <em>%{pocket.convBefore[0]}</em>
+              <span>{pick({ tr: "conversion dip", en: "conversion low", es: "conversión mín." })}</span>
+            </div>
+          </div>
+          <HourlySpark />
+        </div>
+      </motion.section>
 
-        {/* GÜNÜN EŞLEŞMESİ + DEFTERDE AÇIK */}
-        <motion.section
-          className="pv3-col"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2, ease: EASE }}
-        >
-          <span className="pv3-eb">{t("e.todaysMatch")}</span>
-          {matches.map((m) => {
-            const mentor = byId(m.mentorId);
-            const mentee = byId(m.menteeId);
-            const ok = confirmed[m.id];
-            return (
-              <div key={m.id} className="pv3-row">
-                <span className="pv3-pair">
-                  <PersonAvatar name={mentor?.name ?? m.mentorId} size={24} />
-                  <PersonAvatar name={mentee?.name ?? m.menteeId} size={24} />
-                </span>
-                <div className="pv3-row-body">
-                  <span className="pv3-row-main">{m.focus}</span>
-                  <span className="pv3-row-sub">{m.slot}</span>
-                </div>
-                {ok ? (
-                  <span className="pv3-done">
-                    <Check size={11} strokeWidth={2.2} /> {t("l.approved").split(" ")[0]}
-                  </span>
-                ) : (
-                  <button className="pv3-act" onClick={() => setConfirmed((p) => ({ ...p, [m.id]: true }))}>
-                    <Check size={11} strokeWidth={2.2} /> {t("b.approveApt")}
-                  </button>
-                )}
-              </div>
-            );
-          })}
-
-          <span className="pv3-eb pv3-eb2">{t("e.openTopics")}</span>
-          {freshFolk.map((e) => (
-            <button
-              key={e.id}
-              className="pv3-row pv3-rowbtn"
-              onClick={() => {
-                setDefterEmp(e.id);
-                onGo("defter");
-              }}
-            >
-              <span className="pv3-who as-span">
-                <PersonAvatar name={e.name} size={26} />
-                <span>{e.name.split(" ")[0]}</span>
-              </span>
-              <div className="pv3-row-body">
-                <span className="pv3-row-main">
-                  {openOf(e.id)} {t("l.openTopicsN")}
-                </span>
-                <span className="pv3-row-sub">{pick({ tr: "Başlangıç planı", en: "Starter plan", es: "Plan inicial" })}</span>
-              </div>
-              <ArrowRight size={13} strokeWidth={1.8} className="pv3-go" />
+      {/* GÜNÜN KUYRUĞU — tek defter, türe göre filtre */}
+      <motion.section
+        className="pvq"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1, ease: EASE }}
+      >
+        <div className="pvq-head">
+          <span className="pvq-title">
+            {pick({ tr: "Günün kuyruğu", en: "Today's queue", es: "Cola del día" })} · {rows.length}
+          </span>
+          <div className="pvq-filters" role="tablist">
+            <button className={`pvq-f ${flt === "all" ? "on" : ""}`} onClick={() => setFlt("all")}>
+              {pick({ tr: "Tümü", en: "All", es: "Todo" })}
+              <b>{rows.length}</b>
             </button>
-          ))}
-        </motion.section>
-      </div>
+            {(["onay", "kesif", "eslesme", "defter"] as const).map((k) => (
+              <button key={k} className={`pvq-f ${flt === k ? "on" : ""}`} onClick={() => setFlt(k)}>
+                {kindLabel[k]}
+                <b>{countOf(k)}</b>
+              </button>
+            ))}
+          </div>
+        </div>
+        {shown.length === 0 && <div className="pv3-empty pvq-empty">{t("l.allClear")}</div>}
+        {shown.map((r, i) => (
+          <motion.div
+            key={r.id}
+            className="pvq-row"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.05 + i * 0.03, ease: EASE }}
+          >
+            <span className="pvq-idx">{String(i + 1).padStart(2, "0")}</span>
+            <span className={`pvq-kind k-${r.kind}`}>{kindLabel[r.kind]}</span>
+            <span className="pvq-who">{r.who}</span>
+            <div className="pvq-body">{r.body}</div>
+            <span className="pvq-tail">{r.tail}</span>
+          </motion.div>
+        ))}
+      </motion.section>
 
       <div className="pusula-assure pusula-assure-row">
         <span>
