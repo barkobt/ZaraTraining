@@ -20,10 +20,11 @@ const LEVEL_TONE: Record<string, string> = {
 };
 
 /** Üç reyon bölümü → ayırt edici ton (kullanıcının beyaz çizgilerle ayırdığı bölümler). */
+// monokromda bölümler TONLA ayrışır: kadın = dolu siyah · çocuk = açık grİ · erkek = orta grİ
 const DEPT_TONE: Record<Exclude<Dept, null>, string> = {
-  kadin: "var(--zara-gold)",
-  cocuk: "var(--zara-sage)",
-  erkek: "var(--zara-ink-2)",
+  kadin: "#0a0a0a",
+  cocuk: "rgba(0,0,0,0.34)",
+  erkek: "#6f6f6f",
 };
 const deptTone = (d: Dept): string => (d ? DEPT_TONE[d] : "var(--zara-line-strong)");
 

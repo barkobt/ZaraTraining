@@ -1054,16 +1054,16 @@
      Saf beyaz zemin · saf siyah mürekkep · altın→siyah · gölgesiz · köşesiz.
      Semantik ayrım renkle değil AĞIRLIKLA: dolu siyah = usta/onay ·
      outline = güçlü · grİ = gelişiyor · kesik çizgi = keşif. */
-  --zara-bg: #ffffff; --zara-bg-alt: #f4f4f4; --zara-bg-warm: #fafafa; --zara-bg-white: #ffffff;
-  --zara-ink: #000; --zara-ink-soft: #000; --zara-ink-2: #1a1a1a;
+  --zara-bg: #ffffff; --zara-bg-alt: #f6f6f6; --zara-bg-warm: #fafafa; --zara-bg-white: #ffffff;
+  --zara-ink: #0a0a0a; --zara-ink-soft: #141414; --zara-ink-2: #2b2b2b;
   --zara-ink-65: rgba(0, 0, 0, 0.65); --zara-ink-50: rgba(0, 0, 0, 0.5);
   --zara-ink-40: rgba(0, 0, 0, 0.52); --zara-ink-30: rgba(0, 0, 0, 0.4);
   --zara-gold: #000; --zara-gold-deep: #000;
-  --zara-gold-soft: rgba(0, 0, 0, 0.3); --zara-gold-tint: rgba(0, 0, 0, 0.04);
+  --zara-gold-soft: rgba(0, 0, 0, 0.26); --zara-gold-tint: rgba(0, 0, 0, 0.028);
   --zara-sage: rgba(0, 0, 0, 0.28);
   --zara-sage-ink: #555;
-  --zara-line: rgba(0, 0, 0, 0.1); --zara-line-strong: rgba(0, 0, 0, 0.25);
-  --panel-radius: 0; --panel-shadow: none; --panel-shadow-soft: none;
+  --zara-line: rgba(0, 0, 0, 0.07); --zara-line-strong: rgba(0, 0, 0, 0.16);
+  --panel-radius: 3px; --panel-shadow: none; --panel-shadow-soft: none;
   min-height: 100vh; background: var(--zara-bg); color: var(--zara-ink);
   display: flex; flex-direction: column;
 }
@@ -2083,3 +2083,81 @@
   .pkroki-marker { transform: translate(-50%, -50%) scale(0.72); }
   .pkroki-marker.on { z-index: 5; }
 }
+
+/* ══ P3.5 · RAFİNE TECH-EDITORIAL KATMANI ══════════════════
+   İlke: kutu değil ALT-ÇİZGİ. Dolu siyah yalnız birincil aksiyon +
+   usta/onay rozetinde; aktif durumlar inset alt-çizgiyle konuşur.
+   Hairline %7 · yumuşak siyah #141414 · serif italik metrikler. */
+
+/* tech hassasiyeti: seçim + klavye odağı */
+.pusula-shell ::selection { background: var(--zara-ink); color: #fff; }
+.pusula-shell :focus-visible { outline: 1.5px solid var(--zara-ink); outline-offset: 2px; }
+
+/* — NAV: kutu hover yerine Zara alt-çizgisi (animasyonlu) — */
+.pusula-navtrigger { border-radius: 0; }
+.pusula-navtrigger:hover, .pusula-navtrigger.open { background: transparent; }
+.pusula-navtrigger.active { border-color: transparent; }
+.pusula-navtrigger::after { content: ""; position: absolute; left: 14px; right: 30px; bottom: 2px; height: 2px; background: var(--zara-ink); transform: scaleX(0); transform-origin: left; transition: transform 320ms var(--ease-atelier); }
+.pusula-navtrigger:hover::after, .pusula-navtrigger.open::after, .pusula-navtrigger.active::after { transform: scaleX(1); }
+.pusula-navmenu-item.on { background: var(--zara-ink-soft); }
+.pusula-lang-b.on { background: transparent; color: var(--zara-ink); box-shadow: inset 0 -2px 0 var(--zara-ink); font-weight: 700; }
+
+/* — AKTİF DURUM DİLİ: dolu siyah blok → inset alt-çizgi — */
+.pusula-seg-btn.on { background: transparent; color: var(--zara-ink); box-shadow: inset 0 -2px 0 var(--zara-ink); font-weight: 600; }
+.pusula-seg-btn.on em { background: var(--zara-ink); color: #fff; border-color: transparent; }
+.pusula-pill.on { background: transparent; color: var(--zara-ink); border-color: var(--zara-line); box-shadow: inset 0 -2px 0 var(--zara-ink); font-weight: 600; }
+.pusula-pill.on .pusula-pill-badge { background: var(--zara-ink); color: #fff; }
+.pusula-tfbtn.on { background: transparent; border-color: transparent; color: var(--zara-ink); box-shadow: inset 0 -2px 0 var(--zara-ink); font-weight: 600; }
+.pusula-tfbtn.on em { color: var(--zara-ink-50); opacity: 1; }
+.pusula-book-tab { position: relative; }
+.pusula-book-tab.on { background: transparent; color: var(--zara-ink); font-weight: 700; }
+.pusula-book-tab.on::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 0; height: 2px; background: var(--zara-ink); }
+
+/* seviye tabları: dev siyah bant yerine beyaz yüzey + üst aksan */
+.pusula-level-tab.on { background: var(--zara-bg-white); }
+.pusula-level-tab.on .pusula-level-name { color: var(--zara-ink); }
+.pusula-level-tab.on .pusula-level-week { color: var(--zara-ink-50); }
+.pusula-level-tab.on .pusula-level-rec { background: var(--zara-ink); color: #fff; border-color: transparent; }
+
+/* işaret durumu: dolu pill → outline çip (yazı kapanmaz) */
+.pusula-mark-status { background: transparent; color: var(--zara-ink); border: 1px solid var(--zara-ink); font-size: 8.5px; }
+
+/* — BİRİNCİL AKSİYONLAR: yumuşak siyah, ferah, 2px köşe — */
+.pusula-apply, .pkroki-flex-add, .papt-approve, .pcomp-plan { background: var(--zara-ink-soft); border-radius: 2px; }
+.pusula-apply:hover, .pkroki-flex-add:hover, .papt-approve:hover, .pcomp-plan:hover { background: #000; opacity: 1; transform: translateY(-1px); }
+.pkroki-flex-add, .papt-approve, .pcomp-plan { padding: 7px 14px; font-size: 9px; letter-spacing: 0.14em; }
+
+/* — KARTLAR: form kutusu değil editoryal yüzey — */
+.pusula-card, .pcomp-card, .pfit-row, .papt-row, .pusula-rec, .pkroki-panel, .pusula-chart, .pusula-demand, .pusula-surplus { border-color: var(--zara-line); }
+.pusula-card { transition: border-color 240ms var(--ease-atelier), transform 240ms var(--ease-atelier), background 240ms; }
+.pusula-card:hover { border-color: var(--zara-line-strong); background: #fcfcfc; transform: translateY(-2px); }
+.pcomp-card.usta { border: 1px solid var(--zara-line); border-left: 3px solid var(--zara-ink); background: var(--zara-bg-white); }
+.pfit-row.top { border: 1px solid var(--zara-line); border-left: 3px solid var(--zara-ink); background: var(--zara-bg-white); }
+.papt-row { border-left: 3px solid var(--zara-ink); }
+
+/* çip okunabilirliği + yumuşak köşe */
+.pcomp-level { font-size: 8.5px; padding: 3px 8px; border-radius: 2px; }
+.pcomp-teach { border-radius: 2px; }
+.pusula-rec-kind { border-radius: 2px; }
+.pusula-statusopt.on.fill { background: var(--zara-ink-soft); }
+
+/* metrik rakamları: serif italik, hafif — gösterge dili */
+.pusula-demand-v, .pusula-surplus-big { font-family: var(--ff-display); font-style: italic; font-weight: 400; }
+
+/* derinlik: drawer scrim'ine hafif blur */
+.pusula-scrim { backdrop-filter: blur(3px); }
+
+/* ── P3.5 delta: aktif-dil tutarlılığı (QA incelemesi) ──── */
+/* pill'ler (Defter rolleri + Hafıza kişileri): inaktif = sessiz metin,
+   aktif = alt-çizgi — kutulu inaktif > aktif tersliği düzeldi */
+.pusula-pill { border-color: transparent; color: rgba(0,0,0,0.55); }
+.pusula-pill:hover { color: var(--zara-ink); background: var(--zara-bg-alt); }
+.pusula-pill.on { border-color: transparent; }
+/* Usta gün tabları + Hafıza filtreleri: solid siyah → alt-çizgi (tek dil) */
+.pusula-seg button.on { background: transparent; color: var(--zara-ink); box-shadow: inset 0 -2px 0 var(--zara-ink); font-weight: 600; }
+.pusula-chipf.on { background: transparent; color: var(--zara-ink); box-shadow: inset 0 -2px 0 var(--zara-ink); font-weight: 600; }
+/* Ekip filtre sayı rozetleri: inaktifte kutusuz */
+.pusula-seg-btn em { border-color: transparent; background: var(--zara-bg-alt); }
+/* Yerleştirme çizelge çipleri: kutu duvarı → hairline; tek koyu vurgu yönetici */
+.pusula-chip { background: transparent; border-color: var(--zara-line); }
+.pusula-chip.strong { background: transparent; border-color: rgba(0,0,0,0.45); color: var(--zara-ink); }
