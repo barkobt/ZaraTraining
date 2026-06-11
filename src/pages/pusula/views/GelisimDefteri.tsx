@@ -15,7 +15,7 @@ import {
   roleLabel,
   sectionFor,
 } from "../data-gelisim";
-import { competencyEval, finalReport, periodActions } from "../data-program";
+import { areaSignals, competencyEval, finalReport, periodActions } from "../data-program";
 import { MasteryLevel } from "../types";
 import { type GuidebookLevel, type GuidebookRole, type GuidebookSection, type TopicStatus } from "../types-gelisim";
 import { pick as plang } from "../i18n";
@@ -155,6 +155,11 @@ export function GelisimDefteri() {
   // Dönem aksiyonu etkileşimi — öncelik tamamlandı takibi
   const [doneItems, setDoneItems] = usePersistentState<Record<string, boolean>>("defter.doneItems", {});
   const toggleDone = (key: string) => setDoneItems((p) => ({ ...p, [key]: !p[key] }));
+  // Provenance açılır zinciri + gerekçeli red (red = çöp değil, eğitim sinyali —
+  // gerekçe öneri motoruna geri yazılır)
+  const [provOpen, setProvOpen] = useState<Record<string, boolean>>({});
+  const [rejActions, setRejActions] = usePersistentState<Record<string, string>>("defter.rejActions", {});
+  const [rejPick, setRejPick] = useState<string | null>(null);
   const t = useT();
 
   const eVal = (key: string, fallback: string) => edits[key] ?? fallback;
@@ -400,7 +405,7 @@ export function GelisimDefteri() {
                 <button className="pusula-apply"><Target size={15} /> {t("b.save")}</button>
               </div>
 
-              <CurriculumSignal />
+              <CurriculumSignal role={role} />
             </>
           )}
 
@@ -496,17 +501,26 @@ export function GelisimDefteri() {
             </div>
           )}
 
-          {/* ── DÖNEM AKSİYONU (Hafta 2/4/6/8) — AI önerisi, düzenlenebilir ── */}
+          {/* ── DÖNEM AKSİYONU (Hafta 2/4/6/8) — AI önerisi + PROVENANCE zinciri ── */}
           {mode === "donem" && (
             <>
               <div className="pusula-edit-hint">
-                <span className="pusula-ai-badge">{plang({ tr: "AI önerisi", en: "AI suggestion", es: "Sugerencia IA" })}</span> {plang({ tr: "Pusula profile göre taslak verir — koç düzenleyebilir, üzerine yazabilir.", en: "Pusula drafts based on the profile — the coach can edit and overwrite.", es: "Pusula propone un borrador según el perfil — el coach puede editar y sobrescribir." })}
+                <span className="pusula-ai-badge">{plang({ tr: "AI önerisi", en: "AI suggestion", es: "Sugerencia IA" })}</span> {plang({ tr: "Pusula profile göre taslak verir; her kartta «neden bu öneri?» zinciri açılır — koç düzenler, uygular ya da GEREKÇEYLE reddeder (gerekçe modele geri yazılır).", en: "Pusula drafts from the profile; every card opens a 'why this?' chain — the coach edits, applies, or rejects WITH a reason (the reason is written back to the model).", es: "Pusula propone según el perfil; cada tarjeta abre la cadena «¿por qué esto?» — el coach edita, aplica o rechaza CON motivo (el motivo se reescribe al modelo)." })}
               </div>
               <div className="pusula-period-grid">
-                {actions.map((a, i) => (
+                {actions.map((a, i) => {
+                  const wkey = `${empId}:${a.week}`;
+                  const isRej = wkey in rejActions;
+                  const confLabel =
+                    a.prov.confidence === "high"
+                      ? plang({ tr: "güven · yüksek", en: "confidence · high", es: "confianza · alta" })
+                      : a.prov.confidence === "medium"
+                        ? plang({ tr: "güven · orta", en: "confidence · medium", es: "confianza · media" })
+                        : plang({ tr: "güven · filizlenen", en: "confidence · emerging", es: "confianza · incipiente" });
+                  return (
                   <motion.div
                     key={a.week}
-                    className="pusula-period"
+                    className={`pusula-period ${isRej ? "rej" : ""}`}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.06, ease: EASE }}
@@ -518,6 +532,15 @@ export function GelisimDefteri() {
                     <i className="pusula-period-bar" aria-hidden>
                       <b style={{ width: `${a.priorities.length ? (a.priorities.filter((p) => doneItems[`${empId}:${a.week}:${p}`]).length / a.priorities.length) * 100 : 0}%` }} />
                     </i>
+
+                    {/* öneri künyesi: Senaryo + Yöntem + güven bandı */}
+                    <div className="pusula-prov-tags">
+                      <span className="pusula-prov-tag">{plang({ tr: "Senaryo", en: "Scenario", es: "Escenario" })} <b>{a.prov.scenario}</b></span>
+                      <span className="pusula-prov-tag">{plang({ tr: "Yöntem", en: "Method", es: "Método" })} <b>{a.prov.method}</b></span>
+                      <span className={`pusula-prov-conf ${a.prov.confidence}`}>
+                        <i /><i /><i /> {confLabel}
+                      </span>
+                    </div>
                     <div className="pusula-period-block">
                       <span className="pusula-period-key">{plang({ tr: "Öncelikler", en: "Priorities", es: "Prioridades" })}</span>
                       <div className="pusula-period-checks">
@@ -551,18 +574,167 @@ export function GelisimDefteri() {
                         onChange={(e) => setE(`act:${empId}:${a.week}:action`, e.target.value)}
                       />
                     </div>
+
+                    {/* beklenen etki + provenance zinciri + gerekçeli red */}
+                    <div className="pusula-prov-exp">
+                      <span>{plang({ tr: "Beklenen", en: "Expected", es: "Esperado" })}</span> {a.prov.expected}
+                    </div>
+                    <button
+                      className={`pusula-prov-why ${provOpen[wkey] ? "open" : ""}`}
+                      onClick={() => setProvOpen((p) => ({ ...p, [wkey]: !p[wkey] }))}
+                    >
+                      {plang({ tr: "Neden bu öneri?", en: "Why this suggestion?", es: "¿Por qué esta sugerencia?" })} <i>{provOpen[wkey] ? "−" : "+"}</i>
+                    </button>
+                    <AnimatePresence>
+                      {provOpen[wkey] && (
+                        <motion.div
+                          className="pusula-prov-chain"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.28, ease: EASE }}
+                        >
+                          {([
+                            [plang({ tr: "01 · Sinyal", en: "01 · Signal", es: "01 · Señal" }), a.prov.signal],
+                            [plang({ tr: "02 · Kanıt kanalı", en: "02 · Evidence channel", es: "02 · Canal de evidencia" }), a.prov.channel],
+                            [plang({ tr: "03 · Çıkarım", en: "03 · Inference", es: "03 · Inferencia" }), a.prov.inference],
+                            [plang({ tr: "04 · Güven", en: "04 · Confidence", es: "04 · Confianza" }), a.prov.confidenceWhy],
+                          ] as const).map(([k, v]) => (
+                            <div key={k} className="pusula-prov-step">
+                              <span>{k}</span>
+                              <p>{v}</p>
+                            </div>
+                          ))}
+                          <div className="pusula-prov-audit">
+                            {plang({ tr: "Zincir denetim izine kayıtlı — her öneri sorgulanabilir.", en: "The chain is on the audit trail — every suggestion is contestable.", es: "La cadena queda en el registro de auditoría — toda sugerencia es cuestionable." })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    {isRej ? (
+                      <div className="pusula-prov-rej">
+                        <span>{plang({ tr: "Reddedildi", en: "Rejected", es: "Rechazado" })} · {rejActions[wkey]}</span>
+                        <em>{plang({ tr: "gerekçe modele geri yazıldı — motor öğrenir", en: "reason written back — the engine learns", es: "motivo reescrito — el motor aprende" })}</em>
+                        <button
+                          onClick={() => setRejActions((p) => { const n = { ...p }; delete n[wkey]; return n; })}
+                        >
+                          {plang({ tr: "geri al", en: "undo", es: "deshacer" })}
+                        </button>
+                      </div>
+                    ) : rejPick === wkey ? (
+                      <div className="pusula-prov-rejpick">
+                        <span>{plang({ tr: "Gerekçe", en: "Reason", es: "Motivo" })}:</span>
+                        {[
+                          plang({ tr: "erken", en: "too early", es: "muy pronto" }),
+                          plang({ tr: "yanlış kişi", en: "wrong person", es: "persona equivocada" }),
+                          plang({ tr: "yöntem uymaz", en: "method doesn't fit", es: "el método no encaja" }),
+                        ].map((r) => (
+                          <button key={r} onClick={() => { setRejActions((p) => ({ ...p, [wkey]: r })); setRejPick(null); }}>
+                            {r}
+                          </button>
+                        ))}
+                        <button className="x" onClick={() => setRejPick(null)} aria-label={plang({ tr: "vazgeç", en: "cancel", es: "cancelar" })}>×</button>
+                      </div>
+                    ) : (
+                      <button className="pusula-prov-rejbtn" onClick={() => setRejPick(wkey)}>
+                        {plang({ tr: "Reddet", en: "Reject", es: "Rechazar" })}
+                      </button>
+                    )}
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}
 
-          {/* ── DÖNEM RAPORU — AI önerisi, düzenlenebilir ── */}
-          {mode === "rapor" && (
+          {/* ── DÖNEM RAPORU — döngü-kapanış belgesi: girdi → saha sinyali →
+               kapanan döngüler → güçlü/gelişim → sonraki dönem taslağı → koç sözü ── */}
+          {mode === "rapor" && (() => {
+            const noteCount =
+              Object.values(history).reduce((a, m) => a + Object.values(m.log).filter((e) => e && e.note.trim()).length, 0) +
+              Object.values(compNotes).filter((v) => v && v.trim()).length;
+            const appliedCount = Object.entries(doneItems).filter(([k, v]) => v && k.startsWith(`${empId}:`)).length;
+            const signals = areaSignals(emp);
+            const fitWordOf = (lv: (typeof signals)[number]["level"]) =>
+              lv === "strong" || lv === "developing"
+                ? plang({ tr: "koç gözlemiyle uyumlu", en: "consistent with coach observation", es: "coherente con la observación" })
+                : lv === "neutral"
+                  ? plang({ tr: "izlemede — sinyal zayıf", en: "watching — weak signal", es: "en seguimiento — señal débil" })
+                  : plang({ tr: "veri yok — keşif önerilir", en: "no data — exploration suggested", es: "sin datos — se sugiere exploración" });
+            return (
             <div className="pusula-report">
               <div className="pusula-edit-hint">
-                <span className="pusula-ai-badge">{plang({ tr: "AI önerisi", en: "AI suggestion", es: "Sugerencia IA" })}</span> {plang({ tr: "Kanıttan türetilmiş taslak — koç sonucu kendi sözleriyle yazabilir.", en: "A draft derived from evidence — the coach can write the conclusion in their own words.", es: "Un borrador derivado de la evidencia — el coach puede escribir la conclusión con sus palabras." })}
+                <span className="pusula-ai-badge">{plang({ tr: "AI taslağı", en: "AI draft", es: "Borrador IA" })}</span> {plang({ tr: "Dönem-kapanış belgesi: bu dönem ne girdi, saha ne söyledi, hangi öneriler döngüyü kapattı, sonraki dönem nereden başlar. Koç sonucu kendi sözleriyle yazar.", en: "Period-close document: what went in, what the floor said, which suggestions closed the loop, where next period starts. The coach writes the conclusion in their own words.", es: "Documento de cierre: qué entró, qué dijo la sala, qué sugerencias cerraron el ciclo, dónde empieza el siguiente periodo. El coach escribe la conclusión." })}
               </div>
+
+              {/* 1 · künye */}
+              <div className="pusula-rep-mast">
+                <div>
+                  <em>{emp.name}</em>
+                  <span>{roleLabel(role)} · {masteryShort(emp.level)} · {plang({ tr: "Koç", en: "Coach", es: "Coach" })}: Sevim Y.</span>
+                </div>
+                <span className="pusula-rep-period">{plang({ tr: "Hafta 8 kapanışı", en: "Week-8 close", es: "Cierre semana 8" })} · {TODAY}</span>
+              </div>
+
+              {/* 2 · girdi özeti — bu dönem deftere ne girdi (CANLI: koçun bu oturumdaki işi dahil) */}
+              <span className="pusula-rep-eb">{plang({ tr: "Girdi özeti · bu dönem deftere giren", en: "Input summary · what entered the booklet", es: "Resumen de entrada · lo que entró al cuadernillo" })}</span>
+              <div className="pusula-pulse">
+                <div className="pusula-pulse-cell">
+                  <em>{marked}<i>/{section?.topics.length ?? 0}</i></em>
+                  <span>{plang({ tr: "işaretli konu", en: "topics marked", es: "temas marcados" })}</span>
+                </div>
+                <div className="pusula-pulse-cell">
+                  <em>{teachable}</em>
+                  <span>{plang({ tr: "öğretebilir", en: "can teach", es: "puede enseñar" })}</span>
+                </div>
+                <div className="pusula-pulse-cell">
+                  <em>{noteCount}</em>
+                  <span>{plang({ tr: "gözlem notu", en: "observation notes", es: "notas de observación" })}</span>
+                </div>
+                <div className="pusula-pulse-cell">
+                  <em>{appliedCount}</em>
+                  <span>{plang({ tr: "uygulanan öncelik", en: "priorities applied", es: "prioridades aplicadas" })}</span>
+                </div>
+              </div>
+
+              {/* 3 · saha sinyali — koç gözlemi ile saha verisi karşılaştırması */}
+              <span className="pusula-rep-eb">{plang({ tr: "Saha sinyali · gözlemle uyum", en: "Floor signal · consistency with observation", es: "Señal de sala · coherencia" })}</span>
+              <div className="pusula-rep-signals">
+                {signals.map((s) => (
+                  <div key={s.area} className="pusula-rep-sig">
+                    <span className="a">{s.area}</span>
+                    <span className="src">{s.source}</span>
+                    <span className={`fit ${s.level}`}>{fitWordOf(s.level)} · {s.evidence}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* 4 · kapanan döngüler — raporun kalbi: öneri → sonuç geri yazımı */}
+              <span className="pusula-rep-eb">{plang({ tr: "Kapanan döngüler · öneri → gerçekleşme", en: "Closed loops · suggestion → outcome", es: "Ciclos cerrados · sugerencia → resultado" })}</span>
+              <div className="pusula-rep-loops">
+                {actions.map((a) => {
+                  const wkey = `${empId}:${a.week}`;
+                  const total = a.priorities.length;
+                  const doneN = a.priorities.filter((p) => doneItems[`${empId}:${a.week}:${p}`]).length;
+                  const isRej = wkey in rejActions;
+                  const st = isRej
+                    ? plang({ tr: `reddedildi (${rejActions[wkey]}) — gerekçe modele yazıldı`, en: `rejected (${rejActions[wkey]}) — reason written back`, es: `rechazado (${rejActions[wkey]}) — motivo reescrito` })
+                    : doneN === total && total > 0
+                      ? plang({ tr: "döngü kapandı — sonuç modele geri yazıldı", en: "loop closed — outcome written back", es: "ciclo cerrado — resultado reescrito" })
+                      : doneN > 0
+                        ? plang({ tr: `kısmen uygulandı · ${doneN}/${total}`, en: `partially applied · ${doneN}/${total}`, es: `aplicado en parte · ${doneN}/${total}` })
+                        : plang({ tr: "açık — henüz uygulanmadı", en: "open — not yet applied", es: "abierto — sin aplicar" });
+                  return (
+                    <div key={a.week} className={`pusula-rep-loop ${isRej ? "rej" : doneN === total && total > 0 ? "ok" : ""}`}>
+                      <span className="w">{a.week}</span>
+                      <span className="m">{a.prov.scenario} · {a.prov.method}</span>
+                      <span className="s">{st}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 5 · güçlü & gelişim (kanıt diliyle) */}
               <div className="pusula-report-cols">
                 <section>
                   <span className="pusula-period-key">{plang({ tr: "Güçlü Yönler", en: "Strengths", es: "Fortalezas" })}</span>
@@ -581,6 +753,23 @@ export function GelisimDefteri() {
                   </ul>
                 </section>
               </div>
+
+              {/* 6 · sonraki dönem taslağı — rapor bir sonraki döngünün girdisi olur */}
+              <div className="pusula-rep-next">
+                <span className="pusula-rep-eb">{plang({ tr: "Sonraki dönem · otomatik taslak", en: "Next period · auto draft", es: "Siguiente periodo · borrador automático" })}</span>
+                <p>
+                  {plang({
+                    tr: `${emp.name.split(" ")[0]} için açılış önceliği: ${actions[3]?.prov.scenario} — ${actions[3]?.prov.method} ile devam; ${actions[1]?.prov.scenario} pekiştirme listesinde.`,
+                    en: `Opening priority for ${emp.name.split(" ")[0]}: ${actions[3]?.prov.scenario} — continue with ${actions[3]?.prov.method}; ${actions[1]?.prov.scenario} stays on the reinforcement list.`,
+                    es: `Prioridad de apertura para ${emp.name.split(" ")[0]}: ${actions[3]?.prov.scenario} — seguir con ${actions[3]?.prov.method}; ${actions[1]?.prov.scenario} queda en refuerzo.`,
+                  })}
+                </p>
+                <button className="pusula-apply" onClick={() => setMode("donem")}>
+                  {plang({ tr: "Dönem Aksiyonu'nda düzenle", en: "Edit in Period Action", es: "Editar en Acción del Periodo" })}
+                </button>
+              </div>
+
+              {/* 7 · koç sonucu */}
               <div className="pusula-report-result">
                 <span className="pusula-period-key">{plang({ tr: "Sonuç · Koç değerlendirmesi", en: "Conclusion · Coach assessment", es: "Conclusión · Evaluación del coach" })}</span>
                 <textarea
@@ -592,10 +781,11 @@ export function GelisimDefteri() {
               </div>
               <div className="pusula-assure pusula-assure-row">
                 <span>{plang({ tr: "Değerlendirme = gelişim için, ceza için değil", en: "Assessment = for growth, not punishment", es: "Evaluación = para el desarrollo, no para castigar" })}</span>
-                <span>{plang({ tr: "Bu raporu çalışan da görür", en: "The employee sees this report too", es: "El empleado también ve este informe" })}</span>
+                <span>{plang({ tr: "Bu raporu çalışan da görür · denetim izine kayıtlı", en: "The employee sees this report too · on the audit trail", es: "El empleado también ve este informe · en el registro de auditoría" })}</span>
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* ── EVRE PLANLARI — yaşam-yolculuğu HARİTASI (tıkla-seç; Takip'e derin bağ) ──
                Takip'ten farkı: Takip TEK seviyenin işaretleme masasıdır; burası 4 evrelik

@@ -51,11 +51,25 @@ export interface CompetencyRow {
 }
 
 // ── Dönem aksiyon planı (Hafta 2/4/6/8) ──
+// PROVENANCE: önerinin türetim zinciri — neyi nereden çıkardığı görünür olsun
+// (sinyal → kanıt kanalı → çıkarım adımı → güven). Mimari rapor: öneri =
+// kanıt + yöntem + beklenen etki + onay hakkı.
+export interface ActionProvenance {
+  scenario: string; // Senaryo etiketi (hangi yetkinlik alanı)
+  method: string; // Yöntem etiketi (Gölge→Solo, Kontrollü maruziyet…)
+  signal: string; // ① tetikleyen sinyal ("Kabin filizlenen, 2 dönem durağan")
+  channel: string; // ② kanıt kanalı (sayaç / vardiya-kesişim / kitapçık+koç)
+  inference: string; // ③ çıkarım adımı ("benzer profilde n≈14 vardiyada işe yaradı")
+  confidence: "emerging" | "medium" | "high"; // ⑤ güven bandı (SOFT, sayı değil)
+  confidenceWhy: string; // güvenin gerekçesi ("3 kanaldan 1'i besliyor")
+  expected: string; // ⑥ beklenen etki + ufuk (temsilî)
+}
 export interface PeriodAction {
   week: string;
   priorities: string[];
   goal: string;
   action: string;
+  prov: ActionProvenance;
 }
 
 // ── Dönem / final raporu ──

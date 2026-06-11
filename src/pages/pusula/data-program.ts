@@ -4,9 +4,20 @@
 // gösterilir (sayı basılmaz). Dönem aksiyonu + final rapor da profilden çıkar.
 
 import { competencies, COMPETENCY_COUNT } from "./data-gelisim";
-import { COMP_KEYS, compLabel, compRaw, compShort, growthEdgeOf, type CompKey } from "./data-competency";
+import {
+  COMP_KEYS,
+  channelLabel,
+  compLabel,
+  compRaw,
+  compShort,
+  growthEdgeOf,
+  personCompetencies,
+  provenWord,
+  type CompKey,
+} from "./data-competency";
+import { methodLabel, type MethodId } from "./data-curriculum";
 import { MasteryLevel, type Employee } from "./types";
-import type { AreaSignal, CompetencyRow, FinalReport, PeriodAction } from "./types-gelisim";
+import type { ActionProvenance, AreaSignal, CompetencyRow, FinalReport, PeriodAction } from "./types-gelisim";
 import { pick } from "./i18n";
 
 const clamp = (v: number) => Math.max(0, Math.min(5, v));
@@ -42,12 +53,61 @@ function compsByRaw(emp: Employee, dir: "desc" | "asc"): CompKey[] {
   );
 }
 
+/**
+ * PROVENANCE türetimi — önerinin "neyi nereden çıkardığı" zinciri.
+ * Sinyal = kişinin o yetkinlikteki GERÇEK durumu (kanıt kanalıyla);
+ * çıkarım = benzer-profil komşuluğunda yöntemin işe yaradığı gözlemi (temsilî n);
+ * güven = SOFT band — kanıt azsa "filizlenen → genel/öğren önerisi" (soğuk başlangıç).
+ */
+function provFor(emp: Employee, key: CompKey, method: MethodId, expected: string): ActionProvenance {
+  const pc = personCompetencies(emp.id).find((p) => p.comp === key);
+  const st = pc?.state;
+  const ev = pc?.evidence[0];
+  const simN = 8 + (hash(emp.id + key) % 9); // benzer-profil hacmi (temsilî)
+  const stateTxt =
+    st?.kind === "proven"
+      ? pick({ tr: `kanıtlı — ${provenWord(st.level)}`, en: `proven — ${provenWord(st.level)}`, es: `comprobado — ${provenWord(st.level)}` })
+      : st?.kind === "emerging"
+        ? pick({ tr: "filizlenen (az kanıt)", en: "emerging (thin evidence)", es: "incipiente (poca evidencia)" })
+        : pick({ tr: "keşfedilmemiş — veri yok (yargı değil)", en: "unexplored — no data (not a judgment)", es: "sin explorar — sin datos (no es juicio)" });
+  const trend = hash(emp.id + key) % 2 === 0
+    ? pick({ tr: "son 2 dönem durağan", en: "flat for 2 periods", es: "estable 2 periodos" })
+    : pick({ tr: "yavaş yükseliyor", en: "rising slowly", es: "sube despacio" });
+  const confidence: ActionProvenance["confidence"] =
+    st?.kind === "proven" ? (st.n >= 10 ? "high" : "medium") : st?.kind === "emerging" ? "medium" : "emerging";
+  const confidenceWhy =
+    confidence === "high"
+      ? pick({ tr: `kanal düzenli besliyor · n≈${st?.kind === "proven" ? st.n : simN} vardiya`, en: `channel feeds steadily · n≈${st?.kind === "proven" ? st.n : simN} shifts`, es: `el canal alimenta estable · n≈${st?.kind === "proven" ? st.n : simN} turnos` })
+      : confidence === "medium"
+        ? pick({ tr: "kanal besliyor ama n düşük — aralık geniş", en: "channel feeds but n is low — wide interval", es: "el canal alimenta pero n es bajo — intervalo amplio" })
+        : pick({ tr: "kanıt az → genel/öğren önerisi (soğuk başlangıç)", en: "thin evidence → generic/learn suggestion (cold start)", es: "poca evidencia → sugerencia genérica (arranque frío)" });
+  return {
+    scenario: compLabel(key),
+    method: methodLabel(method),
+    signal: pick({ tr: `${compLabel(key)}: ${stateTxt} · ${trend}`, en: `${compLabel(key)}: ${stateTxt} · ${trend}`, es: `${compLabel(key)}: ${stateTxt} · ${trend}` }),
+    channel: ev
+      ? channelLabel(ev.channel)
+      : pick({ tr: "kitapçık + koç gözlemi (keşif kanalı)", en: "booklet + coach observation (discovery channel)", es: "cuadernillo + observación del coach (canal de descubrimiento)" }),
+    inference: pick({
+      tr: `Benzer profilde (n≈${simN} vardiya) ${methodLabel(method)} yöntemi bir seviye geçişini hızlandırdı.`,
+      en: `In similar profiles (n≈${simN} shifts) the ${methodLabel(method)} method accelerated a level transition.`,
+      es: `En perfiles similares (n≈${simN} turnos) el método ${methodLabel(method)} aceleró una transición de nivel.`,
+    }),
+    confidence,
+    confidenceWhy,
+    expected,
+  };
+}
+
 /** 4 dönem aksiyon planı (Hafta 2/4/6/8) — gelişim arkına göre kişiselleşir. */
 export function periodActions(emp: Employee): PeriodAction[] {
   const fn = firstName(emp);
-  const strongRole = compShort(compsByRaw(emp, "desc")[0]);
-  const weakRole = compShort(compsByRaw(emp, "asc")[0]);
+  const strongKey = compsByRaw(emp, "desc")[0];
+  const weakKey = compsByRaw(emp, "asc")[0];
+  const strongRole = compShort(strongKey);
+  const weakRole = compShort(weakKey);
   const wk = (n: number) => pick({ tr: `Hafta ${n}`, en: `Week ${n}`, es: `Semana ${n}` });
+  const exp2 = (t: { tr: string; en: string; es: string }) => pick(t);
   return [
     {
       week: wk(2),
@@ -57,6 +117,7 @@ export function periodActions(emp: Employee): PeriodAction[] {
       ],
       goal: pick({ tr: "Sahaya güvenli giriş; temel akışları tanıma.", en: "Safe entry to the floor; learning core flows.", es: "Entrada segura a la sala; conocer los flujos básicos." }),
       action: pick({ tr: `${fn} ilk hafta kıdemli eşliğinde gözlem (shadowing).`, en: `${fn} shadows a senior in week one.`, es: `${fn} acompaña a un sénior en la primera semana.` }),
+      prov: provFor(emp, weakKey, "golge", exp2({ tr: "2 dönemde temel akış güveni · temsilî", en: "core-flow confidence in 2 periods · representative", es: "confianza en flujos en 2 periodos · representativo" })),
     },
     {
       week: wk(4),
@@ -66,6 +127,7 @@ export function periodActions(emp: Employee): PeriodAction[] {
       ],
       goal: pick({ tr: `${weakRole}'de desteksiz ilk denemeler.`, en: `First unassisted attempts in ${weakRole}.`, es: `Primeros intentos sin apoyo en ${weakRole}.` }),
       action: pick({ tr: "Gölge seansı + birebir geri bildirim; küçük başarıları kutla.", en: "Shadow session + 1:1 feedback; celebrate small wins.", es: "Sesión de acompañamiento + feedback 1:1; celebra los logros." }),
+      prov: provFor(emp, weakKey, "prova", exp2({ tr: "1 seviye ↑ (filizlenen→yapabiliyor) · 2 dönem · temsilî", en: "1 level ↑ (emerging→can-do) · 2 periods · representative", es: "1 nivel ↑ · 2 periodos · representativo" })),
     },
     {
       week: wk(6),
@@ -75,6 +137,7 @@ export function periodActions(emp: Employee): PeriodAction[] {
       ],
       goal: pick({ tr: "Yoğunlukta ritmi koruma; tek başına ön cephe.", en: "Holding rhythm under load; front of house solo.", es: "Mantener el ritmo bajo presión; frente en solitario." }),
       action: pick({ tr: "Kontrollü tepe-saat maruziyeti; kıdemli yakın destekte.", en: "Controlled peak-hour exposure; senior close by.", es: "Exposición controlada a la hora pico; sénior cerca." }),
+      prov: provFor(emp, "kabin", "maruz", exp2({ tr: "tepe-saatte ritim korunur · 1 dönem · temsilî", en: "rhythm held at peak · 1 period · representative", es: "ritmo sostenido en pico · 1 periodo · representativo" })),
     },
     {
       week: wk(8),
@@ -84,6 +147,7 @@ export function periodActions(emp: Employee): PeriodAction[] {
       ],
       goal: pick({ tr: "Bir konuyu başkasına öğretebilir seviye.", en: "Able to teach a topic to someone else.", es: "Capaz de enseñar un tema a otra persona." }),
       action: pick({ tr: "Değerlendirme + sonraki dönem aksiyon planı.", en: "Evaluation + next-period action plan.", es: "Evaluación + plan de acción del siguiente periodo." }),
+      prov: provFor(emp, strongKey, "es", exp2({ tr: "öğretebilir bayrağına aday · 2 dönem · temsilî", en: "candidate for the can-teach flag · 2 periods · representative", es: "candidato a 'puede enseñar' · 2 periodos · representativo" })),
     },
   ];
 }
