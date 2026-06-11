@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Eyebrow, Headline } from "../../brain/primitives";
 import { employees, jobTypeLabel, teachingCard, teachingText } from "../data";
 import { MasteryLevel, type Employee } from "../types";
@@ -36,13 +37,25 @@ export function Profil({
   const trainings = upcomingTrainings(active);
   const apts = aptitudeSuggestions(active.id);
   const t = useT();
+  // 30 kişilik rail'de hızlı bulma — arama + kaydırılabilir liste
+  const [q, setQ] = useState("");
+  const railList = q.trim()
+    ? employees.filter((p) => p.name.toLocaleLowerCase("tr").includes(q.trim().toLocaleLowerCase("tr")))
+    : employees;
 
   return (
     <div className="pusula-profile">
       <aside className="pusula-profile-rail">
         <Eyebrow>{t("e.persons")}</Eyebrow>
+        <input
+          className="pusula-rail-search"
+          type="search"
+          placeholder={t("l.searchPerson")}
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
         <div className="pusula-profile-list">
-          {employees.map((p) => (
+          {railList.map((p) => (
             <button
               key={p.id}
               className={`pusula-profile-pick ${p.id === active.id ? "on" : ""}`}
@@ -52,6 +65,7 @@ export function Profil({
               <span>{p.name}</span>
             </button>
           ))}
+          {railList.length === 0 && <span className="pusula-rail-empty">{t("l.noresult")}</span>}
         </div>
       </aside>
 

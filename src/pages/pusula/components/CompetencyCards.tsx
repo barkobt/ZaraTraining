@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Compass } from "lucide-react";
+import { CalendarPlus, Check, Compass } from "lucide-react";
 import {
   compLabel,
   compRaw,
@@ -10,6 +10,7 @@ import {
   stateWord,
   type PersonCompetency,
 } from "../data-competency";
+import { usePersistentState } from "../session-store";
 import { pick, useT } from "../i18n";
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
@@ -34,6 +35,8 @@ export function CompetencyCards({
   compact?: boolean;
 }) {
   const t = useT();
+  // keşif vardiyası planlama — koç tek tıkla aksiyon alır (görünüm değişiminde korunur)
+  const [planned, setPlanned] = usePersistentState<Record<string, boolean>>("disc.planned", {});
   const all = personCompetencies(personId);
   const shown = all
     .filter((p) => p.state.kind !== "unexplored")
@@ -84,20 +87,37 @@ export function CompetencyCards({
       {!compact && unexplored.length > 0 && (
         <div className="pcomp-unexplored">
           <span className="pcomp-unexplored-eb">{t("e.unexplored")}</span>
-          {unexplored.map((pc) => (
-            <div key={pc.comp} className="pcomp-unexplored-row">
-              <Compass size={14} strokeWidth={1.7} />
-              <span>
-                {disc && disc.comp === pc.comp
-                  ? discoveryText(disc)
-                  : pick({
-                      tr: `${compLabel(pc.comp)} — henüz sinyal yok; yargı değil, keşif fırsatı.`,
-                      en: `${compLabel(pc.comp)} — no signal yet; not a judgment, a discovery opportunity.`,
-                      es: `${compLabel(pc.comp)} — aún sin señal; no es juicio, es una oportunidad.`,
-                    })}
-              </span>
-            </div>
-          ))}
+          {unexplored.map((pc) => {
+            const isDisc = disc?.comp === pc.comp;
+            const key = `${personId}:${pc.comp}`;
+            const isPlanned = !!planned[key];
+            return (
+              <div key={pc.comp} className="pcomp-unexplored-row">
+                <Compass size={14} strokeWidth={1.7} />
+                <span>
+                  {isDisc
+                    ? discoveryText(disc)
+                    : pick({
+                        tr: `${compLabel(pc.comp)} — henüz sinyal yok; yargı değil, keşif fırsatı.`,
+                        en: `${compLabel(pc.comp)} — no signal yet; not a judgment, a discovery opportunity.`,
+                        es: `${compLabel(pc.comp)} — aún sin señal; no es juicio, es una oportunidad.`,
+                      })}
+                </span>
+                {/* ÇIKMAZ SOKAK DEĞİL: koç buradan tek tıkla keşif vardiyasını planlar */}
+                {isDisc &&
+                  (isPlanned ? (
+                    <span className="pcomp-plan done">
+                      <Check size={11} strokeWidth={2.2} /> {t("l.planned")} ·{" "}
+                      {pick({ tr: "Yarın 15–16", en: "Tomorrow 15–16", es: "Mañana 15–16" })} · {disc.buddyName}
+                    </span>
+                  ) : (
+                    <button className="pcomp-plan" onClick={() => setPlanned((p) => ({ ...p, [key]: true }))}>
+                      <CalendarPlus size={11} strokeWidth={2} /> {t("b.plan")}
+                    </button>
+                  ))}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

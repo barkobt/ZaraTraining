@@ -31,7 +31,7 @@ export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () =>
           <div className="pusula-card-name">{person.name}</div>
           <span className="pusula-card-tenure">{jobTypeLabelCaps(person.id)}{"\u00A0·\u00A0"}{tenureOf(person)}</span>
         </div>
-        <span style={{ marginLeft: "auto" }}>
+        <span className="pusula-card-chip">
           <MasteryChip level={person.level} />
         </span>
       </div>

@@ -54,6 +54,17 @@ export function SurplusPanel() {
               <span className="pusula-surplus-reason">{f.reason}</span>
             </div>
           ))}
+          {flex.length === 0 && (
+            <div className="pusula-surplus-row">
+              <span className="pusula-surplus-reason">
+                {pick({
+                  tr: "Bugün boşta kimse yok — kadro dengede, yönlendirme gerekmiyor.",
+                  en: "No one idle today — the roster is balanced, no routing needed.",
+                  es: "Hoy nadie está libre — la plantilla está equilibrada, no hace falta dirigir.",
+                })}
+              </span>
+            </div>
+          )}
         </div>
         <div className="pusula-surplus-note">
           {pick({

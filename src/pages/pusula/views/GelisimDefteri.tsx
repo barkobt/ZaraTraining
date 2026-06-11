@@ -330,7 +330,7 @@ export function GelisimDefteri() {
                               <span className="pusula-mark-date">{mark.date}</span>
                               <input
                                 className="pusula-mark-note"
-                                placeholder={plang({ tr: "+ not ekle (hover)", en: "+ add note (hover)", es: "+ añadir nota (hover)" })}
+                                placeholder={plang({ tr: "+ not ekle", en: "+ add note", es: "+ añadir nota" })}
                                 value={mark.note}
                                 onChange={(e) => setMarkNote(t.id, e.target.value)}
                               />

@@ -34,7 +34,7 @@ export function UpcomingTrainings({ items, compact = false }: { items: Training[
                 <span className="pusula-train-kind">{trainingKindLabel(t.kind)}</span>
                 <span className="pusula-train-when"><Clock size={10} strokeWidth={1.8} /> {t.when}</span>
                 {t.withWhom && (
-                  <span className="pusula-train-with">{pick({ tr: "ile", en: "with", es: "con" })} {t.withWhom}</span>
+                  <span className="pusula-train-with">· {pick({ tr: "ile", en: "with", es: "con" })} {t.withWhom}</span>
                 )}
               </div>
             </div>

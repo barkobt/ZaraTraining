@@ -124,6 +124,10 @@ const S: Record<string, Tri> = {
   "l.teachBadge": { tr: "Öğretebilir", en: "Can teach", es: "Puede enseñar" },
   "l.growthFit": { tr: "gelişim fırsatı", en: "growth opportunity", es: "oportunidad de desarrollo" },
   "b.approveApt": { tr: "Onayla", en: "Approve", es: "Aprobar" },
+  "b.plan": { tr: "Planla", en: "Schedule", es: "Planificar" },
+  "l.planned": { tr: "Planlandı", en: "Scheduled", es: "Planificado" },
+  "l.searchPerson": { tr: "Kişi ara…", en: "Search person…", es: "Buscar persona…" },
+  "l.noresult": { tr: "Eşleşen kişi yok", en: "No matching person", es: "Sin coincidencias" },
   "a11y.close": { tr: "Kapat", en: "Close", es: "Cerrar" },
   "a11y.backBrain": { tr: "Brain'e dön", en: "Back to Brain", es: "Volver a Brain" },
 
