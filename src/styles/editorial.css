@@ -2161,3 +2161,81 @@
 /* Yerleştirme çizelge çipleri: kutu duvarı → hairline; tek koyu vurgu yönetici */
 .pusula-chip { background: transparent; border-color: var(--zara-line); }
 .pusula-chip.strong { background: transparent; border-color: rgba(0,0,0,0.45); color: var(--zara-ink); }
+
+/* ══ PUSULA v3 · EDITORIAL COCKPIT ═════════════════════════
+   Kabuk: dropdown nav → tam-ekran menü (Zara-app imzası) + bölüm künyesi.
+   Açılış: "Bugün" ön sayfası — gazete kapağı kurgusu, yerinde aksiyon. */
+
+/* bölüm künyesi (topbar ortası) */
+.pv3-crumb { display: inline-flex; align-items: baseline; gap: 10px; margin: 0 auto; border: none; background: transparent; cursor: pointer; padding: 8px 14px; position: relative; }
+.pv3-crumb-idx { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.2em; color: var(--zara-ink-40); }
+.pv3-crumb-label { font-family: var(--ff-display); font-style: italic; font-size: 19px; color: var(--zara-ink); }
+.pv3-crumb-sub { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pv3-crumb::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 2px; height: 1.5px; background: var(--zara-ink); transform: scaleX(0); transform-origin: left; transition: transform 300ms var(--ease-atelier); }
+.pv3-crumb:hover::after { transform: scaleX(1); }
+
+/* menü düğmesi */
+.pv3-menubtn { display: inline-flex; align-items: center; gap: 9px; border: none; background: transparent; cursor: pointer; padding: 8px 2px 8px 12px; font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--zara-ink); }
+.pv3-menubtn-lines { display: inline-flex; flex-direction: column; gap: 4px; width: 18px; }
+.pv3-menubtn-lines i { display: block; height: 1.5px; background: var(--zara-ink); transition: transform 240ms var(--ease-atelier), width 240ms; }
+.pv3-menubtn:hover .pv3-menubtn-lines i:last-child { width: 70%; }
+
+/* ── tam-ekran menü ── */
+.pv3-menu { position: fixed; inset: 0; z-index: 80; background: var(--zara-bg); display: flex; flex-direction: column; padding: 26px clamp(20px, 6vw, 84px) 28px; overflow-y: auto; }
+.pv3-menu-top { display: flex; align-items: center; gap: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--zara-line); }
+.pv3-menu-search { flex: 1; display: flex; align-items: center; gap: 12px; color: var(--zara-ink-40); }
+.pv3-menu-search input { flex: 1; border: none; background: transparent; outline: none; font-family: var(--ff-display); font-style: italic; font-size: clamp(18px, 3vw, 26px); color: var(--zara-ink); }
+.pv3-menu-search input::placeholder { color: var(--zara-ink-30); }
+.pv3-menu-x { border: none; background: transparent; cursor: pointer; color: var(--zara-ink); padding: 6px; transition: transform 240ms var(--ease-atelier); }
+.pv3-menu-x:hover { transform: rotate(90deg); }
+.pv3-menu-hits { display: flex; flex-direction: column; gap: 2px; padding: 14px 0 4px; }
+.pv3-menu-hit { text-align: left; border: none; background: transparent; cursor: pointer; padding: 8px 2px; font-family: var(--ff-sans); font-size: 14px; color: var(--zara-ink); border-bottom: 1px solid var(--zara-line); }
+.pv3-menu-hit i { font-style: normal; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); margin-left: 10px; }
+.pv3-menu-hit:hover { padding-left: 10px; transition: padding 220ms var(--ease-atelier); }
+.pv3-menu-list { flex: 1; display: flex; flex-direction: column; padding-top: 10px; }
+.pv3-menu-group { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--zara-ink-40); margin: 22px 0 4px; }
+.pv3-menu-item { display: flex; align-items: baseline; gap: 18px; width: 100%; text-align: left; border: none; background: transparent; cursor: pointer; padding: 6px 0; position: relative; }
+.pv3-menu-idx { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; color: var(--zara-ink-30); min-width: 30px; }
+.pv3-menu-label { font-family: var(--ff-display); font-style: italic; font-size: clamp(30px, 5.4vw, 54px); line-height: 1.12; color: var(--zara-ink); transition: transform 280ms var(--ease-atelier); }
+.pv3-menu-sub { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pv3-menu-item:hover .pv3-menu-label { transform: translateX(12px); }
+.pv3-menu-item.on .pv3-menu-label { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 8px; }
+.pv3-menu-foot { display: flex; justify-content: space-between; gap: 16px; padding-top: 18px; border-top: 1px solid var(--zara-line); font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); flex-wrap: wrap; }
+
+/* ── BUGÜN — ön sayfa ── */
+.pv3-cockpit { display: flex; flex-direction: column; gap: 0; }
+.pv3-masthead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 10px; }
+.pv3-date { font-family: var(--ff-display); font-style: italic; font-size: 17px; color: var(--zara-ink); text-transform: capitalize; }
+.pv3-store { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.22em; color: var(--zara-ink-40); }
+.pv3-ticker { overflow: hidden; border-top: 1px solid var(--zara-ink); border-bottom: 1px solid var(--zara-line); padding: 7px 0; margin-bottom: 26px; }
+.pv3-ticker-in { display: inline-flex; gap: 28px; white-space: nowrap; animation: pv3tick 36s linear infinite; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-65); }
+.pv3-ticker-in i { font-style: normal; color: var(--zara-ink-30); margin-left: 28px; }
+@keyframes pv3tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.pv3-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 0; border: 1px solid var(--zara-line); }
+.pv3-lead { padding: 26px 28px; border-right: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 14px; }
+.pv3-lead-p { font-family: var(--ff-sans); font-size: 13.5px; line-height: 1.65; color: var(--zara-ink-65); max-width: 52ch; }
+.pv3-cta { align-self: flex-start; margin-top: 4px; }
+.pv3-col { padding: 24px 22px; border-right: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.pv3-col:last-child { border-right: none; }
+.pv3-eb { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--zara-ink); padding-bottom: 8px; border-bottom: 1px solid var(--zara-ink); }
+.pv3-eb2 { margin-top: 16px; }
+.pv3-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--zara-line); }
+.pv3-row:last-child { border-bottom: none; }
+.pv3-rowbtn { width: 100%; text-align: left; border-left: none; border-right: none; border-top: none; background: transparent; cursor: pointer; }
+.pv3-rowbtn:hover .pv3-go { transform: translateX(4px); }
+.pv3-go { color: var(--zara-ink-40); transition: transform 220ms var(--ease-atelier); flex-shrink: 0; }
+.pv3-who { display: inline-flex; align-items: center; gap: 7px; border: none; background: transparent; cursor: pointer; padding: 0; font-family: var(--ff-sans); font-size: 11.5px; font-weight: 600; color: var(--zara-ink); flex-shrink: 0; }
+.pv3-who.as-span { cursor: inherit; }
+.pv3-pair { display: inline-flex; flex-shrink: 0; }
+.pv3-pair > * + * { margin-left: -8px; }
+.pv3-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pv3-row-main { font-family: var(--ff-sans); font-size: 12px; line-height: 1.4; color: var(--zara-ink); display: inline-flex; align-items: center; gap: 5px; }
+.pv3-row-main i { font-style: normal; color: var(--zara-ink-40); }
+.pv3-row-sub { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pv3-act { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; border: none; border-radius: 2px; background: var(--zara-ink-soft); color: #fff; cursor: pointer; padding: 6px 10px; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; transition: background 200ms, transform 200ms var(--ease-atelier); }
+.pv3-act:hover { background: #000; transform: translateY(-1px); }
+.pv3-done { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink); }
+.pv3-empty { font-family: var(--ff-sans); font-size: 12px; font-style: italic; color: var(--zara-ink-40); padding: 8px 0; }
+
+@media (max-width: 1100px) { .pv3-grid { grid-template-columns: 1fr 1fr; } .pv3-lead { grid-column: 1 / -1; border-right: none; border-bottom: 1px solid var(--zara-line); } .pv3-col { border-bottom: 1px solid var(--zara-line); } .pv3-col:nth-child(even) { border-right: none; } }
+@media (max-width: 640px) { .pv3-grid { grid-template-columns: 1fr; } .pv3-col { border-right: none; } .pv3-crumb-sub { display: none; } .pv3-menubtn { letter-spacing: 0.14em; } }

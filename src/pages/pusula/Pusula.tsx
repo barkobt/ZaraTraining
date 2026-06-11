@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router";
-import { ChevronDown } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Icon, LiveDot } from "../brain/primitives";
 import type { Employee } from "./types";
+import { employees } from "./data";
+import { Bugun } from "./views/Bugun";
 import { Ekip } from "./views/Ekip";
 import { Profil } from "./views/Profil";
 import { Yerlestirme } from "./views/Yerlestirme";
@@ -15,45 +17,19 @@ import { ProfileDrawer } from "./components/ProfileDrawer";
 import { useAuthGate } from "../shift-organizer/auth-gate";
 import { LangCtx, LANGS, tr, setActiveLang, type Lang } from "./i18n";
 
-type ViewId = "ekip" | "profil" | "defter" | "hafiza" | "usta" | "yerlestirme" | "saha";
+type ViewId = "bugun" | "ekip" | "profil" | "defter" | "hafiza" | "usta" | "yerlestirme" | "saha";
 
-const GROUPS: Array<{ key: string; hintKey: string; items: Array<{ id: ViewId; labelKey: string; subKey: string }> }> = [
-  {
-    key: "nav.insan",
-    hintKey: "hint.kim",
-    items: [
-      { id: "ekip", labelKey: "item.ekip", subKey: "sub.ekip" },
-      { id: "profil", labelKey: "item.profil", subKey: "sub.profil" },
-    ],
-  },
-  {
-    key: "nav.gelisim",
-    hintKey: "hint.nasil",
-    items: [
-      { id: "defter", labelKey: "item.defter", subKey: "sub.defter" },
-      { id: "hafiza", labelKey: "item.hafiza", subKey: "sub.hafiza" },
-      { id: "usta", labelKey: "item.usta", subKey: "sub.usta" },
-    ],
-  },
-  {
-    key: "nav.sonuc",
-    hintKey: "hint.ne",
-    items: [
-      { id: "yerlestirme", labelKey: "item.yerlestirme", subKey: "sub.yerlestirme" },
-      { id: "saha", labelKey: "item.saha", subKey: "sub.saha" },
-    ],
-  },
+/** Tek düz liste — Zara-app menüsü gibi: dev tipografi, indeks, grup ayraçları. */
+const MENU: Array<{ id: ViewId; labelKey: string; subKey: string; group?: string }> = [
+  { id: "bugun", labelKey: "item.bugun", subKey: "sub.bugun" },
+  { id: "ekip", labelKey: "item.ekip", subKey: "sub.ekip", group: "nav.insan" },
+  { id: "profil", labelKey: "item.profil", subKey: "sub.profil" },
+  { id: "defter", labelKey: "item.defter", subKey: "sub.defter", group: "nav.gelisim" },
+  { id: "hafiza", labelKey: "item.hafiza", subKey: "sub.hafiza" },
+  { id: "usta", labelKey: "item.usta", subKey: "sub.usta" },
+  { id: "yerlestirme", labelKey: "item.yerlestirme", subKey: "sub.yerlestirme", group: "nav.sonuc" },
+  { id: "saha", labelKey: "item.saha", subKey: "sub.saha" },
 ];
-
-const VIEW_GROUP: Record<ViewId, string> = {
-  ekip: "nav.insan",
-  profil: "nav.insan",
-  defter: "nav.gelisim",
-  hafiza: "nav.gelisim",
-  usta: "nav.gelisim",
-  yerlestirme: "nav.sonuc",
-  saha: "nav.sonuc",
-};
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
@@ -67,27 +43,18 @@ export default function Pusula() {
 }
 
 function PusulaInner() {
-  const [view, setView] = useState<ViewId>("ekip");
-  const [open, setOpen] = useState<string | null>(null);
+  const [view, setView] = useState<ViewId>("bugun");
+  const [menuOpen, setMenuOpen] = useState(false);
   const [selected, setSelected] = useState<Employee | null>(null);
   const [peek, setPeek] = useState<Employee | null>(null);
   const [applied, setApplied] = useState(false);
   const [lang, setLang] = useState<Lang>("tr");
-  const closeTimer = useRef<number | null>(null);
-
-  // hover gecikmesiyle dropdown kapanışı (titremesin)
-  const scheduleClose = () => {
-    if (closeTimer.current) window.clearTimeout(closeTimer.current);
-    closeTimer.current = window.setTimeout(() => setOpen(null), 140);
-  };
-  const cancelClose = () => {
-    if (closeTimer.current) window.clearTimeout(closeTimer.current);
-  };
-  useEffect(() => () => cancelClose(), []);
+  const [q, setQ] = useState("");
 
   const go = (id: ViewId) => {
     setView(id);
-    setOpen(null);
+    setMenuOpen(false);
+    setQ("");
   };
 
   // üretilmiş içerik (data-program) için aktif dili senkron set et (çocuklar render'dan önce)
@@ -101,6 +68,23 @@ function PusulaInner() {
       document.documentElement.lang = "tr";
     };
   }, [lang]);
+
+  // menü açıkken: Escape kapatır, arka plan kaymaz
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+  const idx = Math.max(0, MENU.findIndex((m) => m.id === view));
+  const hits = q.trim()
+    ? employees.filter((p) => p.name.toLocaleLowerCase("tr").includes(q.trim().toLocaleLowerCase("tr"))).slice(0, 5)
+    : [];
 
   return (
     <LangCtx.Provider value={{ lang, setLang }}>
@@ -118,54 +102,12 @@ function PusulaInner() {
           </div>
         </div>
 
-        <nav className="pusula-nav">
-          {GROUPS.map((g) => {
-            const activeGroup = VIEW_GROUP[view] === g.key;
-            const isOpen = open === g.key;
-            return (
-              <div
-                key={g.key}
-                className="pusula-navdrop"
-                onMouseEnter={() => {
-                  cancelClose();
-                  setOpen(g.key);
-                }}
-                onMouseLeave={scheduleClose}
-              >
-                <button
-                  className={`pusula-navtrigger ${activeGroup ? "active" : ""} ${isOpen ? "open" : ""}`}
-                  onClick={() => setOpen(isOpen ? null : g.key)}
-                >
-                  <span className="pusula-navtrigger-g">{tr(g.key, lang)}</span>
-                  <span className="pusula-navtrigger-h">{tr(g.hintKey, lang)}</span>
-                  <ChevronDown size={12} strokeWidth={2} className="pusula-navchev" />
-                </button>
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      className="pusula-navmenu"
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 6 }}
-                      transition={{ duration: 0.18, ease: EASE }}
-                    >
-                      {g.items.map((it) => (
-                        <button
-                          key={it.id}
-                          className={`pusula-navmenu-item ${view === it.id ? "on" : ""}`}
-                          onClick={() => go(it.id)}
-                        >
-                          <span className="pusula-navmenu-label">{tr(it.labelKey, lang)}</span>
-                          <span className="pusula-navmenu-sub">{tr(it.subKey, lang)}</span>
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
-        </nav>
+        {/* bölüm künyesi — tıklayınca menü açılır */}
+        <button className="pv3-crumb" onClick={() => setMenuOpen(true)}>
+          <span className="pv3-crumb-idx">{String(idx + 1).padStart(2, "0")}</span>
+          <span className="pv3-crumb-label">{tr(MENU[idx].labelKey, lang)}</span>
+          <span className="pv3-crumb-sub">{tr(MENU[idx].subKey, lang)}</span>
+        </button>
 
         <div className="pusula-right">
           <div className="pusula-lang">
@@ -176,8 +118,84 @@ function PusulaInner() {
             ))}
           </div>
           <LiveDot label="PUSULA" />
+          <button className="pv3-menubtn" onClick={() => setMenuOpen(true)}>
+            <span className="pv3-menubtn-lines" aria-hidden>
+              <i />
+              <i />
+            </span>
+            {tr("b.menu", lang)}
+          </button>
         </div>
       </header>
+
+      {/* ── TAM-EKRAN MENÜ — Zara-app imzası: dev serif liste + kişi arama ── */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            className="pv3-menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.28, ease: EASE }}
+          >
+            <div className="pv3-menu-top">
+              <div className="pv3-menu-search">
+                <Search size={15} strokeWidth={1.6} />
+                <input
+                  autoFocus
+                  placeholder={tr("l.searchPerson", lang)}
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
+              </div>
+              <button className="pv3-menu-x" onClick={() => setMenuOpen(false)} aria-label={tr("a11y.closeMenu", lang)}>
+                <Plus size={22} strokeWidth={1.4} style={{ transform: "rotate(45deg)" }} />
+              </button>
+            </div>
+
+            {hits.length > 0 && (
+              <div className="pv3-menu-hits">
+                {hits.map((p) => (
+                  <button
+                    key={p.id}
+                    className="pv3-menu-hit"
+                    onClick={() => {
+                      setSelected(p);
+                      go("profil");
+                    }}
+                  >
+                    {p.name} <i>→ {tr("item.profil", lang)}</i>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <nav className="pv3-menu-list">
+              {MENU.map((m, i) => (
+                <div key={m.id}>
+                  {m.group && <div className="pv3-menu-group">{tr(m.group, lang)}</div>}
+                  <motion.button
+                    className={`pv3-menu-item ${view === m.id ? "on" : ""}`}
+                    initial={{ opacity: 0, x: -14 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: 0.05 + i * 0.04, ease: EASE }}
+                    onClick={() => go(m.id)}
+                  >
+                    <span className="pv3-menu-idx">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="pv3-menu-label">{tr(m.labelKey, lang)}</span>
+                    <span className="pv3-menu-sub">{tr(m.subKey, lang)}</span>
+                  </motion.button>
+                </div>
+              ))}
+            </nav>
+
+            <div className="pv3-menu-foot">
+              <span>ZARA · BORNOVA 3643</span>
+              <span>{tr("a.noscore", lang)}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="pusula-main">
         <AnimatePresence mode="wait">
@@ -188,6 +206,7 @@ function PusulaInner() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.4, ease: EASE }}
           >
+            {view === "bugun" && <Bugun onGo={go} onPeek={setPeek} />}
             {view === "ekip" && <Ekip onPeek={setPeek} />}
             {view === "profil" && <Profil person={selected} onSelect={setSelected} />}
             {view === "defter" && <GelisimDefteri />}

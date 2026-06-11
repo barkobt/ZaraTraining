@@ -128,6 +128,20 @@ const S: Record<string, Tri> = {
   "l.planned": { tr: "Planlandı", en: "Scheduled", es: "Planificado" },
   "l.searchPerson": { tr: "Kişi ara…", en: "Search person…", es: "Buscar persona…" },
   "l.noresult": { tr: "Eşleşen kişi yok", en: "No matching person", es: "Sin coincidencias" },
+
+  // ── v3 kabuk: tam-ekran menü + Bugün ön sayfası ──
+  "item.bugun": { tr: "Bugün", en: "Today", es: "Hoy" },
+  "sub.bugun": { tr: "koçun ön sayfası", en: "the coach's front page", es: "portada del coach" },
+  "b.menu": { tr: "Menü", en: "Menu", es: "Menú" },
+  "a11y.closeMenu": { tr: "Menüyü kapat", en: "Close menu", es: "Cerrar menú" },
+  "e.approvalQueue": { tr: "Onay kuyruğu", en: "Approval queue", es: "Cola de aprobación" },
+  "e.discoveries": { tr: "Keşif fırsatları", en: "Discovery opportunities", es: "Oportunidades de descubrimiento" },
+  "e.todaysMatch": { tr: "Bugünün eşleşmesi", en: "Today's pairing", es: "Emparejamiento de hoy" },
+  "e.openTopics": { tr: "Defterde açık", en: "Open in the booklet", es: "Abierto en el cuadernillo" },
+  "e.eveningPocket": { tr: "Akşam cebi", en: "Evening pocket", es: "Hueco vespertino" },
+  "b.goPlacement": { tr: "Yerleştirmeye git", en: "Go to placement", es: "Ir a asignación" },
+  "l.allClear": { tr: "Hepsi tamam — bekleyen yok", en: "All clear — nothing pending", es: "Todo al día — nada pendiente" },
+  "l.openTopicsN": { tr: "açık konu", en: "open topics", es: "temas abiertos" },
   "a11y.close": { tr: "Kapat", en: "Close", es: "Cerrar" },
   "a11y.backBrain": { tr: "Brain'e dön", en: "Back to Brain", es: "Volver a Brain" },
 
