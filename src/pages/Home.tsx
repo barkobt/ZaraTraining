@@ -116,46 +116,111 @@ export default function Home() {
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (reduce) return;
 
-      // Hero intro
-      gsap.from(".hero-logo", { opacity: 0, scale: 0.85, filter: "blur(8px)", duration: 1.3, ease });
-      gsap.from(".hero-wordmark", { opacity: 0, y: 8, duration: 0.9, delay: 0.5, ease });
-      gsap.from(".hero-eyebrow", { opacity: 0, y: 12, duration: 0.8, delay: 0.25, ease });
-      // Başlık — kelime kelime maske reveal
-      gsap.from(".hero-word", { yPercent: 115, opacity: 0, duration: 1.05, ease, stagger: 0.12, delay: 0.4 });
-      gsap.from(".hero-rule", { scaleX: 0, transformOrigin: "left center", duration: 1.1, ease, delay: 1.0 });
-      gsap.from(".hero-sub", { opacity: 0, y: 18, duration: 0.9, delay: 1.1, ease });
-      gsap.from(".hero-cue", { opacity: 0, duration: 1, delay: 1.4 });
+      // ── HERO İNTRO — set+to deseni: `from` geç yüklemede/StrictMode'da
+      // içeriği görünmez bırakabiliyordu ("hero kayıp" hissinin kökü).
+      // set+to ile başlangıç hâli net, autoAlpha visibility'yi de yönetir.
+      gsap.set(".hero-logo", { autoAlpha: 0, y: 26, scale: 0.92, filter: "blur(10px)" });
+      gsap.set(".hero-eyebrow, .hero-sub, .hero-cue", { autoAlpha: 0, y: 14 });
+      gsap.set(".hero-word", { yPercent: 115 });
+      gsap.set(".hero-rule", { scaleX: 0, transformOrigin: "center" });
+      gsap
+        .timeline({ defaults: { ease } })
+        .to(".hero-logo", { autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1.2 })
+        .to(".hero-eyebrow", { autoAlpha: 1, y: 0, duration: 0.7 }, "-=0.7")
+        .to(".hero-word", { yPercent: 0, duration: 1.0, stagger: 0.12, ease: "power4.out" }, "-=0.45")
+        .to(".hero-rule", { scaleX: 1, duration: 0.9, ease: "power2.inOut" }, "-=0.5")
+        .to(".hero-sub", { autoAlpha: 1, y: 0, duration: 0.8 }, "-=0.55")
+        .to(".hero-cue", { autoAlpha: 1, y: 0, duration: 0.7 }, "-=0.4");
+      // Monogram nazik salınımda yaşar (atelier vitrini hissi)
+      gsap.to(".hero-logo", { y: -8, duration: 3.2, yoyo: true, repeat: -1, ease: "sine.inOut", delay: 1.6 });
 
-      // Section başlık + kart reveal
+      // Hero scroll-out — pin YOK (eski pin bug'ına dönüş yok), saf scrub:
+      // kaydırdıkça sahne yukarı süzülüp soluklaşır, dönünce geri gelir.
+      gsap.to(".hero-inner", {
+        yPercent: -14,
+        autoAlpha: 0.12,
+        scale: 0.97,
+        ease: "none",
+        scrollTrigger: { trigger: ".hero-section", start: "top top", end: "bottom 30%", scrub: true },
+      });
+
+      // ── BÖLÜM REVEAL'LERİ — once:true: hızlı scroll'da tetik kaçsa bile
+      // içerik asla görünmez kalmaz (alt bölümlerin "boş gri blok" kalması bitti).
       gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
-        gsap.from(el, { opacity: 0, y: 40, duration: 0.9, ease, scrollTrigger: { trigger: el, start: "top 85%" } });
+        gsap.set(el, { autoAlpha: 0, y: 40 });
+        gsap.to(el, {
+          autoAlpha: 1, y: 0, duration: 0.9, ease,
+          scrollTrigger: { trigger: el, start: "top 85%", once: true },
+        });
       });
       gsap.utils.toArray<HTMLElement>("[data-stagger]").forEach((group) => {
-        gsap.from(group.querySelectorAll("[data-card]"), {
-          opacity: 0, y: 60, duration: 0.9, ease, stagger: 0.12,
-          scrollTrigger: { trigger: group, start: "top 80%" },
+        const cards = group.querySelectorAll<HTMLElement>("[data-card]");
+        gsap.set(cards, { autoAlpha: 0, yPercent: 9 });
+        gsap.to(cards, {
+          autoAlpha: 1, yPercent: 0, duration: 0.9, ease, stagger: 0.12,
+          scrollTrigger: { trigger: group, start: "top 82%", once: true },
+        });
+        // Derinlik: kartlar scroll'la hafif farklı hızda süzülür.
+        // (reveal yPercent'i, parallax y pikselini sürer — çakışmazlar)
+        cards.forEach((card, i) => {
+          const drift = ((i % 3) - 1) * 18;
+          if (drift === 0) return;
+          gsap.fromTo(card, { y: drift }, {
+            y: -drift, ease: "none",
+            scrollTrigger: { trigger: group, start: "top bottom", end: "bottom top", scrub: 1.2 },
+          });
         });
       });
 
-      // ── Brain özellik anlatımı — kartlar sırayla belirir + ilerleme dolar
-      //    (pin YOK: pin layout'u kaydırıp hero'yu gizliyordu — sağlam sürüm) ──
+      // Adım kartlarının iç çizgileri görününce çizilir
+      gsap.utils.toArray<HTMLElement>(".step-rule").forEach((el) => {
+        gsap.set(el, { scaleX: 0, transformOrigin: "left center" });
+        gsap.to(el, {
+          scaleX: 1, duration: 0.9, ease: "power2.inOut",
+          scrollTrigger: { trigger: el, start: "top 86%", once: true },
+        });
+      });
+
+      // ── PUSULA VİTRİNİ — kart reveal + arka plan süzülmesi + sayaç ──
       const showcase = root.current?.querySelector<HTMLElement>(".brain-showcase");
       if (showcase) {
-        gsap.from(showcase.querySelectorAll<HTMLElement>(".bf-card"), {
-          opacity: 0, yPercent: 16, scale: 0.96, duration: 0.8, ease, stagger: 0.14,
-          scrollTrigger: { trigger: showcase, start: "top 72%" },
+        const cards = showcase.querySelectorAll<HTMLElement>(".bf-card");
+        gsap.set(cards, { autoAlpha: 0, yPercent: 16, scale: 0.96 });
+        gsap.to(cards, {
+          autoAlpha: 1, yPercent: 0, scale: 1, duration: 0.8, ease, stagger: 0.14,
+          scrollTrigger: { trigger: showcase, start: "top 72%", once: true },
         });
+        const bg = showcase.querySelector<HTMLElement>(".bf-bg");
+        if (bg) {
+          gsap.fromTo(bg, { xPercent: -6 }, {
+            xPercent: 6, ease: "none",
+            scrollTrigger: { trigger: showcase, start: "top bottom", end: "bottom top", scrub: 1.5 },
+          });
+        }
+        // Sayaç MONOTONİK: ileri sayar, scroll geri gelince GERİLEMEZ
+        // ("1/6'da takılı / geri sayıyor" kırığı bitti). Dolum çizgisi de aynı.
         const fill = showcase.querySelector<HTMLElement>(".bf-progress-fill");
         const count = showcase.querySelector<HTMLElement>(".bf-count");
+        let maxP = 0;
         ScrollTrigger.create({
           trigger: showcase,
-          start: "top 70%",
-          end: "bottom 65%",
+          start: "top 75%",
+          end: "bottom 70%",
           scrub: true,
           onUpdate: (self) => {
-            if (fill) fill.style.transform = `scaleX(${self.progress})`;
-            if (count) count.textContent = String(Math.round(self.progress * 6)).padStart(2, "0");
+            maxP = Math.max(maxP, self.progress);
+            if (fill) fill.style.transform = `scaleX(${maxP})`;
+            if (count) count.textContent = String(Math.round(maxP * 6)).padStart(2, "0");
           },
+        });
+      }
+
+      // CTA yaklaşırken yumuşakça odağa gelir
+      const cta = root.current?.querySelector<HTMLElement>(".cta-section");
+      if (cta) {
+        gsap.fromTo(cta, { scale: 0.985, autoAlpha: 0.65 }, {
+          scale: 1, autoAlpha: 1, ease: "none",
+          scrollTrigger: { trigger: cta, start: "top 92%", end: "top 48%", scrub: true },
         });
       }
     },
@@ -187,7 +252,7 @@ export default function Home() {
       </header>
 
       {/* ─────────── HERO ─────────── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 sm:px-6 md:px-12 pt-24">
+      <section className="hero-section relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 sm:px-6 md:px-12 pt-24">
         <div
           aria-hidden
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[140vw] max-w-[1200px] max-h-[1200px] pointer-events-none rounded-full"
@@ -197,7 +262,7 @@ export default function Home() {
           <CornerVignette color="var(--zara-ink)" opacity={0.45} />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto text-center">
+        <div className="hero-inner relative z-10 max-w-5xl mx-auto text-center">
           <div className="hero-logo flex flex-col items-center mb-7 gap-3">
             <ZMark size={150} variant="gold" className="select-none" style={{ filter: "drop-shadow(0 18px 30px rgba(184,147,90,0.18))" }} />
             <div className="hero-wordmark flex items-center gap-3">
@@ -278,7 +343,7 @@ export default function Home() {
 
       {/* ─────────── PUSULA · İÇERİDEN ─────────── */}
       <section className="brain-showcase relative z-10 overflow-hidden" style={{ background: "var(--zara-ink)", color: "var(--zara-bg)" }}>
-        <div aria-hidden className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(120% 80% at 80% 0%, rgba(184,147,90,0.18), transparent 60%)" }} />
+        <div aria-hidden className="bf-bg absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(120% 80% at 80% 0%, rgba(184,147,90,0.18), transparent 60%)" }} />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-20 md:py-24">
           <div className="flex items-end justify-between gap-6 flex-wrap mb-10">
             <div>
@@ -363,7 +428,7 @@ export default function Home() {
               <div data-card key={s.t} className="bg-zara p-8 md:p-10">
                 <div className="flex items-center gap-3 mb-6">
                   <span className="font-mono text-[11px] tracking-[0.28em] text-ink/45">0{i + 1}</span>
-                  <span className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
+                  <span className="step-rule flex-1 h-px" style={{ background: "var(--zara-line)" }} />
                   <s.icon size={18} strokeWidth={1.5} style={{ color: "var(--zara-gold)" }} />
                 </div>
                 <h3 className="font-serif text-2xl text-ink mb-3" style={{ fontWeight: 500 }}>{s.t}</h3>
@@ -375,7 +440,7 @@ export default function Home() {
       </section>
 
       {/* ─────────── CTA ─────────── */}
-      <section className="relative z-10 px-4 sm:px-6 md:px-12 py-24 md:py-32 text-center overflow-hidden">
+      <section className="cta-section relative z-10 px-4 sm:px-6 md:px-12 py-24 md:py-32 text-center overflow-hidden">
         <div aria-hidden className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[60vw] max-w-[900px] pointer-events-none rounded-full" style={{ background: "radial-gradient(circle, rgba(184,147,90,0.12) 0%, transparent 65%)" }} />
         <div data-reveal className="relative max-w-2xl mx-auto">
           <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.0] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Hazır olduğunda, başla.</h2>
