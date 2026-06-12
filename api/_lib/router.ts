@@ -440,7 +440,7 @@ export const appRouter = createRouter({
           // Yetkinlik 2.0 → 4.0: yetkin kişiler doğru role daha güçlü yerleşsin.
           competency_weight: cfg?.competencyWeight ?? 4.0,
           fairness_weight: cfg?.fairnessWeight ?? 0.3,
-          max_consecutive_hours: cfg?.maxConsecutiveHours ?? 4,
+          max_consecutive_hours: cfg?.maxConsecutiveHours ?? 2, // 2026-06-12: 4→2 — "3 saat aynı yer yasak" kuralını 4 fiilen kapatıyordu
           // Vercel fonksiyon duvarı 30s (vercel.json maxDuration). Best-of-N
           // solver ~12s bütçe + ~3s DB/overhead = ~15s, 30s'in altında güvenli.
           time_limit_seconds: input.timeLimitSeconds ?? 12,
