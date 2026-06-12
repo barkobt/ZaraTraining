@@ -124,12 +124,17 @@ export function ChartResult({
     if (!shifts) return m;
     for (const s of shifts) {
       for (const [bStart, bEnd] of s.breaks ?? []) {
-        const dur = bEnd - bStart;
-        if (dur <= 0.5 + 1e-6) {
-          const h = Math.floor(bStart);
-          const set = m.get(h) ?? new Set<string>();
-          set.add(s.short_name);
-          m.set(h, set);
+        // KÖKEN BUG (2026-06-12): yalnız ≤30dk molalar işaretleniyordu.
+        // 12:30-13:30 gibi buçuklu 1 saatlik mola, saat 12'nin ve 13'ün
+        // YARISINI kapsar — iki saatte de "1/2" işareti gerekir. Kural:
+        // saatle kesişim 0 < kesişim < 1 ise o saat KISMİ moladır.
+        for (let h = Math.floor(bStart); h < Math.ceil(bEnd); h++) {
+          const ov = Math.min(bEnd, h + 1) - Math.max(bStart, h);
+          if (ov > 1e-6 && ov < 1 - 1e-6) {
+            const set = m.get(h) ?? new Set<string>();
+            set.add(s.short_name);
+            m.set(h, set);
+          }
         }
       }
     }
@@ -170,10 +175,16 @@ export function ChartResult({
     if (!shifts) return m;
     for (const s of shifts) {
       for (const [bStart, bEnd] of s.breaks ?? []) {
-        const isHalf = bEnd - bStart <= 0.5 + 1e-6;
+        // KÖKEN BUG (2026-06-12): "12:30-13:30" molası floor/ceil ile hem
+        // 12 hem 13'e TAM mola yazıyordu (1 saatlik mola 2 saat görünüyordu).
+        // Kural artık SAAT BAŞINA KESİŞİM: saati tam kapsıyorsa tam etiket,
+        // kısmî kapsıyorsa "1/2" — toplam görünen mola gerçek süreye eşittir.
         for (let h = Math.floor(bStart); h < Math.ceil(bEnd); h++) {
+          const ov = Math.min(bEnd, h + 1) - Math.max(bStart, h);
+          if (ov <= 1e-6) continue;
+          const full = ov >= 1 - 1e-6;
           const arr = m.get(h) ?? [];
-          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
+          const label = full ? s.short_name : `${s.short_name} 1/2`;
           if (!arr.includes(label)) arr.push(label);
           m.set(h, arr);
         }

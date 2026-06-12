@@ -127,7 +127,12 @@ export function exportChartToPdf(
     };
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
-        if (be - bs <= 0.5 + 1e-6) mark(Math.floor(bs), s.short_name);
+        // Saat başına KESİŞİM: kısmî kapsanan her saat "1/2" işaretlenir
+        // (12:30-13:30 molası 12 ve 13'ün yarısını kapsar — ikisi de kısmî).
+        for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
+          const ov = Math.min(be, h + 1) - Math.max(bs, h);
+          if (ov > 1e-6 && ov < 1 - 1e-6) mark(h, s.short_name);
+        }
       }
       // Yarım saat giriş/çıkış: sınır slotu yarım → "1/2" (ChartResult ile aynı).
       if (s.start_hour % 1 === 0.5) mark(Math.floor(s.start_hour), s.short_name);
@@ -137,15 +142,17 @@ export function exportChartToPdf(
   const labelName = (name: string, hour: number): string =>
     halfBreakSetByHour.get(hour)?.has(name) ? `${name} 1/2` : name;
 
-  // Mola hesapla — tam + yarım mola, yarım için "X 1/2" suffix
+  // Mola — saat başına kesişim: tam kapsanan saat tam etiket, kısmî "1/2"
+  // (1 saatlik buçuklu mola artık 2 tam saat olarak GÖRÜNMEZ).
   const breaksByHour = new Map<number, string[]>();
   if (shifts) {
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
-        const isHalf = be - bs <= 0.5 + 1e-6;
         for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
+          const ov = Math.min(be, h + 1) - Math.max(bs, h);
+          if (ov <= 1e-6) continue;
           const arr = breaksByHour.get(h) ?? [];
-          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
+          const label = ov >= 1 - 1e-6 ? s.short_name : `${s.short_name} 1/2`;
           if (!arr.includes(label)) arr.push(label);
           breaksByHour.set(h, arr);
         }
@@ -432,7 +439,11 @@ export function exportAreaChartToPdf(
     };
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
-        if (be - bs <= 0.5 + 1e-6) markHalf(Math.floor(bs), s.short_name);
+        // saat başına kesişim: kısmî kapsanan her saat "1/2"
+        for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
+          const ov = Math.min(be, h + 1) - Math.max(bs, h);
+          if (ov > 1e-6 && ov < 1 - 1e-6) markHalf(h, s.short_name);
+        }
       }
       if (s.start_hour % 1 === 0.5) markHalf(Math.floor(s.start_hour), s.short_name);
       if (s.end_hour % 1 === 0.5) markHalf(Math.floor(s.end_hour), s.short_name);
@@ -443,11 +454,12 @@ export function exportAreaChartToPdf(
       const areaLabel = code ? AREA_LABEL_BY_CODE[code] : undefined;
       if (!areaLabel) continue; // alanı yoksa hiçbir mola satırında gösterme
       for (const [bs, be] of s.breaks ?? []) {
-        const isHalf = be - bs <= 0.5 + 1e-6;
         for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
+          const ov = Math.min(be, h + 1) - Math.max(bs, h);
+          if (ov <= 1e-6) continue;
           const key = `${h}|${areaLabel}`;
           const arr = breaksByHourArea.get(key) ?? [];
-          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
+          const label = ov >= 1 - 1e-6 ? s.short_name : `${s.short_name} 1/2`;
           if (!arr.includes(label)) arr.push(label);
           breaksByHourArea.set(key, arr);
         }

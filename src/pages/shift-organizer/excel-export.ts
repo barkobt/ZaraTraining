@@ -59,8 +59,9 @@ export function exportChartToExcel(
       const shift = shifts?.find((s) => s.short_name === name);
       if (shift) {
         for (const [bs, be] of shift.breaks ?? []) {
-          const dur = be - bs;
-          if (dur <= 0.5 + 1e-6 && Math.floor(bs) === c.hour) {
+          // saatle kısmî kesişen mola → "1/2" (1 saatlik buçuklu mola dahil)
+          const ov = Math.min(be, c.hour + 1) - Math.max(bs, c.hour);
+          if (ov > 1e-6 && ov < 1 - 1e-6) {
             return `${name} 1/2`;
           }
         }
@@ -92,10 +93,11 @@ export function exportChartToExcel(
   if (shifts) {
     for (const s of shifts) {
       for (const [bs, be] of s.breaks ?? []) {
-        const isHalf = be - bs <= 0.5 + 1e-6;
         for (let h = Math.floor(bs); h < Math.ceil(be); h++) {
+          const ov = Math.min(be, h + 1) - Math.max(bs, h);
+          if (ov <= 1e-6) continue;
           const arr = breaksByHour.get(h) ?? [];
-          const label = isHalf ? `${s.short_name} 1/2` : s.short_name;
+          const label = ov >= 1 - 1e-6 ? s.short_name : `${s.short_name} 1/2`;
           if (!arr.includes(label)) arr.push(label);
           breaksByHour.set(h, arr);
         }
