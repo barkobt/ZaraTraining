@@ -12,6 +12,9 @@ import { ZMark } from "@/components/ZMark";
 import { CornerVignette } from "@/components/CornerVignette";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
+// iOS adres çubuğu gizlenirken tetiklenen resize fırtınası scrub trigger'ları
+// yeniden hesaplatıp kaydırmayı tutuk hissettirebiliyor — mobil resize yok sayılır.
+ScrollTrigger.config({ ignoreMobileResize: true });
 
 /**
  * ZaraTraining landing — tek sayfa, scroll-triggered (GSAP).
@@ -79,6 +82,34 @@ const EDUCATION: Project[] = [
     status: "AÇIK",
     index: 0,
   },
+  {
+    id: "kasa-provasi",
+    title: "Kasa Provası",
+    subtitle: "Eğitim · 02",
+    description:
+      "Karma ödemeler, cüzdansız iadeler, kuyruk baskısı. Gerçek kasanın stresi olmadan, senaryolarla kasa refleksi kazan.",
+    href: "#",
+    accent: "#7E6B5B",
+    image:
+      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+    available: false,
+    status: "YAKINDA",
+    index: 1,
+  },
+  {
+    id: "saha-dili",
+    title: "Saha Dili",
+    subtitle: "Eğitim · 03",
+    description:
+      "Karşılamadan kabin yönetimine, sahanın konuşulmayan kuralları. Usta gözlemlerinden derlenen mikro senaryolar.",
+    href: "#",
+    accent: "#9B8F80",
+    image:
+      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+    available: false,
+    status: "YAKINDA",
+    index: 2,
+  },
 ];
 
 const STEPS = [
@@ -100,6 +131,7 @@ const KICKERS = ["EĞİTİM", "OPERASYON", "ZEKÂ"];
 
 export default function Home() {
   const root = useRef<HTMLDivElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [kicker, setKicker] = useState(0);
 
   // Dönen kicker kelimesi (animated text)
@@ -108,6 +140,39 @@ export default function Home() {
     if (reduce) return;
     const id = setInterval(() => setKicker((k) => (k + 1) % KICKERS.length), 2200);
     return () => clearInterval(id);
+  }, []);
+
+  // ── HERO VİDEO autoplay garantisi ──
+  // KÖK NEDEN (canlıda kanıtlı): React `muted` prop'unu DOM ATTRIBUTE'una
+  // yazmıyor (bilinen React bug'ı). Chrome property'ye bakıp oynatıyor;
+  // Safari/iOS attribute'a bakıp REDDEDİYOR → büyük play tuşu + "bazen
+  // başlamıyor". Çözüm: attribute'u elle yaz + programatik play; reddedilirse
+  // ilk dokunuş/kaydırmada sessizce yeniden dene. Video zaten yalnız
+  // `playing` olayından sonra görünür kılındığından play tuşu hiç görünmez.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.defaultMuted = true;
+    v.setAttribute("muted", "");
+    v.setAttribute("webkit-playsinline", "");
+    const tryPlay = () => {
+      v.play().catch(() => {
+        /* autoplay reddi — kullanıcı etkileşiminde tekrar denenecek */
+      });
+    };
+    tryPlay();
+    const onInteract = () => {
+      if (v.paused) tryPlay();
+    };
+    window.addEventListener("touchstart", onInteract, { passive: true });
+    window.addEventListener("scroll", onInteract, { passive: true });
+    window.addEventListener("click", onInteract);
+    return () => {
+      window.removeEventListener("touchstart", onInteract);
+      window.removeEventListener("scroll", onInteract);
+      window.removeEventListener("click", onInteract);
+    };
   }, []);
 
   useGSAP(
@@ -119,10 +184,19 @@ export default function Home() {
       // ── HERO İNTRO — set+to deseni: `from` geç yüklemede/StrictMode'da
       // içeriği görünmez bırakabiliyordu ("hero kayıp" hissinin kökü).
       // set+to ile başlangıç hâli net, autoAlpha visibility'yi de yönetir.
-      // Atelier filmi: yavaşça belirir + nefes alır gibi geri çekilir;
+      // Atelier filmi: GÖRÜNÜRLÜK yalnız `playing` olayına bağlı — film
+      // gerçekten oynamadan element görünmez kalır (iOS'un play tuşu overlay'i
+      // dahil hiçbir kare ekrana çıkamaz). Oynayınca yavaşça belirir;
       // kaydırınca hafifçe büyümeye devam eder (sinema derinliği).
       gsap.set(".hero-video", { autoAlpha: 0, scale: 1.08 });
-      gsap.to(".hero-video", { autoAlpha: 0.42, scale: 1, duration: 2.4, ease: "power2.out" });
+      const heroVideo = root.current?.querySelector<HTMLVideoElement>(".hero-video");
+      if (heroVideo) {
+        const revealFilm = () => {
+          gsap.to(".hero-video", { autoAlpha: 0.42, scale: 1, duration: 2.4, ease: "power2.out" });
+        };
+        if (!heroVideo.paused && heroVideo.readyState >= 2) revealFilm();
+        else heroVideo.addEventListener("playing", revealFilm, { once: true });
+      }
       gsap.to(".hero-video", {
         scale: 1.1,
         ease: "none",
@@ -265,14 +339,16 @@ export default function Home() {
             ZT monogram film noktası üstünde "altın yaprak" gibi durur.
             poster YOK: yüklenene dek krem zemin kalır, flicker olmaz. */}
         <video
+          ref={videoRef}
           aria-hidden
           autoPlay
           muted
           loop
           playsInline
           preload="auto"
+          disablePictureInPicture
           className="hero-video absolute inset-0 w-full h-full object-cover pointer-events-none motion-reduce:hidden"
-          style={{ filter: "grayscale(0.85) contrast(1.05) brightness(0.95)", zIndex: 0 }}
+          style={{ filter: "grayscale(0.85) contrast(1.05) brightness(0.95)", zIndex: 0, opacity: 0, visibility: "hidden" }}
         >
           <source src="/hero-atelier.mp4" type="video/mp4" />
         </video>
