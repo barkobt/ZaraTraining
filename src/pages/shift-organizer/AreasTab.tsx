@@ -142,7 +142,7 @@ function PersonCard(props: {
     <div className="ac-card">
       {person.isManager && <Crown className="ac-crown" size={12} strokeWidth={2} fill="currentColor" />}
       {person.duty && (
-        <span className="ac-role" style={{ background: DUTY_BY_ID[person.duty]?.color ?? "#78716c" }}>
+        <span className="ac-role" style={{ background: DUTY_BY_ID[person.duty]?.color ?? "#6b6b6b" }}>
           {DUTY_BY_ID[person.duty]?.label ?? person.duty}
         </span>
       )}

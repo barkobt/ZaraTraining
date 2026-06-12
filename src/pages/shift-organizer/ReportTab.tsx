@@ -20,7 +20,7 @@ type ChartRow = {
 };
 
 /** Yetkinlik kapsamı katman renkleri (Temel → Uzman). */
-const TIER_C = ["#E5D4AE", "#D9BE84", "#CBA45E", "#BF9550"];
+const TIER_C = ["rgba(0,0,0,0.18)", "rgba(0,0,0,0.38)", "rgba(0,0,0,0.62)", "#0a0a0a"];
 
 export function ReportTab({ staff }: { staff: StaffRow[] }) {
   const chartsQuery = trpc.chart.list.useQuery({ limit: 100 });

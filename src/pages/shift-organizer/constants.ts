@@ -6,11 +6,13 @@ export const STAR_LEVELS = [
   { value: 4, label: "★★★+", name: "Tercih+" },
 ] as const;
 
+// Renkler EDİTORYAL MÜREKKEP ailesi: doygun ekran renkleri yerine desature
+// tonlar — monokrom kabukla kavga etmez, veri kimliği yine ayırt edilir.
 export const TENURE_LEVELS = [
-  { id: "NEW_0_1", label: "0–1 ay", color: "#ef4444" },
-  { id: "NEW_1_3", label: "1–3 ay", color: "#f59e0b" },
-  { id: "NEW_3_6", label: "3–6 ay", color: "#eab308" },
-  { id: "NEW_6_PLUS", label: "6+ ay", color: "#10b981" },
+  { id: "NEW_0_1", label: "0–1 ay", color: "#9c5050" },
+  { id: "NEW_1_3", label: "1–3 ay", color: "#9c7a4a" },
+  { id: "NEW_3_6", label: "3–6 ay", color: "#7d7448" },
+  { id: "NEW_6_PLUS", label: "6+ ay", color: "#56755e" },
   { id: "EXPERT", label: "Yetkin", color: "#000000" },
 ] as const;
 
@@ -37,12 +39,12 @@ export type Role = (typeof ROLES)[number];
  * `id` DB'de staff.home_area olarak saklanır (varchar 20, nullable).
  */
 export const AREAS = [
-  { id: "WOMAN", label: "Woman", sub: "Welcome · Zone 1-2", color: "#db2777" },
-  { id: "BASIC", label: "Basic", sub: "Zone 3-4", color: "#2563eb" },
-  { id: "TRF", label: "TRF", sub: "Zone 5", color: "#ea580c" },
-  { id: "FITTING_ROOM", label: "Fitting Room", sub: "Kabin", color: "#7c3aed" },
-  { id: "SPRINTER", label: "Sprinter", sub: "Joker", color: "#16a34a" },
-  { id: "RUNNER_360", label: "Runner 360", sub: "", color: "#0891b2" },
+  { id: "WOMAN", label: "Woman", sub: "Welcome · Zone 1-2", color: "#8a4a5e" },
+  { id: "BASIC", label: "Basic", sub: "Zone 3-4", color: "#46586e" },
+  { id: "TRF", label: "TRF", sub: "Zone 5", color: "#8a6a46" },
+  { id: "FITTING_ROOM", label: "Fitting Room", sub: "Kabin", color: "#5e5072" },
+  { id: "SPRINTER", label: "Sprinter", sub: "Joker", color: "#4e6b56" },
+  { id: "RUNNER_360", label: "Runner 360", sub: "", color: "#48707c" },
 ] as const;
 export type AreaId = (typeof AREAS)[number]["id"];
 
@@ -52,9 +54,9 @@ export const AREA_BY_ID: Record<string, (typeof AREAS)[number]> = Object.fromEnt
 
 /** Görev etiketi (duty) — COM/CX/Coach. staff.duty olarak saklanır. */
 export const DUTIES = [
-  { id: "COM", label: "COM", color: "#9333ea" },
-  { id: "CX", label: "CX", color: "#0891b2" },
-  { id: "COACH", label: "Coach", color: "#ca8a04" },
+  { id: "COM", label: "COM", color: "#5a4a78" },
+  { id: "CX", label: "CX", color: "#48707c" },
+  { id: "COACH", label: "Coach", color: "#8a6a3a" },
 ] as const;
 export type DutyId = (typeof DUTIES)[number]["id"];
 export const DUTY_BY_ID: Record<string, (typeof DUTIES)[number]> = Object.fromEntries(

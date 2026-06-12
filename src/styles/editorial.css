@@ -2756,3 +2756,12 @@
   --zara-emerald: #000;
   --panel-radius: 3px; --panel-shadow: none; --panel-shadow-soft: none;
 }
+
+/* yıldız kademeleri: renk tonu değil MÜREKKEP OPAKLIĞI ile ayrışır
+   (altın/siyah karışımı bitti — t1 soluk → t4 dolu siyah) */
+.so-shell .stars { color: var(--zara-ink); }
+.so-shell .stars.t1 { color: rgba(0, 0, 0, 0.34); }
+.so-shell .stars.t2 { color: rgba(0, 0, 0, 0.55); }
+.so-shell .stars.t3 { color: rgba(0, 0, 0, 0.78); }
+.so-shell .stars.t4 { color: #000; }
+.so-shell .stars.empty { color: rgba(0, 0, 0, 0.22); }
