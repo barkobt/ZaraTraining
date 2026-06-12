@@ -88,7 +88,7 @@ export async function pingSolver(): Promise<{ ok: boolean; url: string; status?:
   try {
     const res = await fetch(`${base}/health`, { method: "GET" });
     return { ok: res.ok, url: base, status: res.status };
-  } catch (err) {
+  } catch {
     return { ok: false, url: base };
   }
 }

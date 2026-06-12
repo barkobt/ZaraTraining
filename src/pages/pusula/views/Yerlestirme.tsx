@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Eyebrow, Headline } from "../../brain/primitives";
+import { Eyebrow, Headline } from "../primitives";
 import { usePersistentState } from "../session-store";
 import { useT } from "../i18n";
 import { pocket, getRecommendations } from "../data";

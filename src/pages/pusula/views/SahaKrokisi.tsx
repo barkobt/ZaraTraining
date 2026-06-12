@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Compass, MapPin, Footprints, ShieldAlert, DoorOpen, Users, TrendingUp, UserPlus, Check } from "lucide-react";
-import { Eyebrow, Headline } from "../../brain/primitives";
+import { Eyebrow, Headline } from "../primitives";
 import { byId, employees } from "../data";
 import { compShort, compShortCaps, personCompetencies, rankForZoneByNeeds, zoneFitReason, type CompKey, type CompNeed } from "../data-competency";
 import { bestFlexFor } from "../staffing";

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, Sparkles, Layers, CheckCircle2, Circle } from "lucide-react";
-import { Headline } from "../../brain/primitives";
+import { Headline } from "../primitives";
 import { employees } from "../data";
 import {
   COMPETENCY_SCALE_TRI,

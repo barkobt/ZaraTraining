@@ -1,11 +1,10 @@
-import { Routes, Route } from 'react-router'
+import { Routes, Route, Navigate } from 'react-router'
 import Home from './pages/Home'
 import TestPage from './pages/TestPage'
 import ResultPage from './pages/ResultPage'
 import AdminPage from './pages/AdminPage'
 import ShowPage from './pages/ShowPage'
 import ShiftOrganizer from './pages/ShiftOrganizer'
-import Brain from './pages/brain/Brain'
 import Pusula from './pages/pusula/Pusula'
 import FittingRoom from './pages/FittingRoom'
 import BuenasDiasToday from './pages/buenas-dias/Today'
@@ -29,8 +28,9 @@ export default function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/show" element={<ShowPage />} />
         <Route path="/shift-organizer" element={<ShiftOrganizer />} />
-        <Route path="/brain" element={<Brain />} />
         <Route path="/pusula" element={<Pusula />} />
+        {/* brain kaldırıldı — eski bağlantılar Pusula'ya düşer */}
+        <Route path="/brain" element={<Navigate to="/pusula" replace />} />
         <Route
           path="/buenas-dias"
           element={

@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Link } from "react-router";
 import {
   ArrowDown, ArrowRight, Upload, Sparkles, Cpu,
-  Sunrise, MessageSquare, Activity, Sprout, Repeat, TrendingUp,
+  Sunrise, MessageSquare, Activity, Sprout, TrendingUp, BookOpen,
 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -49,24 +49,9 @@ const TOOLS: Project[] = [
     index: 1,
   },
   {
-    id: "brain",
-    title: "Zara Brain",
-    subtitle: "Yapay Zekâ · 03",
-    description:
-      "Mağazanın kendi sonuçlarından öğrenen zekâ katmanı — sabah brifingi, performans ikizi, kapalı döngü. Tahmin et, optimize et, öğren.",
-    href: "/brain",
-    accent: "#B8935A",
-    // editorial grayscale — koyu degrade overlay ile okunaklı
-    image:
-      "https://images.unsplash.com/photo-1517999144091-3d9dca6d1e43?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
-    available: true,
-    status: "YENİ",
-    index: 2,
-  },
-  {
     id: "pusula",
     title: "Pusula",
-    subtitle: "İnsan · 04",
+    subtitle: "İnsan · 03",
     description:
       "Yaşayan uzman — kişinin gerçek yetkinlik ve sonucundan profil çıkarır; gelişim planı ve vardiya yerleşimine çevirir. Akşam cebini rahatlatan, insan-onaylı motor.",
     href: "/pusula",
@@ -75,7 +60,7 @@ const TOOLS: Project[] = [
       "https://images.unsplash.com/photo-1521334884684-d80222895322?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
     available: true,
     status: "YENİ",
-    index: 3,
+    index: 2,
   },
 ];
 
@@ -102,13 +87,13 @@ const STEPS = [
   { icon: Sparkles, t: "Dağıt & Ölç", d: "PDF/Excel çıktısını paylaş, KPI'lar geri akar, döngü kapanır." },
 ];
 
-const BRAIN_FEATURES = [
-  { n: "01", icon: Sunrise, t: "Sabah Brifingi", d: "Günü okur: tahmini yük, zirve saati, önerilen plan — gerekçesiyle." },
-  { n: "02", icon: MessageSquare, t: "Beyne Sor", d: "Kurumsal hafıza. Her yanıt geçmiş veriye dayanır, kanıtsız konuşmaz." },
-  { n: "03", icon: Activity, t: "Performans İkizi", d: "Mağazanın kendi KPI'ından öğrenen hedef motoru — kâğıt değil, saha." },
-  { n: "04", icon: Sprout, t: "Usta Yolu", d: "Gizli, opt-in gelişim katmanı. Açığı sinerjiyle kapatan mentor eşleşmesi." },
-  { n: "05", icon: Repeat, t: "Kapalı Döngü", d: "Tahmin et → optimize et → uygula → ölç → öğren. Sistem hatasını küçültür." },
-  { n: "06", icon: TrendingUp, t: "Etki", d: "Net plan katkısından per-ticket'e, tek mağazadan zincire ölçeklenir." },
+const PUSULA_FEATURES = [
+  { n: "01", icon: Sunrise, t: "Günün Kuyruğu", d: "Koç güne tek ekranda başlar: onaylar, keşifler, eşleşmeler — karar her zaman insanda." },
+  { n: "02", icon: Activity, t: "Kanıt Motoru", d: "Skor yok, sıralama yok. Her öneri sinyal, kanal, çıkarım ve güven zinciriyle hesap verir." },
+  { n: "03", icon: BookOpen, t: "Gelişim Defteri", d: "120 konuluk kitapçık dijital hafızada: her tik tarihiyle, her statü kendi notuyla kalıcı." },
+  { n: "04", icon: MessageSquare, t: "Öğrenen Hafıza", d: "Gözlemler temalara, temalar müfredata dönüşür. Eğitim planı sahadan beslenir." },
+  { n: "05", icon: Sprout, t: "Usta Yolu", d: "Usta ayrılsa da yöntemi kurumda kalır — bilgi kurumsal hafızaya kodlanır." },
+  { n: "06", icon: TrendingUp, t: "Etki", d: "Soğuk başlar, her kapanan döngüyle keskinleşir: öneri isabeti 62'den 86'ya." },
 ];
 
 const KICKERS = ["EĞİTİM", "OPERASYON", "ZEKÂ"];
@@ -291,16 +276,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─────────── ZARA BRAIN · İÇERİDEN (pinned scroll) ─────────── */}
+      {/* ─────────── PUSULA · İÇERİDEN ─────────── */}
       <section className="brain-showcase relative z-10 overflow-hidden" style={{ background: "var(--zara-ink)", color: "var(--zara-bg)" }}>
         <div aria-hidden className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(120% 80% at 80% 0%, rgba(184,147,90,0.18), transparent 60%)" }} />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-20 md:py-24">
           <div className="flex items-end justify-between gap-6 flex-wrap mb-10">
             <div>
-              <div className="text-[10px] font-mono tracking-[0.3em] uppercase" style={{ color: "var(--zara-gold-soft)" }}>BÖLÜM 02 · YAPAY ZEKÂ</div>
-              <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] mt-3" style={{ fontWeight: 600 }}>ZARA Brain, içeriden.</h2>
+              <div className="text-[10px] font-mono tracking-[0.3em] uppercase" style={{ color: "var(--zara-gold-soft)" }}>BÖLÜM 02 · İNSAN</div>
+              <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] mt-3" style={{ fontWeight: 600 }}>Pusula, içeriden.</h2>
               <p className="mt-4 max-w-lg text-sm sm:text-base font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.72)" }}>
-                Altı yetenek, tek bir öğrenen döngüde birleşir. Kaydır — parçalar yerine otursun.
+                İnsan ana sahnedir; performans onun sonucudur. Altı yetenek, tek öğrenen döngüde.
               </p>
             </div>
             <div className="text-right">
@@ -314,7 +299,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {BRAIN_FEATURES.map((f) => (
+            {PUSULA_FEATURES.map((f) => (
               <div
                 key={f.n}
                 className="bf-card relative p-6 md:p-7"
@@ -332,11 +317,11 @@ export default function Home() {
 
           <div className="mt-10 flex justify-center">
             <Link
-              to="/brain"
+              to="/pusula"
               className="inline-flex items-center gap-2 px-7 py-3.5 font-mono text-[11px] tracking-[0.22em] uppercase rounded-[5px]"
               style={{ background: "var(--zara-gold)", color: "var(--zara-ink)" }}
             >
-              Brain'i Keşfet <ArrowRight size={14} strokeWidth={1.8} />
+              Pusula'yı Keşfet <ArrowRight size={14} strokeWidth={1.8} />
             </Link>
           </div>
         </div>
@@ -404,13 +389,13 @@ export default function Home() {
               Hemen Başla <ArrowRight size={14} strokeWidth={1.8} />
             </Link>
             <Link
-              to="/brain"
+              to="/pusula"
               className="inline-flex items-center gap-2 px-7 py-3.5 border font-mono text-[11px] tracking-[0.22em] uppercase rounded-[5px] text-ink hover:bg-ink transition-colors"
               style={{ borderColor: "var(--zara-line-strong)" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "var(--zara-bg)")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "var(--zara-ink)")}
             >
-              Zara Brain'i Keşfet <Sparkles size={14} strokeWidth={1.8} />
+              Pusula'yı Keşfet <Sparkles size={14} strokeWidth={1.8} />
             </Link>
           </div>
         </div>

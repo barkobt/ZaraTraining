@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Headline } from "../../brain/primitives";
+import { Headline } from "../primitives";
 import { HIT_RATE, impactCurve, impactNote, impactStats, maturityStages } from "../data-impact";
 import { peekSession } from "../session-store";
 import { pick, useT } from "../i18n";

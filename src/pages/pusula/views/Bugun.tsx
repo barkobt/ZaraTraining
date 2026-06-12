@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, CalendarPlus, Check, Compass, Sparkles } from "lucide-react";
-import { Headline } from "../../brain/primitives";
+import { Headline } from "../primitives";
 import { byId, employees, pocket } from "../data";
 import {
   aptitudeSuggestions,

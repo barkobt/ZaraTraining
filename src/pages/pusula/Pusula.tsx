@@ -14,7 +14,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { LiveDot } from "../brain/primitives";
+import { LiveDot } from "./primitives";
 import { PusulaMark } from "./components/PusulaMark";
 import { trpc } from "@/providers/trpc";
 import type { Employee } from "./types";
@@ -32,7 +32,6 @@ import { UstaYolu } from "./views/UstaYolu";
 import { SahaKrokisi } from "./views/SahaKrokisi";
 import { Etki } from "./views/Etki";
 import { ProfileDrawer } from "./components/ProfileDrawer";
-import { useAuthGate } from "../shift-organizer/auth-gate";
 import { LangCtx, LANGS, tr, setActiveLang, type Lang } from "./i18n";
 
 type ViewId = "bugun" | "ekip" | "profil" | "defter" | "hafiza" | "usta" | "yerlestirme" | "saha" | "etki";
@@ -51,16 +50,49 @@ const MENU: Array<{ id: ViewId; labelKey: string; subKey: string; group?: string
 ];
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
-// auth-gate.tsx ile AYNI anahtar — Pusula girişine özel ekran, aynı oturum.
-const AUTH_KEY = "shift_organizer_auth_v1";
+// Pusula'nın KENDİ oturum anahtarı — kendi şifresi (PUSULA_PASSWORD) ya da
+// paylaşılan Shift Organizer şifresi geçerlidir; sunucu ikisini de kabul eder.
+const AUTH_KEY = "pusula_auth_v1";
 
-/** Pusula — ShiftOrganizer ile AYNI şifre; giriş ekranı Pusula'nın editorial dili. */
+/** Pusula girişi — kendi şifre kapısı (app:"pusula"); ekran Pusula'nın editorial dili. */
 export default function Pusula() {
-  const gate = useAuthGate("Pusula");
+  const requiredQuery = trpc.auth.required.useQuery(undefined, { staleTime: 5 * 60_000 });
+  const checkMut = trpc.auth.check.useMutation();
+  const [authed, setAuthed] = useState(false);
+  const [checked, setChecked] = useState(false);
+  // `pusula` alanı yeni eklendi; eski sunucu yanıtında yoksa `required`a düş.
+  // API'ye ulaşılamazsa eski gate gibi FAIL-OPEN (sonsuz boş ekran yerine).
+  const required = requiredQuery.data
+    ? ((requiredQuery.data as { pusula?: boolean }).pusula ?? requiredQuery.data.required)
+    : requiredQuery.isError
+      ? false
+      : undefined;
+
+  useEffect(() => {
+    if (required === undefined) return;
+    const token = localStorage.getItem(AUTH_KEY);
+    if (token && required) {
+      checkMut.mutate(
+        { token, app: "pusula" },
+        {
+          onSuccess: (r) => {
+            setAuthed(!!r.ok);
+            setChecked(true);
+          },
+          onError: () => setChecked(true),
+        },
+      );
+    } else {
+      setChecked(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [required]);
+
   const preview =
     typeof window !== "undefined" && new URLSearchParams(window.location.search).has("gatePreview");
-  if (preview || (gate.required && !gate.authed)) {
-    return <PusulaLogin preview={preview && !(gate.required && !gate.authed)} />;
+  if (required === undefined || !checked) return <div className="zt-editorial pusula-shell pv4-login" />;
+  if (preview || (required && !authed)) {
+    return <PusulaLogin preview={preview && !(required && !authed)} />;
   }
   return <PusulaInner />;
 }
@@ -73,7 +105,7 @@ function PusulaLogin({ preview }: { preview?: boolean }) {
   const submit = () => {
     if (!password.trim()) return;
     loginMut.mutate(
-      { token: password },
+      { token: password, app: "pusula" },
       {
         onSuccess: (r) => {
           if (r.ok) {

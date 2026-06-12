@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eyebrow, Headline } from "../../brain/primitives";
+import { Eyebrow, Headline } from "../primitives";
 import { employees, jobTypeLabel, teachingCard, teachingText } from "../data";
 import { MasteryLevel, type Employee } from "../types";
 import { PersonAvatar } from "../components/PersonAvatar";

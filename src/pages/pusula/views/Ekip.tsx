@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Headline } from "../../brain/primitives";
+import { Headline } from "../primitives";
 import { employees, jobTypeOf, type JobType } from "../data";
 import { MasteryLevel, type Employee } from "../types";
 import { PersonCard } from "../components/PersonCard";

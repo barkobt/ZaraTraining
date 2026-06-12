@@ -129,10 +129,28 @@ export const appRouter = createRouter({
   ping: publicQuery.query(() => ({ ok: true, ts: Date.now() })),
 
   auth: createRouter({
-    required: publicQuery.query(() => ({ required: !!env.shiftOrganizerPassword })),
+    // `pusula` alanı geriye dönük uyumlu ek: eski istemciler yok sayar.
+    required: publicQuery.query(() => ({
+      required: !!env.shiftOrganizerPassword,
+      pusula: !!(env.pusulaPassword || env.shiftOrganizerPassword),
+    })),
     check: publicQuery
-      .input(z.object({ token: z.string().min(1).max(200) }))
+      .input(
+        z.object({
+          token: z.string().min(1).max(200),
+          app: z.enum(["shift", "pusula"]).optional(),
+        }),
+      )
       .mutation(({ input }) => {
+        if (input.app === "pusula") {
+          // Pusula: kendi şifresi VEYA paylaşılan şifre geçerlidir.
+          if (!env.pusulaPassword && !env.shiftOrganizerPassword) return { ok: true };
+          return {
+            ok:
+              (!!env.pusulaPassword && input.token === env.pusulaPassword) ||
+              (!!env.shiftOrganizerPassword && input.token === env.shiftOrganizerPassword),
+          };
+        }
         if (!env.shiftOrganizerPassword) return { ok: true };
         return { ok: input.token === env.shiftOrganizerPassword };
       }),

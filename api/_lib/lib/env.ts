@@ -13,4 +13,7 @@ export const env = {
   isProduction: process.env.NODE_ENV === "production",
   databaseUrl: optional("DATABASE_URL"),
   shiftOrganizerPassword: optional("SHIFT_ORGANIZER_PASSWORD"),
+  // Pusula demo kapısı — ayrı şifre dağıtılabilsin diye bağımsız env;
+  // boşsa Shift Organizer şifresi Pusula'da da geçerlidir.
+  pusulaPassword: optional("PUSULA_PASSWORD"),
 };

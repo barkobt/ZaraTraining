@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, BrainCircuit, Check, Clock, RefreshCw, Sparkles } from "lucide-react";
-import { Headline } from "../../brain/primitives";
+import { Headline } from "../primitives";
 import { usePersistentState } from "../session-store";
 import { pick, useT } from "../i18n";
 import { byId, employees } from "../data";

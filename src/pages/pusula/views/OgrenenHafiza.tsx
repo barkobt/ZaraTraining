@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FileText, Sparkles, Check, RotateCcw, BrainCircuit } from "lucide-react";
-import { Eyebrow, Headline } from "../../brain/primitives";
+import { Eyebrow, Headline } from "../primitives";
 import { pick, useT } from "../i18n";
 import { byId, employees } from "../data";
 import { NOTED_IDS, inferTags, notePatterns, notesFor, type InferredTags } from "../data-hafiza";

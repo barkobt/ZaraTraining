@@ -2735,3 +2735,24 @@
   .petki-mat-track { grid-template-columns: 1fr 1fr; row-gap: 12px; }
   .petki-live { text-align: left; }
 }
+
+/* ============================================================
+   SHIFT ORGANIZER · MONOKROM (Pusula ile AYNI dil — scoped)
+   Saf beyaz zemin · siyah mürekkep · altın→siyah · gölgesiz.
+   Token override yeter: shift v3 zaten --zara token'larından giyinir.
+   ============================================================ */
+.so-shell {
+  --ff-display: "Bodoni Moda", "Playfair Display", "Didot", serif;
+  --ff-editorial: "Bodoni Moda", "Playfair Display", serif;
+  --zara-bg: #ffffff; --zara-bg-alt: #f6f6f6; --zara-bg-warm: #fafafa; --zara-bg-white: #ffffff;
+  --zara-ink: #0a0a0a; --zara-ink-soft: #141414; --zara-ink-2: #2b2b2b;
+  --zara-ink-65: rgba(0, 0, 0, 0.65); --zara-ink-50: rgba(0, 0, 0, 0.5);
+  --zara-ink-40: rgba(0, 0, 0, 0.52); --zara-ink-30: rgba(0, 0, 0, 0.4);
+  --zara-gold: #000; --zara-gold-deep: #000;
+  --zara-gold-soft: rgba(0, 0, 0, 0.26); --zara-gold-tint: rgba(0, 0, 0, 0.028);
+  --zara-sage: rgba(0, 0, 0, 0.28);
+  --zara-sage-ink: #555;
+  --zara-line: rgba(0, 0, 0, 0.07); --zara-line-strong: rgba(0, 0, 0, 0.16);
+  --zara-emerald: #000;
+  --panel-radius: 3px; --panel-shadow: none; --panel-shadow-soft: none;
+}
