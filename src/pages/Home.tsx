@@ -119,6 +119,15 @@ export default function Home() {
       // ── HERO İNTRO — set+to deseni: `from` geç yüklemede/StrictMode'da
       // içeriği görünmez bırakabiliyordu ("hero kayıp" hissinin kökü).
       // set+to ile başlangıç hâli net, autoAlpha visibility'yi de yönetir.
+      // Atelier filmi: yavaşça belirir + nefes alır gibi geri çekilir;
+      // kaydırınca hafifçe büyümeye devam eder (sinema derinliği).
+      gsap.set(".hero-video", { autoAlpha: 0, scale: 1.08 });
+      gsap.to(".hero-video", { autoAlpha: 0.42, scale: 1, duration: 2.4, ease: "power2.out" });
+      gsap.to(".hero-video", {
+        scale: 1.1,
+        ease: "none",
+        scrollTrigger: { trigger: ".hero-section", start: "top top", end: "bottom top", scrub: true },
+      });
       gsap.set(".hero-logo", { autoAlpha: 0, y: 26, scale: 0.92, filter: "blur(10px)" });
       gsap.set(".hero-eyebrow, .hero-sub, .hero-cue", { autoAlpha: 0, y: 14 });
       gsap.set(".hero-word", { yPercent: 115 });
@@ -181,15 +190,30 @@ export default function Home() {
         });
       });
 
-      // ── PUSULA VİTRİNİ — kart reveal + arka plan süzülmesi + sayaç ──
+      // ── PUSULA VİTRİNİ — kart reveal + DETERMİNİSTİK sayaç ──
+      // Sayaç artık scroll aralığına DEĞİL, kartların reveal timeline'ına
+      // bağlı: bölüm bir kez göründüğünde 00'dan 06'ya sayar ve orada kalır.
+      // Scroll hızı/viewport boyu ne olursa olsun "0/6'da takılı" kalamaz.
       const showcase = root.current?.querySelector<HTMLElement>(".brain-showcase");
       if (showcase) {
         const cards = showcase.querySelectorAll<HTMLElement>(".bf-card");
+        const fill = showcase.querySelector<HTMLElement>(".bf-progress-fill");
+        const count = showcase.querySelector<HTMLElement>(".bf-count");
         gsap.set(cards, { autoAlpha: 0, yPercent: 16, scale: 0.96 });
-        gsap.to(cards, {
-          autoAlpha: 1, yPercent: 0, scale: 1, duration: 0.8, ease, stagger: 0.14,
-          scrollTrigger: { trigger: showcase, start: "top 72%", once: true },
+        const proxy = { v: 0 };
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: showcase, start: "top 75%", once: true },
         });
+        tl.to(cards, { autoAlpha: 1, yPercent: 0, scale: 1, duration: 0.8, ease, stagger: 0.14 });
+        tl.to(proxy, {
+          v: 6,
+          duration: 1.5,
+          ease: "power2.out",
+          onUpdate: () => {
+            if (count) count.textContent = String(Math.round(proxy.v)).padStart(2, "0");
+            if (fill) fill.style.transform = `scaleX(${proxy.v / 6})`;
+          },
+        }, 0.15);
         const bg = showcase.querySelector<HTMLElement>(".bf-bg");
         if (bg) {
           gsap.fromTo(bg, { xPercent: -6 }, {
@@ -197,22 +221,6 @@ export default function Home() {
             scrollTrigger: { trigger: showcase, start: "top bottom", end: "bottom top", scrub: 1.5 },
           });
         }
-        // Sayaç MONOTONİK: ileri sayar, scroll geri gelince GERİLEMEZ
-        // ("1/6'da takılı / geri sayıyor" kırığı bitti). Dolum çizgisi de aynı.
-        const fill = showcase.querySelector<HTMLElement>(".bf-progress-fill");
-        const count = showcase.querySelector<HTMLElement>(".bf-count");
-        let maxP = 0;
-        ScrollTrigger.create({
-          trigger: showcase,
-          start: "top 75%",
-          end: "bottom 70%",
-          scrub: true,
-          onUpdate: (self) => {
-            maxP = Math.max(maxP, self.progress);
-            if (fill) fill.style.transform = `scaleX(${maxP})`;
-            if (count) count.textContent = String(Math.round(maxP * 6)).padStart(2, "0");
-          },
-        });
       }
 
       // CTA yaklaşırken yumuşakça odağa gelir
@@ -251,14 +259,39 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ─────────── HERO ─────────── */}
+      {/* ─────────── HERO — atelier filmi + altın ZT ─────────── */}
       <section className="hero-section relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 sm:px-6 md:px-12 pt-24">
+        {/* Atelier video — en arka katman. Grayscale, paper tonuna yumuşatılmış;
+            ZT monogram film noktası üstünde "altın yaprak" gibi durur.
+            poster YOK: yüklenene dek krem zemin kalır, flicker olmaz. */}
+        <video
+          aria-hidden
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="hero-video absolute inset-0 w-full h-full object-cover pointer-events-none motion-reduce:hidden"
+          style={{ filter: "grayscale(0.85) contrast(1.05) brightness(0.95)", zIndex: 0 }}
+        >
+          <source src="/hero-atelier.mp4" type="video/mp4" />
+        </video>
+        {/* Krem kâğıt örtüsü — filmi atelier tonuna bağlar, metin hep okunur */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(180deg, var(--zara-bg) 0%, rgba(245,241,234,0.55) 35%, rgba(245,241,234,0.70) 65%, var(--zara-bg) 100%)",
+            zIndex: 1,
+          }}
+        />
         <div
           aria-hidden
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[140vw] max-w-[1200px] max-h-[1200px] pointer-events-none rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(184,147,90,0.10) 0%, transparent 60%)" }}
+          style={{ background: "radial-gradient(circle, rgba(184,147,90,0.10) 0%, transparent 60%)", zIndex: 2 }}
         />
-        <div className="absolute inset-6 sm:inset-12 pointer-events-none">
+        <div className="absolute inset-6 sm:inset-12 pointer-events-none z-[5]">
           <CornerVignette color="var(--zara-ink)" opacity={0.45} />
         </div>
 
@@ -320,6 +353,22 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ─────────── EDİTORYAL MARQUEE — atelier kimlik şeridi ─────────── */}
+      <div className="atelye-marquee relative z-10" aria-hidden>
+        <div className="atelye-marquee-in">
+          {[0, 1].map((rep) => (
+            <span key={rep} className="atelye-marquee-seg">
+              {["ZARA", "ATELYE", "BORNOVA 3643", "OPERASYON", "İNSAN", "EĞİTİM", "IN RESIDENCE"].map((w) => (
+                <span key={w} className="font-mono text-[11px] tracking-[0.34em] uppercase text-ink/45">
+                  {w}
+                  <i className="not-italic mx-7" style={{ color: "var(--zara-gold)" }}>·</i>
+                </span>
+              ))}
+            </span>
+          ))}
+        </div>
+      </div>
 
       {/* ─────────── ARAÇLAR ─────────── */}
       <section className="relative z-10 px-4 sm:px-6 md:px-12 py-20 md:py-28">

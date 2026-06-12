@@ -391,3 +391,30 @@
     .reveal-init { opacity: 1 !important; transform: none !important; }
   }
 }
+
+/* ── Ana sayfa: editorial marquee + vitrin kart hover ──────── */
+.atelye-marquee {
+  overflow: hidden;
+  border-top: 1px solid var(--zara-line);
+  border-bottom: 1px solid var(--zara-line);
+  background: var(--zara-bg);
+  padding: 13px 0;
+}
+.atelye-marquee-in {
+  display: flex;
+  width: max-content;
+  animation: atelye-marquee 30s linear infinite;
+}
+.atelye-marquee-seg { display: inline-flex; white-space: nowrap; }
+@keyframes atelye-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.bf-card {
+  transition: transform 450ms cubic-bezier(0.22, 0.61, 0.36, 1), border-color 450ms, background 450ms;
+}
+.bf-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(184, 147, 90, 0.55) !important;
+  background: rgba(245, 241, 234, 0.07) !important;
+}
