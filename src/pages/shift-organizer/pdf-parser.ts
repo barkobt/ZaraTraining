@@ -16,10 +16,16 @@
  *   - "Pazartesi  Ahmet  10:00  19:00"  (tab/multi-space)
  *   - Türkçe karakterler (ı, ö, ü, ç, ş, ğ, İ, Ö, Ü, Ç, Ş, Ğ)
  */
-// pdfjs lazy yüklenir — text parser Node'da test edilebilsin diye.
+// pdfjs lazy yüklenir — tarayıcıda Vite worker URL'i, Node'da (vitest)
+// legacy build worker'sız çalışır → structured parser gerçek PDF'le test edilebilir.
 let _pdfjsLib: typeof import("pdfjs-dist") | null = null;
 async function loadPdfjs() {
   if (_pdfjsLib) return _pdfjsLib;
+  if (typeof window === "undefined") {
+    const pdfjsLib = (await import("pdfjs-dist/legacy/build/pdf.mjs")) as unknown as typeof import("pdfjs-dist");
+    _pdfjsLib = pdfjsLib;
+    return pdfjsLib;
+  }
   const pdfjsLib = await import("pdfjs-dist");
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore — Vite ?url import
@@ -81,14 +87,19 @@ function cleanName(s: string): string {
 }
 
 // Orquest PDF'inde sıkça karşılaşılan, isim OLMAYAN satır başlangıçları.
-// İçinde geçerse satır elenir (case-insensitive substring).
+// KÖKEN BUG (2026-06-12): substring eşleşmesi gerçek isimleri yiyordu —
+// "SELMAN" içinde "MAN", "SEMANUR" içinde "MAN" var → kişi sessizce
+// atlanıyordu ("yeni personeli okumuyor"). Artık TAM-TOKEN eşleşmesi:
+// yalnız ismin bir kelimesi bire bir reject kelimesiyse elenir.
 const REJECT_TOKENS = [
   "TARIH", "TARİH", "TOPLAM", "TOPLAM:", "MAGAZA", "MAĞAZA", "SECTION", "TURN",
   "TOTAL", "BREAK", "ZARA", "BASIC", "WOMAN", "WOMEN", "MAN", "MEN", "KIDS",
   "KID", "TRF", "BABY", "ACCESSORIES", "ACCESORIES", "SHOES", "BEAUTY",
   "DISTRIBUCION", "DISTRIBUCIÓN", "PERSONEL", "ÇALIŞAN", "SHIFT", "VARDIYA",
-  "PAUSA", "DESCANSO", "EMPLEADO", "REPORT",
+  "PAUSA", "DESCANSO", "EMPLEADO", "REPORT", "CABALLERO", "DELIVERY", "KASA",
+  "OPERASYON", "RUNNER", "SINT", "FREE", "NAME", "HOURS", "EXPORTED",
 ];
+const REJECT_SET = new Set(REJECT_TOKENS);
 
 function isLikelyName(s: string): boolean {
   // En az 2 karakter, ilk harf alfabetik (Türkçe dahil), 40 karakterden kısa
@@ -98,9 +109,10 @@ function isLikelyName(s: string): boolean {
   if (!/^[a-zA-ZçğıöşüÇĞİÖŞÜ]/.test(cleaned)) return false;
   // Sadece rakamdan veya noktalamadan ibaret olamaz
   if (/^[\d\s\-.,:;]+$/.test(cleaned)) return false;
-  // Reject token içeriyorsa (başlık/footer/section) elenir
-  const upper = cleaned.toUpperCase();
-  if (REJECT_TOKENS.some((t) => upper.includes(t))) return false;
+  // Herhangi bir KELİMESİ bire bir başlık/section kelimesiyse elenir
+  // (substring DEĞİL — "Selman" gibi isimler güvende)
+  const upperTokens = cleaned.toUpperCase().split(/\s+/);
+  if (upperTokens.some((t) => REJECT_SET.has(t))) return false;
   // 1-4 kelime arası olmalı (gerçek isimler)
   const words = cleaned.split(/\s+/);
   if (words.length < 1 || words.length > 4) return false;
@@ -443,13 +455,15 @@ export function parseShiftsFromText(text: string): ParsedShift[] {
   return parseShiftsFromTextWithReport(text).shifts;
 }
 
-// Orquest PDF'inde sadece BASIC bölümü ele alınır; diğer bölümler atlanır.
-// Section başlığı tespiti: tek kelime, all-caps, ≤12 karakter, sayı/saat içermez.
+// Satış katı section'ları okunur (BASIC/FR/TRF/WOMAN); diğerleri atlanır.
 const SECTION_NAMES = [
   "BASIC", "FR", "PROBADOR", "WOMAN", "WOMEN", "MAN", "MEN", "KIDS", "KID", "CHILD",
   "TRF", "BABY", "ACCESSORIES", "ACCESORIES", "SHOES", "BEAUTY",
+  "CABALLERO", "DELIVERY", "KASA", "MÜDUR", "MUDUR", "MÜDÜR",
+  "OPERASYON", "NIÑO", "NINO", "SINT", "360", "RUNNER",
 ];
 const KNOWN_SECTIONS = new Set(SECTION_NAMES.map((s) => s.toUpperCase()));
+const TEXT_READABLE_SECTIONS = new Set(["BASIC", "FR", "PROBADOR", "TRF", "WOMAN", "WOMEN"]);
 
 function detectSection(line: string): string | null {
   // Satır section adı içeriyor mu? (multi-column extract bazen "BASIC" ile başka şeyleri birleştirir)
@@ -462,10 +476,11 @@ function detectSection(line: string): string | null {
   return null;
 }
 
-// Güvenlik üst sınırı. 2026-05-30: 30 → 80. FR/PROBADOR de okunduğundan
-// BASIC (~20) + FR (~10+) toplamı 30'u aşıp en SONDAKİ kişileri (çoğu zaman
-// en yeni personel) kesiyordu ("en yeni personeli okumuyor" bug'ı).
-const MAX_MATCHES = 80;
+// Güvenlik üst sınırı — KUTU BİTENE KADAR herkes okunur; bu sınır yalnız
+// patolojik girdiye (bozuk PDF, sonsuz tekrar) karşı sigortadır. 2026-06-12:
+// 80 → 400. 80 bile dört okunabilir section toplamında kesintiye yol
+// açabiliyordu ("yeni kişi okunmuyor" şikâyetinin ikinci kökü).
+const MAX_MATCHES = 400;
 
 export function parseShiftsFromTextWithReport(text: string): ParseReport {
   const lines = text.split(/[\r\n]+/);
@@ -474,7 +489,6 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
   let matched = 0;
   let inBasic = false;
   let sawAnySection = false;
-  let basicBlockEnded = false; // İlk BASIC bloğu bittikten sonra ikinci BASIC görülürse iterasyonu kes.
 
   for (let idx = 0; idx < lines.length; idx++) {
     const raw = lines[idx];
@@ -483,19 +497,11 @@ export function parseShiftsFromTextWithReport(text: string): ParseReport {
 
     const section = detectSection(line);
     if (section) {
-      if (section === "BASIC") {
-        if (basicBlockEnded) break; // ikinci BASIC bloğu — iterasyonu durdur
-        sawAnySection = true;
-        inBasic = true;
-      } else if (section === "FR" || section === "PROBADOR") {
-        // Kabin (fitting room) personeli — KABİN rolünün adayları, her zaman oku.
-        sawAnySection = true;
-        inBasic = true;
-      } else {
-        sawAnySection = true;
-        if (inBasic) basicBlockEnded = true; // BASIC bloğundan çıktık
-        inBasic = false;
-      }
+      // 2026-06-12: section'lar bağımsız ana bloklar — okunabilir küme
+      // BASIC/FR/TRF/WOMAN; sıraları ne olursa olsun her blok kendi
+      // başlığıyla açılır/kapanır ("ikinci BASIC'te dur" varsayımı kalktı).
+      sawAnySection = true;
+      inBasic = TEXT_READABLE_SECTIONS.has(section);
       continue;
     }
 
@@ -605,8 +611,12 @@ export async function parseShiftsFromPdf(file: File): Promise<ParsedShift[]> {
  *      sadece break sütununda text varsa son kişinin break'lerine eklenir.
  */
 export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseReport> {
+  return parseShiftsFromPdfDataWithReport(await file.arrayBuffer());
+}
+
+/** ArrayBuffer girişli sürüm — Node/vitest'te gerçek PDF fixture'ı ile test edilebilir. */
+export async function parseShiftsFromPdfDataWithReport(buf: ArrayBuffer | Uint8Array): Promise<ParseReport> {
   const pdfjsLib = await loadPdfjs();
-  const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
 
   type Item = { y: number; x: number; str: string };
@@ -735,17 +745,27 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
     //   KASA, MUDUR, OPERASYON, NIÑO). Birini görünce inBasic=false.
     //   SUB_SECTION_KEYWORDS: BASIC içindeki alt başlıklar (WOMAN, MAN,
     //   KIDS, ACCESSORIES, ...). Sadece grup ayırıcı; inBasic'i değiştirmez.
+    // 2026-06-12: Orquest formatı değişti — section'lar artık TÜMÜYLE ayrı
+    // ana bloklar (360 RUNNER, BASIC, CABALLERO, DELIVERY, FR, KASA, MÜDUR,
+    // MÜDÜR, NIÑO, OPERASYON, SINT, TRF, WOMAN). TRF ve WOMAN eskiden BASIC
+    // içi alt-grup sanılıyordu → OPERASYON'dan sonra geldiklerinde okunabilir
+    // moda hiç girilmiyor ve o kişiler ATLANIYORDU. Artık ana section.
     const MAIN_SECTION_KEYWORDS = new Set([
-      "BASIC", "CABALLERO", "KASA", "MÜDUR", "MUDUR",
+      "BASIC", "CABALLERO", "KASA", "MÜDUR", "MUDUR", "MÜDÜR",
       "OPERASYON", "NIÑO", "NINO", "FR", "PROBADOR",
+      "TRF", "WOMAN", "WOMEN", "DELIVERY", "SINT", "360", "RUNNER",
     ]);
+    // Eski format PDF'lerde BASIC içinde kalan alt başlıklar — grup ayırıcı.
     const SUB_SECTION_KEYWORDS = new Set([
-      "WOMAN", "WOMEN", "MAN", "MEN", "KIDS", "KID", "TRF", "BABY",
+      "MAN", "MEN", "KIDS", "KID", "BABY",
       "ACCESSORIES", "ACCESORIES", "SHOES", "BEAUTY",
     ]);
-    // Kişileri OKUDUĞUMUZ ana bölümler. BASIC = mağaza zemini; FR/PROBADOR =
-    // kabin (fitting room) → KABİN rolünün adayları, chart'a dahil edilmeli.
-    const READABLE_MAIN_SECTIONS = new Set(["BASIC", "FR", "PROBADOR"]);
+    // Kişileri OKUDUĞUMUZ ana bölümler — satış katı kadrosu:
+    // BASIC + FR/PROBADOR (kabin) + TRF + WOMAN. Diğerleri (kasa, depo,
+    // runner, müdür…) chart kapsamı dışı.
+    const READABLE_MAIN_SECTIONS = new Set([
+      "BASIC", "FR", "PROBADOR", "TRF", "WOMAN", "WOMEN",
+    ]);
 
     let lastPerson: ParsedShift | null = null;
 
@@ -762,13 +782,11 @@ export async function parseShiftsFromPdfWithReport(file: File): Promise<ParseRep
       // işle — isLikelyName + REJECT_TOKENS zaten yanlış kabul yapmaz.
       if (MAIN_SECTION_KEYWORDS.has(firstTok) && wordCount <= 3) {
         const wasInBasic = inBasic;
-        // FR/PROBADOR (kabin/fitting-room) personeli de chart'a girmeli —
-        // bunlar tam da KABİN rolünün adayları. Eskiden FR ana-section
-        // görülünce inBasic=false oluyor ve FR kişileri atlanıyordu
-        // ("FR kısmını okumuyor" bug'ı). BASIC gibi okunabilir kabul et.
         inBasic = READABLE_MAIN_SECTIONS.has(firstTok);
+        // HERHANGİ bir ana section görüldü → auto-enter kapanır
+        // (360 RUNNER gibi kapsam dışı ilk bölümün kişileri sızmasın)
+        sawBasic = true;
         if (inBasic) {
-          sawBasic = true;
           console.warn(`[PDF Parser] MAIN section ${firstTok} entered (readable)`);
         } else if (wasInBasic) {
           console.warn(`[PDF Parser] MAIN section ${firstTok} → exiting readable section`);
