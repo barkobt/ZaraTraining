@@ -12,10 +12,13 @@ import BuenasDiasSetup from './pages/buenas-dias/Setup'
 import { PinGuard } from './components/PinGuard'
 import { ScrollToTop } from './components/ScrollToTop'
 import { PageViewTracker } from './components/PageViewTracker'
+import { useLenis } from './hooks/useLenis'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 
 export default function App() {
+  // Global smooth-scroll (reduced-motion'da otomatik kapalı).
+  useLenis()
   return (
     <>
       <ScrollToTop />

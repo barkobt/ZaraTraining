@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { ArrowUpRight, Lock } from "lucide-react";
+import type { ReactNode } from "react";
 
 export interface Project {
   id: string;
@@ -10,6 +11,7 @@ export interface Project {
   href: string;
   accent: string;   // ana renk (CSS color)
   image?: string;   // opsiyonel background image url
+  visual?: ReactNode; // opsiyonel custom görsel (img yerine — örn. Pusula compass)
   available: boolean;
   status: string;   // örn "AÇIK", "YAKINDA"
   index: number;    // "FIG. 01" gibi
@@ -23,8 +25,21 @@ export function ProjectCard({ project, idx }: { project: Project; idx: number })
       className="group relative overflow-hidden border border-zara bg-zara-alt"
       style={{ minHeight: 460 }}
     >
+      {/* Custom görsel (compass gibi) — diğer kartların gri-stiliyle aynı:
+          tam ortalı, grayscale, hover'da renge + hafif büyür. */}
+      {project.visual && (
+        <div
+          className={`absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none grayscale transition-all duration-[1500ms] ${
+            project.available ? "group-hover:grayscale-0 group-hover:scale-105" : ""
+          }`}
+          style={{ opacity: project.available ? 0.6 : 0.25 }}
+        >
+          {project.visual}
+        </div>
+      )}
+
       {/* Background image with parallax-ish overlay */}
-      {project.image && (
+      {!project.visual && project.image && (
         <motion.div
           className="absolute inset-0"
           initial={{ scale: 1.05 }}
