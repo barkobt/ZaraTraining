@@ -436,6 +436,12 @@ export const appRouter = createRouter({
         }
 
         const solverStaff = staffRowsToSolverInput(staffRows);
+
+        // Vardiyaların home_area'sı personel kaydından gelir (shift parser'da
+        // alan bilgisi yok). short_name → home_area eşlemesi kuruyoruz.
+        const homeAreaByShortName = new Map(
+          staffRows.map((r) => [r.shortName, r.homeArea]),
+        );
         const solverConfigPayload = {
           // Yetkinlik 2.0 → 4.0: yetkin kişiler doğru role daha güçlü yerleşsin.
           competency_weight: cfg?.competencyWeight ?? 4.0,
@@ -459,6 +465,7 @@ export const appRouter = createRouter({
             end_hour: s.end_hour,
             breaks: s.breaks ?? [],
             tasks: s.tasks ?? [],
+            home_area: homeAreaByShortName.get(s.short_name) ?? null,
           })),
           config: solverConfigPayload,
           forbidden_pairs: userForbidden.map(

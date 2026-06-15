@@ -42,7 +42,6 @@ export function Ekip({ onPeek }: { onPeek: (p: Employee) => void }) {
         <div>
           <Headline ital={t("t.ekip.i")} roman={t("t.ekip.r")} size={32} />
           <div className="pusula-sub">{t("t.ekipSub")}</div>
-          <div className="pv4-how">{t("how.ekip")}</div>
         </div>
         {/* ekip nabzı — evre dağılımı (masthead'in sağı boş kalmasın, sayfa konuşsun) */}
         <div className="pusula-team-pulse" aria-hidden>

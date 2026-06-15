@@ -10,6 +10,7 @@ import { useGSAP } from "@gsap/react";
 import { ProjectCard, type Project } from "@/components/ProjectCard";
 import { ZMark } from "@/components/ZMark";
 import { CornerVignette } from "@/components/CornerVignette";
+import { PusulaCompass } from "@/components/PusulaCompass";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 // iOS adres çubuğu gizlenirken tetiklenen resize fırtınası scrub trigger'ları
@@ -44,7 +45,7 @@ const TOOLS: Project[] = [
     description:
       "Sabah toplantısı için otomatik hedef üretici. Motor A günlük hedefi, Motor B challenge dağıtımını hesaplar; tek tıkla PDF olarak dışa aktarılır.",
     href: "/buenas-dias",
-    accent: "#7E6B5B",
+    accent: "#8B6F47",
     image:
       "https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
     available: true,
@@ -59,8 +60,7 @@ const TOOLS: Project[] = [
       "Yaşayan uzman — kişinin gerçek yetkinlik ve sonucundan profil çıkarır; gelişim planı ve vardiya yerleşimine çevirir. Akşam cebini rahatlatan, insan-onaylı motor.",
     href: "/pusula",
     accent: "#B8935A",
-    image:
-      "https://images.unsplash.com/photo-1521334884684-d80222895322?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+    visual: <PusulaCompass className="w-[72%] max-w-[300px]" heading={26} />,
     available: true,
     status: "YENİ",
     index: 2,
@@ -89,7 +89,7 @@ const EDUCATION: Project[] = [
     description:
       "Karma ödemeler, cüzdansız iadeler, kuyruk baskısı. Gerçek kasanın stresi olmadan, senaryolarla kasa refleksi kazan.",
     href: "#",
-    accent: "#7E6B5B",
+    accent: "#8B6F47",
     image:
       "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
     available: false,
@@ -118,13 +118,14 @@ const STEPS = [
   { icon: Sparkles, t: "Dağıt & Ölç", d: "PDF/Excel çıktısını paylaş, KPI'lar geri akar, döngü kapanır." },
 ];
 
+const PF_IMG = (id: string) => `https://images.unsplash.com/photo-${id}?w=800&h=1000&fit=crop&q=80&auto=format&sat=-100`;
 const PUSULA_FEATURES = [
-  { n: "01", icon: Sunrise, t: "Günün Kuyruğu", d: "Koç güne tek ekranda başlar: onaylar, keşifler, eşleşmeler — karar her zaman insanda." },
-  { n: "02", icon: Activity, t: "Kanıt Motoru", d: "Skor yok, sıralama yok. Her öneri sinyal, kanal, çıkarım ve güven zinciriyle hesap verir." },
-  { n: "03", icon: BookOpen, t: "Gelişim Defteri", d: "120 konuluk kitapçık dijital hafızada: her tik tarihiyle, her statü kendi notuyla kalıcı." },
-  { n: "04", icon: MessageSquare, t: "Öğrenen Hafıza", d: "Gözlemler temalara, temalar müfredata dönüşür. Eğitim planı sahadan beslenir." },
-  { n: "05", icon: Sprout, t: "Usta Yolu", d: "Usta ayrılsa da yöntemi kurumda kalır — bilgi kurumsal hafızaya kodlanır." },
-  { n: "06", icon: TrendingUp, t: "Etki", d: "Soğuk başlar, her kapanan döngüyle keskinleşir: öneri isabeti 62'den 86'ya." },
+  { n: "01", icon: Sunrise, t: "Günün Kuyruğu", d: "Koç güne tek ekranda başlar: onaylar, keşifler, eşleşmeler — karar her zaman insanda.", img: PF_IMG("1441986300917-64674bd600d8") },
+  { n: "02", icon: Activity, t: "Kanıt Motoru", d: "Skor yok, sıralama yok. Her öneri sinyal, kanal, çıkarım ve güven zinciriyle hesap verir.", img: PF_IMG("1454165804606-c3d57bc86b40") },
+  { n: "03", icon: BookOpen, t: "Gelişim Defteri", d: "120 konuluk kitapçık dijital hafızada: her tik tarihiyle, her statü kendi notuyla kalıcı.", img: PF_IMG("1450101499163-c8848c66ca85") },
+  { n: "04", icon: MessageSquare, t: "Öğrenen Hafıza", d: "Gözlemler temalara, temalar müfredata dönüşür. Eğitim planı sahadan beslenir.", img: PF_IMG("1481627834876-b7833e8f5570") },
+  { n: "05", icon: Sprout, t: "Usta Yolu", d: "Usta ayrılsa da yöntemi kurumda kalır — bilgi kurumsal hafızaya kodlanır.", img: PF_IMG("1524758631624-e2822e304c36") },
+  { n: "06", icon: TrendingUp, t: "Etki", d: "Soğuk başlar, her kapanan döngüyle keskinleşir: öneri isabeti 62'den 86'ya.", img: PF_IMG("1460925895917-afdab827c52f") },
 ];
 
 const KICKERS = ["EĞİTİM", "OPERASYON", "ZEKÂ"];
@@ -243,6 +244,9 @@ export default function Home() {
           autoAlpha: 1, yPercent: 0, duration: 0.9, ease, stagger: 0.12,
           scrollTrigger: { trigger: group, start: "top 82%", once: true },
         });
+        // Hairline grid'lerde (gap-px + dolu zemin) drift YOK — dikey kayma
+        // kartların altındaki çizgi-zeminini gri bant olarak açığa çıkarıyordu.
+        if (group.hasAttribute("data-flat")) return;
         // Derinlik: kartlar scroll'la hafif farklı hızda süzülür.
         // (reveal yPercent'i, parallax y pikselini sürer — çakışmazlar)
         cards.forEach((card, i) => {
@@ -264,37 +268,68 @@ export default function Home() {
         });
       });
 
-      // ── PUSULA VİTRİNİ — kart reveal + DETERMİNİSTİK sayaç ──
-      // Sayaç artık scroll aralığına DEĞİL, kartların reveal timeline'ına
-      // bağlı: bölüm bir kez göründüğünde 00'dan 06'ya sayar ve orada kalır.
-      // Scroll hızı/viewport boyu ne olursa olsun "0/6'da takılı" kalamaz.
+      // ── PUSULA VİTRİNİ — YATAY pinned kart akışı (brandonbartram tarzı) ──
+      // Sayaç + progress bar TEK kaynaktan (scroll ilerlemesi) sürülür → eski
+      // "üç ayrı mekanizma senkronsuz" bozukluğu biter. gsap.matchMedia ile
+      // iki kol: masaüstü-hareketli = pin+yatay track; mobil/azaltılmış = dikey.
       const showcase = root.current?.querySelector<HTMLElement>(".brain-showcase");
       if (showcase) {
-        const cards = showcase.querySelectorAll<HTMLElement>(".bf-card");
         const fill = showcase.querySelector<HTMLElement>(".bf-progress-fill");
         const count = showcase.querySelector<HTMLElement>(".bf-count");
-        gsap.set(cards, { autoAlpha: 0, yPercent: 16, scale: 0.96 });
-        const proxy = { v: 0 };
-        const tl = gsap.timeline({
-          scrollTrigger: { trigger: showcase, start: "top 75%", once: true },
-        });
-        tl.to(cards, { autoAlpha: 1, yPercent: 0, scale: 1, duration: 0.8, ease, stagger: 0.14 });
-        tl.to(proxy, {
-          v: 6,
-          duration: 1.5,
-          ease: "power2.out",
-          onUpdate: () => {
-            if (count) count.textContent = String(Math.round(proxy.v)).padStart(2, "0");
-            if (fill) fill.style.transform = `scaleX(${proxy.v / 6})`;
-          },
-        }, 0.15);
-        const bg = showcase.querySelector<HTMLElement>(".bf-bg");
-        if (bg) {
-          gsap.fromTo(bg, { xPercent: -6 }, {
-            xPercent: 6, ease: "none",
-            scrollTrigger: { trigger: showcase, start: "top bottom", end: "bottom top", scrub: 1.5 },
+        const N = 6;
+        const setReadout = (p: number) => {
+          if (count) count.textContent = String(Math.round(p * N)).padStart(2, "0");
+          if (fill) fill.style.transform = `scaleX(${p})`;
+        };
+
+        const mm = gsap.matchMedia();
+
+        // Masaüstü + hareket serbest: pin'le, dikey scroll'u track'in X'ine bağla.
+        mm.add("(min-width: 768px)", () => {
+          showcase.classList.remove("bf-fallback");
+          const track = showcase.querySelector<HTMLElement>(".bf-track");
+          if (!track) return;
+          const dist = () => Math.max(0, track.scrollWidth - window.innerWidth);
+          setReadout(0);
+          // ease:"none" ŞART — yoksa scroll ile yatay konum 1:1 hizalanmaz.
+          gsap.to(track, {
+            x: () => -dist(),
+            ease: "none",
+            scrollTrigger: {
+              trigger: showcase,
+              start: "top top",
+              end: () => "+=" + dist(),
+              pin: true,
+              scrub: 1,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              onUpdate: (self) => setReadout(self.progress),
+            },
           });
-        }
+          return () => {
+            showcase.classList.add("bf-fallback");
+            gsap.set(track, { clearProps: "transform" });
+          };
+        });
+
+        // Mobil / dar ekran: pin yok. Dikey akışta kartlar belirir, sayaç
+        // bölüm görünür oldukça scrub ile dolar.
+        mm.add("(max-width: 767px)", () => {
+          const cards = showcase.querySelectorAll<HTMLElement>(".bf-card");
+          gsap.set(cards, { autoAlpha: 0, y: 40 });
+          gsap.to(cards, {
+            autoAlpha: 1, y: 0, duration: 0.7, ease, stagger: 0.1,
+            scrollTrigger: { trigger: showcase, start: "top 78%", once: true },
+          });
+          setReadout(0);
+          const proxy = { p: 0 };
+          gsap.to(proxy, {
+            p: 1, ease: "none",
+            onUpdate: () => setReadout(proxy.p),
+            scrollTrigger: { trigger: showcase, start: "top 80%", end: "bottom 65%", scrub: true },
+          });
+          return () => gsap.set(cards, { clearProps: "all" });
+        });
       }
 
       // CTA yaklaşırken yumuşakça odağa gelir
@@ -365,7 +400,7 @@ export default function Home() {
         <div
           aria-hidden
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[140vw] max-w-[1200px] max-h-[1200px] pointer-events-none rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(184,147,90,0.10) 0%, transparent 60%)", zIndex: 2 }}
+          style={{ background: "radial-gradient(circle, var(--zara-glow) 0%, transparent 60%)", zIndex: 2 }}
         />
         <div className="absolute inset-6 sm:inset-12 pointer-events-none z-[5]">
           <CornerVignette color="var(--zara-ink)" opacity={0.45} />
@@ -466,53 +501,90 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─────────── PUSULA · İÇERİDEN ─────────── */}
-      <section className="brain-showcase relative z-10 overflow-hidden" style={{ background: "var(--zara-ink)", color: "var(--zara-bg)" }}>
-        <div aria-hidden className="bf-bg absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(120% 80% at 80% 0%, rgba(184,147,90,0.18), transparent 60%)" }} />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-20 md:py-24">
-          <div className="flex items-end justify-between gap-6 flex-wrap mb-10">
-            <div>
-              <div className="text-[10px] font-mono tracking-[0.3em] uppercase" style={{ color: "var(--zara-gold-soft)" }}>BÖLÜM 02 · İNSAN</div>
-              <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] mt-3" style={{ fontWeight: 600 }}>Pusula, içeriden.</h2>
-              <p className="mt-4 max-w-lg text-sm sm:text-base font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.72)" }}>
-                İnsan ana sahnedir; performans onun sonucudur. Altı yetenek, tek öğrenen döngüde.
-              </p>
+      {/* ─────────── PUSULA · İÇERİDEN (yatay pinned vitrin) ───────────
+          Varsayılan DOM dikey 'bf-fallback' (JS yoksa / reduced-motion'da
+          güvenli). Masaüstü-hareketli kolda useGSAP fallback sınıfını söküp
+          pin + yatay track kurar; sayaç & progress TEK scroll kaynağından
+          sürülür (senkronsuzluk = eski 'bozuk' his biter). */}
+      <section
+        className="brain-showcase bf-fallback relative z-10"
+        style={{ background: "var(--zara-ink)", color: "var(--zara-bg)" }}
+      >
+        <div className="bf-viewport">
+          {/* tech katman: blueprint mono-grid + TEK altın hâle standardı */}
+          <div aria-hidden className="bf-grid" />
+          <div aria-hidden className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(120% 80% at 82% 0%, var(--zara-glow-strong), transparent 60%)" }} />
+
+          {/* canlı HUD — pin boyunca okunur readout */}
+          <div className="bf-hud">
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-mono tracking-[0.3em] uppercase" style={{ color: "var(--zara-gold-soft)" }}>BÖLÜM 02 · İNSAN</span>
+              <span className="hidden sm:inline text-[10px] font-mono tracking-[0.24em]" style={{ color: "rgba(245,241,234,0.32)" }}>// PUSULA.CORE</span>
             </div>
-            <div className="text-right">
-              <div className="font-serif leading-none" style={{ fontSize: 56, fontWeight: 600 }}>
-                <span className="bf-count">00</span><span style={{ color: "var(--zara-gold-soft)" }}>/06</span>
-              </div>
-              <div className="mt-3 h-[3px] w-40 ml-auto" style={{ background: "rgba(245,241,234,0.15)" }}>
-                <div className="bf-progress-fill h-full" style={{ background: "var(--zara-gold)", transformOrigin: "left center", transform: "scaleX(0)" }} />
-              </div>
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-sm tabular-nums tracking-[0.1em]">
+                <span className="bf-count" style={{ color: "var(--zara-gold)" }}>06</span>
+                <span style={{ color: "rgba(245,241,234,0.4)" }}> / 06</span>
+              </span>
+              <span className="block h-[2px] w-24 sm:w-36" style={{ background: "rgba(245,241,234,0.14)" }}>
+                <span className="bf-progress-fill block h-full" style={{ background: "var(--zara-gold)", transformOrigin: "left center", transform: "scaleX(1)" }} />
+              </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {PUSULA_FEATURES.map((f) => (
-              <div
-                key={f.n}
-                className="bf-card relative p-6 md:p-7"
-                style={{ background: "rgba(245,241,234,0.04)", border: "1px solid rgba(184,147,90,0.25)" }}
-              >
-                <div className="flex items-center justify-between mb-5">
-                  <span className="font-mono text-[11px] tracking-[0.24em]" style={{ color: "var(--zara-gold-soft)" }}>{f.n}</span>
-                  <f.icon size={18} strokeWidth={1.5} style={{ color: "var(--zara-gold)" }} />
+          <div className="bf-track">
+            {/* intro paneli — marka compass'ı watermark */}
+            <div className="bf-panel relative px-6 sm:px-10 md:px-16" style={{ width: "min(92vw, 640px)" }}>
+              <PusulaCompass dark heading={26} className="absolute right-[-70px] top-1/2 -translate-y-1/2 w-[360px] opacity-[0.22] pointer-events-none hidden lg:block" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-4 text-[10px] font-mono tracking-[0.28em] uppercase" style={{ color: "rgba(245,241,234,0.45)" }}>
+                  <span>38.45° N · 27.21° E</span>
+                  <span style={{ color: "var(--zara-gold-soft)" }}>BORNOVA</span>
                 </div>
-                <h3 className="font-serif text-2xl mb-2" style={{ fontWeight: 500 }}>{f.t}</h3>
-                <p className="text-sm font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.7)" }}>{f.d}</p>
+                <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em]" style={{ fontWeight: 600 }}>Pusula,<br />içeriden.</h2>
+                <p className="mt-5 max-w-md text-sm sm:text-base font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.72)" }}>
+                  İnsan ana sahnedir; performans onun sonucudur. Altı yetenek, tek öğrenen döngüde.
+                </p>
+                <Link
+                  to="/pusula"
+                  className="mt-8 inline-flex items-center gap-2 px-7 py-3.5 font-mono text-[11px] tracking-[0.22em] uppercase rounded-[5px]"
+                  style={{ background: "var(--zara-gold)", color: "var(--zara-ink)" }}
+                >
+                  Pusula'yı Keşfet <ArrowRight size={14} strokeWidth={1.8} />
+                </Link>
+                <div className="mt-10 hidden md:flex items-center gap-3 text-[10px] font-mono tracking-[0.28em] uppercase" style={{ color: "rgba(245,241,234,0.4)" }}>
+                  Kaydır <ArrowRight size={13} strokeWidth={1.6} />
+                </div>
+              </div>
+            </div>
+
+            {/* 6 yetenek paneli */}
+            {PUSULA_FEATURES.map((f) => (
+              <div key={f.n} className="bf-panel px-3 sm:px-4" style={{ width: "min(82vw, 400px)" }}>
+                <div
+                  className="bf-card relative overflow-hidden h-[min(62vh,460px)] flex flex-col p-7 md:p-8"
+                  style={{ background: "rgba(245,241,234,0.04)", border: "1px solid rgba(184,147,90,0.25)" }}
+                >
+                  {/* temalı grayscale görsel + karartma — metin okunur kalır */}
+                  <div aria-hidden className="absolute inset-0 pointer-events-none">
+                    <img src={f.img} alt="" loading="lazy" className="w-full h-full object-cover grayscale" style={{ opacity: 0.18 }} />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(26,22,20,0.25) 0%, rgba(26,22,20,0.78) 100%)" }} />
+                  </div>
+                  <div className="relative z-10 flex items-center justify-between">
+                    <span className="font-mono text-[11px] tracking-[0.24em]" style={{ color: "var(--zara-gold-soft)" }}>{f.n} / 06</span>
+                    <f.icon size={20} strokeWidth={1.5} style={{ color: "var(--zara-gold)" }} />
+                  </div>
+                  <div className="relative z-10 mt-auto">
+                    <h3 className="font-serif text-3xl mb-3" style={{ fontWeight: 500 }}>{f.t}</h3>
+                    <p className="text-sm font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.78)" }}>{f.d}</p>
+                  </div>
+                  <div className="relative z-10 mt-6 pt-4 flex items-center justify-between text-[10px] font-mono tracking-[0.22em]" style={{ borderTop: "1px solid rgba(184,147,90,0.18)", color: "rgba(245,241,234,0.4)" }}>
+                    <span>// SIGNAL</span>
+                    <span>0{f.n}·ZT</span>
+                  </div>
+                </div>
               </div>
             ))}
-          </div>
-
-          <div className="mt-10 flex justify-center">
-            <Link
-              to="/pusula"
-              className="inline-flex items-center gap-2 px-7 py-3.5 font-mono text-[11px] tracking-[0.22em] uppercase rounded-[5px]"
-              style={{ background: "var(--zara-gold)", color: "var(--zara-ink)" }}
-            >
-              Pusula'yı Keşfet <ArrowRight size={14} strokeWidth={1.8} />
-            </Link>
           </div>
         </div>
       </section>
@@ -548,7 +620,7 @@ export default function Home() {
             </div>
             <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Nasıl çalışır?</h2>
           </div>
-          <div data-stagger className="grid grid-cols-1 md:grid-cols-3 gap-px" style={{ background: "var(--zara-line-strong)" }}>
+          <div data-stagger data-flat className="grid grid-cols-1 md:grid-cols-3 gap-px" style={{ background: "var(--zara-line-strong)" }}>
             {STEPS.map((s, i) => (
               <div data-card key={s.t} className="bg-zara p-8 md:p-10">
                 <div className="flex items-center gap-3 mb-6">
@@ -566,7 +638,7 @@ export default function Home() {
 
       {/* ─────────── CTA ─────────── */}
       <section className="cta-section relative z-10 px-4 sm:px-6 md:px-12 py-24 md:py-32 text-center overflow-hidden">
-        <div aria-hidden className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[60vw] max-w-[900px] pointer-events-none rounded-full" style={{ background: "radial-gradient(circle, rgba(184,147,90,0.12) 0%, transparent 65%)" }} />
+        <div aria-hidden className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[60vw] max-w-[900px] pointer-events-none rounded-full" style={{ background: "radial-gradient(circle, var(--zara-glow) 0%, transparent 65%)" }} />
         <div data-reveal className="relative max-w-2xl mx-auto">
           <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.0] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Hazır olduğunda, başla.</h2>
           <p className="mt-5 text-sm sm:text-base text-ink/60 font-sans">Operasyonun ev sahibi seni bekliyor.</p>

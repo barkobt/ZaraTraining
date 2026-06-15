@@ -51,6 +51,13 @@
     --zara-bronze: #8B6F47;
     --zara-stone: #9B8F80;
 
+    /* ── GLOW · TEK altın hâle standardı ───────────────────── */
+    /* Önceden sayfada 3 farklı yoğunluk (0.10/0.18/0.12) dolaşıyordu —
+       "ışık modeli kararsız" hissinin kökü. İki kademeye kilitlendi:
+       ambient (açık zeminler) + strong (köz/koyu showcase). */
+    --zara-glow: rgba(184, 147, 90, 0.12);
+    --zara-glow-strong: rgba(184, 147, 90, 0.18);
+
     /* ── SEMANTIC · the only non-warm colors ───────────────── */
     --zara-emerald: #059669;          /* LIVE dot only, never bulk fill */
     --zara-destructive: #D04A3B;
@@ -410,14 +417,82 @@
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
+/* iOS dikey kaydırma garantisi — hiçbir katman dokunmatik scroll'u yutamaz */
+html, body { touch-action: pan-y pinch-zoom; }
+
+/* ── LENIS smooth-scroll ───────────────────────────────────────
+   brandonbartram.dev hissi: tekerlek/trackpad yumuşatma. Sınıflar
+   yalnız JS Lenis'i başlatınca (reduced-motion DIŞINDA) eklenir;
+   eklenmezse sayfa tamamen native scroll'da kalır. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* ── BÖLÜM 02 · yatay pinned vitrin ────────────────────────────
+   .brain-showcase pinli viewport; .bf-track içeride yatay süzülür.
+   Blueprint dokusu: çok düşük opaklıkta dikey mono-grid (tech katman). */
+.bf-viewport {
+  position: relative;
+  height: 100vh;
+  min-height: 640px;
+  overflow: hidden;
+}
+.bf-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(245, 241, 234, 0.045) 0 1px,
+    transparent 1px 96px
+  );
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+/* Pin boyunca okunur canlı HUD; fallback'te normal akışa düşer */
+.bf-hud {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem clamp(1rem, 4vw, 3rem);
+  border-bottom: 1px solid rgba(184, 147, 90, 0.18);
+  background: linear-gradient(180deg, rgba(26, 22, 20, 0.85), transparent);
+  pointer-events: none;
+}
+.bf-fallback .bf-hud {
+  position: static;
+  background: none;
+}
+.bf-track {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  width: max-content;
+  will-change: transform;
+  padding-top: clamp(64px, 9vh, 96px); /* HUD altına nefes */
+}
+.bf-fallback .bf-track { padding-top: 0; }
+.bf-panel {
+  flex: 0 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 .bf-card {
   transition: transform 450ms cubic-bezier(0.22, 0.61, 0.36, 1), border-color 450ms, background 450ms;
 }
 .bf-card:hover {
-  transform: translateY(-6px);
   border-color: rgba(184, 147, 90, 0.55) !important;
   background: rgba(245, 241, 234, 0.07) !important;
 }
 
-/* iOS dikey kaydırma garantisi — hiçbir katman dokunmatik scroll'u yutamaz */
-html, body { touch-action: pan-y pinch-zoom; }
+/* Mobil / reduced-motion fallback: pin yok, dikey akış */
+.bf-fallback .bf-viewport { height: auto; overflow: visible; }
+.bf-fallback .bf-track { flex-direction: column; width: 100%; }
+.bf-fallback .bf-panel { height: auto; }

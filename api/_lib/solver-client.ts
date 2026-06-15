@@ -8,6 +8,12 @@ export type SolverStaffInput = {
   full_name: string;
   group: string;
   competencies: Record<string, number>;
+  /** Görev etiketi: COACH | CX | COM | null. Yetkinlik tablosundan (duty). */
+  role_tag?: string | null;
+  /** Çalışma tipi: FT | PT | null. Yetkinlik tablosundan (employment). */
+  contract_type?: string | null;
+  /** Sabit çalışma alanı: WOMAN | BASIC | TRF | FITTING_ROOM | … | null. */
+  home_area?: string | null;
 };
 
 export type SolverShiftInput = {
@@ -17,6 +23,8 @@ export type SolverShiftInput = {
   breaks?: Array<[number, number]>;
   /** Blocking tasklar: [(saat, 'HR'|'TR'|'ISG')]. Pembe tasklar buraya gelmez. */
   tasks?: Array<[number, string]>;
+  /** Kişinin sabit alanı — short_name üzerinden personel kaydından eşlenir. */
+  home_area?: string | null;
 };
 
 export type SolverConfigInput = {
