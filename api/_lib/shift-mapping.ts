@@ -43,5 +43,9 @@ export function staffRowsToSolverInput(rows: StaffWithCompetencies[]): SolverSta
       full_name: r.fullName,
       group: tenureToGroup(r),
       competencies: competenciesToSolver(r),
+      // Yetkinlik tablosundaki alanlar → solver alan-bazlı (area-based) sistemi.
+      role_tag: r.duty,        // COACH | CX | COM | null
+      contract_type: r.employment, // FT | PT | null
+      home_area: r.homeArea,   // WOMAN | BASIC | TRF | … | null
     }));
 }
