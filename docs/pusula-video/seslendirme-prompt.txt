@@ -1,0 +1,115 @@
+PUSULA — AI TANITIM VİDEOSU KURGU & SESLENDİRME PROMPT'U
+Toplam süre: 60 saniye · Dil: Türkçe · 14 görsel (bu klasörde, sahne sırasıyla numaralı)
+
+══════════════════════════════════════════════════════════════════
+GENEL STİL TALİMATI (video üreticisine ver)
+══════════════════════════════════════════════════════════════════
+Estetik: Zara editorial — saf beyaz zemin, siyah mürekkep, serif italik başlıklar.
+Görseller arası geçiş: yumuşak cross-fade veya yatay kaydırma; her karede ÇOK YAVAŞ
+zoom-in (Ken Burns, %3–5). Müzik: minimal, zarif piyano/elektronik; 0:42'de hafif
+yükseliş, 0:55'te çözülme. Seslendirme: sakin, kendinden emin, sıcak; reklam bağırışı
+değil — bir küratörün anlatımı. Ekran metinleri (alt bantta, mono yazıyla) her sahnenin
+"BANT" satırında verilmiştir; isteğe bağlı kullan.
+
+══════════════════════════════════════════════════════════════════
+SAHNE AKIŞI — saniye · görsel · seslendirme · yönerge
+══════════════════════════════════════════════════════════════════
+
+[0:00–0:05] GÖRSEL: 01-bugun-kokpit.png — "Açılış · Pusula"
+SES: "Pusula. ZARA Bornova'da insan odaklı yapay zekâ. Burada insan ana
+sahnedir — performans, onun sonucudur."
+BANT: PUSULA · ZARA · ATELYE · BORNOVA
+YÖNERGE: Karanlıktan beyaza açıl; wordmark'a yavaş zoom. Ciddi ve davetkâr ton.
+
+[0:05–0:10] GÖRSEL: 02-bugun-kuyruk.png — "Günün Kuyruğu"
+SES: "Koç güne tek ekranda başlar: onaylar, keşifler, eşleşmeler — günün
+kuyruğu hazır. Karar her zaman insanda."
+BANT: TEK EKRAN · GÜNÜN KUYRUĞU · KARAR KOÇTA
+YÖNERGE: Kuyruk satırları boyunca aşağı doğru yavaş pan; "ONAYLA" butonunda mikro duraklama.
+
+[0:10–0:14] GÖRSEL: 03-ekip.png — "Yaşayan Ekip"
+SES: "Otuz kişilik ekip — skorsuz, sıralamasız. Herkesin kanıt parmak izi farklı."
+BANT: SKOR YOK · SIRALAMA YOK · KANIT VAR
+YÖNERGE: Kart grid'i üzerinde çapraz kayma; iki farklı kartın DNA şeridine kısa odak.
+
+[0:14–0:19] GÖRSEL: 04-profil.png — "Profil · Hikâye Akışı"
+SES: "Her profil bir hikâyedir: kimdir, neyde güçlüdür, nerede parlar,
+nereye gidiyor."
+BANT: KİM → NEYDE GÜÇLÜ → NEREDE PARLAR → NEREYE
+YÖNERGE: Yukarıdan aşağı akıcı kaydırma hissi; serif isimde başla.
+
+[0:19–0:23] GÖRSEL: 05-profil-ai-katki.png — "AI'ın Katkıları"
+SES: "Yapay zekânın her katkısı dört parçadır: tahmin, güven, kanıt —
+ve son söz, her zaman koçta."
+BANT: TAHMİN + GÜVEN + KANIT + ONAY HAKKI
+YÖNERGE: "TAHMİN / KEŞİF / YERLEŞTİRME" satırlarına sırayla odak; temiz, metodik ritim.
+
+[0:23–0:28] GÖRSEL: 06-defter-takip.png — "Gelişim Defteri"
+SES: "Kâğıt kitapçık dijital hafızaya dönüşür: her tik tarihiyle, her statü
+kendi notuyla işlenir. Gelişim takibi artık kalıcıdır."
+BANT: 120 KONU · HER TİK TARİH + NOT
+YÖNERGE: İşaretli konu satırlarında yumuşak dikey pan; nabız bandındaki sayaca göz kırp.
+
+[0:28–0:33] GÖRSEL: 07-defter-aksiyon-provenance.png — "Neden Bu Öneri?"
+SES: "Pusula önerir ama asla saklamaz. 'Neden bu öneri?' — sinyal, kanıt
+kanalı, çıkarım, güven. Zincirin tamamı sorgulanabilir."
+BANT: SİNYAL → KANAL → ÇIKARIM → GÜVEN
+YÖNERGE: Açık provenance zincirine zoom-in; dört adımı takip eden dikey hareket.
+Bu sahne videonun teknik kalbidir — temposu bir tık yavaş olsun.
+
+[0:33–0:37] GÖRSEL: 09-hafiza-oruntuler.png — "Öğrenen Hafıza"
+SES: "Sistem veri saklamaz; öğrenir. Gözlemler temalara, temalar müfredat
+önerilerine dönüşür."
+BANT: GÖZLEM → ÖRÜNTÜ → MÜFREDAT
+YÖNERGE: Üç örüntü kartı üzerinde soldan sağa kayma; sayaçlara kısa odak.
+
+[0:37–0:41] GÖRSEL: 10-hafiza-etiketleme.png — "Koçluk Anı"
+SES: "Koç gözlemini yazar; Pusula senaryoyu ve yöntemi tanır. Onay tek
+dokunuş — bilgi arşive, örüntüye, kuruma işlenir."
+BANT: YAZ → ETİKETLE → ONAYLA → KURUMDA KALIR
+YÖNERGE: Etiket çiplerine ("KABİN AKIŞI · GÖLGE→SOLO") zoom; "DOĞRU, KAYDET" anında çok kısa beyaz parlama.
+
+[0:41–0:46] GÖRSEL: 11-usta-yolu.png — "Usta Yolu"
+SES: "Ve hiçbir ustalık kaybolmaz: usta ayrılsa bile yöntemi kurumsal
+hafızaya kodlanır — bilgi, kurumda kalır."
+BANT: USTA AYRILSA DA YÖNTEM KURUMDA KALIR
+YÖNERGE: Aktarım kartındaki "Fatma → Asya" serif satıra odak; ardından alttaki
+"kurumsal hafızaya kodlananlar" bandına in. Müzik burada yükselmeye başlasın.
+
+[0:46–0:50] GÖRSEL: 12-yerlestirme.png — "Akşam Yerleşimi"
+SES: "Doğru el, doğru saatte, doğru bölgede. Akşam cebi tahminle değil,
+kanıtla kapanır."
+BANT: TALEP × KANIT = YERLEŞİM
+YÖNERGE: Saatlik kadro barlarından chart'a geçen yatay kayma; canlı ve ritmik.
+
+[0:50–0:54] GÖRSEL: 13-saha-krokisi.png — "Saha Krokisi"
+SES: "Kroki konuşur: baskı nerede, kanıt nerede, açık nerede — her zone
+kendi metriğinden beslenir."
+BANT: BASKI ↔ KANIT KATMANI · AÇIK = FIRSAT
+YÖNERGE: Kroki üzerinde havadan süzülme hissi; işaretçilerde nokta nokta duraklama.
+
+[0:54–0:58] GÖRSEL: 14-etki.png — "Gelişim Etkisi"
+SES: "Sistem soğuk başlar, her kapanan döngüyle keskinleşir: öneri isabeti
+yüzde altmış ikiden seksen altıya."
+BANT: %62 → %86 · DÖNGÜ KAPANDIKÇA KESKİNLEŞİR
+YÖNERGE: İsabet eğrisi soldan sağa çizilirmiş gibi maskeli reveal; rakamlar tek tek belirsin.
+
+[0:58–1:00] GÖRSEL: 01-bugun-kokpit.png (tekrar — veya düz beyaz zemin üzerinde logo)
+SES: "Pusula. İnsanla başlar, kanıtla yönetir."
+BANT: PUSULA — İNSAN ANA SAHNEDİR
+YÖNERGE: Beyaza çözülme; wordmark + pusula gülü sembolü ortada; müzik tek notayla kapanır.
+
+══════════════════════════════════════════════════════════════════
+YEDEK / ALTERNATİF SAHNE
+══════════════════════════════════════════════════════════════════
+08-defter-rapor.png — "Dönem Raporu · Kapanan Döngüler"
+SES (5 sn): "Dönem sonunda hiçbir şey havada kalmaz: hangi öneri tuttu,
+hangisi geri yazıldı — rapor, döngünün kapanışıdır."
+(Süre 60 saniyeyi aşacaksa kullanma; aşmıyorsa 0:33'ten önce eklenebilir,
+sonraki sahneler 5'er saniye kayar.)
+
+NOTLAR
+- Tüm sayılar temsilî pilot hedefidir; videoda "%62→86" dışında rakam telaffuz etme.
+- "Skor yok, sıralama yok, karar koçta" üçlüsü markanın etik imzasıdır — bant
+  metinlerinde en az iki kez görünsün.
+- Telaffuz: "Pusula" (vurgu ilk hecede), "Atelye" (a-tel-ye).

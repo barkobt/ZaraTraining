@@ -123,21 +123,17 @@ export function Profil({
           <BehavioralStrip emp={active} />
         </section>
 
-        <div className="pusula-profile-cols">
-          {/* ── NEREDE PARLAR · zone uyumu ── */}
-          <div className="pusula-profile-col">
-            <section className="pusula-profile-block">
-              <Eyebrow>{t("e.shines")}</Eyebrow>
-              <ZoneFit emp={active} />
-            </section>
-          </div>
+        {/* ── NEREDE PARLAR · zone uyumu ── */}
+        <section className="pusula-profile-block">
+          <Eyebrow>{t("e.shines")}</Eyebrow>
+          <ZoneFit emp={active} />
+        </section>
 
-          {/* ── NEREYE GİDİYOR · yörünge + tahmin ── */}
-          <div className="pusula-profile-col">
-            <section className="pusula-profile-block">
-              <Eyebrow>{t("e.trajectory")}</Eyebrow>
-              <GrowthTrajectory traj={traj} />
-            </section>
+        {/* ── NEREYE GİDİYOR · yörünge + tahmin ── */}
+        <section className="pusula-profile-block">
+          <Eyebrow>{t("e.trajectory")}</Eyebrow>
+          <GrowthTrajectory traj={traj} />
+        </section>
 
             {/* ── AI'IN KATKILARI · tahmin + güven + kanıt + onay hakkı ──
                  Her satır 4 parçalı sunulur (mimari rapor): TAHMİN, GÜVEN(SOFT),
@@ -196,8 +192,6 @@ export function Profil({
                 )}
               </div>
             </section>
-          </div>
-        </div>
 
         {/* ── KANIT → ÖNERİ → ONAY · aptitude döngüsü ── */}
         {apts.length > 0 && (
@@ -208,31 +202,25 @@ export function Profil({
         )}
 
         {/* ── SIRADAKİ ADIM · eğitimler + (varsa) usta aktarımı ── */}
-        <div className="pusula-profile-cols">
-          <div className="pusula-profile-col">
-            <section className="pusula-profile-block pusula-upcoming-block">
-              <Eyebrow>{t("e.nextStep")}</Eyebrow>
-              <UpcomingTrainings items={trainings} />
-            </section>
-          </div>
-          {showTeaching && (
-            <div className="pusula-profile-col">
-              <section className="pusula-profile-block">
-                <Eyebrow gold>{t("e.teaching")}</Eyebrow>
-                {(() => {
-                  const tc = teachingText();
-                  return (
-                    <div className="pusula-teach">
-                      <div className="pusula-teach-topic">{tc.topic}</div>
-                      <div className="pusula-teach-method">{tc.method}</div>
-                      <div className="pusula-teach-confirm">{tc.confirmPrompt}</div>
-                    </div>
-                  );
-                })()}
-              </section>
-            </div>
-          )}
-        </div>
+        <section className="pusula-profile-block pusula-upcoming-block">
+          <Eyebrow>{t("e.nextStep")}</Eyebrow>
+          <UpcomingTrainings items={trainings} />
+        </section>
+        {showTeaching && (
+          <section className="pusula-profile-block">
+            <Eyebrow gold>{t("e.teaching")}</Eyebrow>
+            {(() => {
+              const tc = teachingText();
+              return (
+                <div className="pusula-teach">
+                  <div className="pusula-teach-topic">{tc.topic}</div>
+                  <div className="pusula-teach-method">{tc.method}</div>
+                  <div className="pusula-teach-confirm">{tc.confirmPrompt}</div>
+                </div>
+              );
+            })()}
+          </section>
+        )}
       </div>
     </div>
   );

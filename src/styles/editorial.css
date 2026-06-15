@@ -2817,3 +2817,38 @@
 .so-shell .stars.t3 { color: rgba(0, 0, 0, 0.78); }
 .so-shell .stars.t4 { color: #000; }
 .so-shell .stars.empty { color: rgba(0, 0, 0, 0.22); }
+
+/* ══ PUSULA v5 · PROFİL DÜZEN + YAZI/RENK KARARI ════════════════════
+   YAZI STİLİ KARARI (tek sistem):
+     • serif (Newsreader) = başlık + kişi adı  • sans (Inter) = gövde/değer
+     • mono (JetBrains)   = eyebrow/etiket/sayı
+   İTALİK yalnız: kişi adı + okuma alıntısı (gerisi roman).
+   RENK SEMANTİĞİ: ink=birincil & proven · gold=aksan/projeksiyon · gri=ikincil/gelişen. */
+.pusula-profile-main { max-width: 1040px; }
+.pusula-profile-block + .pusula-profile-block { margin-top: 48px; }
+/* italik gürültüsünü kes — persona başlığı düz serif */
+.pusula-persona-label { font-style: normal; }
+/* yetkinlik barları: rafine + semantik renk (opaklık hilesi yok) */
+.pcomp-bar { height: 5px; background: var(--zara-line); }
+.pcomp-fill { opacity: 1; }
+.pcomp-fill.usta { background: var(--zara-ink); }
+.pcomp-fill.guclu { background: var(--zara-gold); }
+.pcomp-fill.yapabiliyor { background: var(--zara-ink-2); }
+.pcomp-fill.emerging, .pcomp-fill.gelisiyor { background: var(--zara-stone, #9B8F80); }
+/* P6 — Kanıt→Öneri→Onay okunur boyuta */
+.papt-k { font-size: 9.5px; }
+.papt-v { font-size: 13px; }
+.papt-v em { font-size: 9px; }
+.papt-pending { font-size: 9px; }
+.papt-done { font-size: 9px; }
+.papt-row { padding: 18px 20px; }
+/* chart eksen etiketleri okunur + tahmin pili sade (italik yok) */
+.pusula-traj-x { font-size: 9px; }
+.pusula-traj-thr { font-size: 9px; }
+.pusula-traj-pred { font-size: 13px; font-style: normal; }
+/* P4 — chart: makul genişlik + üniform ölçek + sade tahmin satırı */
+.pusula-traj { max-width: 540px; }
+.pusula-traj-svg { display: block; height: auto; }
+.pusula-traj-thr { letter-spacing: 0.12em; }
+.pusula-traj-pred { background: transparent; padding: 10px 0 0; color: var(--zara-ink-2); border-top: 1px solid var(--zara-line); margin-top: 4px; }
+.pusula-traj-pred svg { color: var(--zara-gold-deep); }

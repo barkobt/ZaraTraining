@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<title>Pusula — Sunum</title>
+<style>
+  @page { size: 13.33in 7.5in; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root{
+    --bg:#F5F1EA; --bg2:#EFEAE0; --white:#FFFFFF; --warm:#FAF6EE;
+    --ink:#1A1614; --ink2:#2D2420; --ink50:rgba(26,22,20,.55); --ink40:rgba(26,22,20,.40); --ink30:rgba(26,22,20,.28);
+    --gold:#B8935A; --golddeep:#8B6F47; --goldsoft:#D4B582; --goldtint:rgba(184,147,90,.10);
+    --sage:#7A946E; --line:rgba(26,22,20,.10); --linestrong:rgba(26,22,20,.20);
+    --serif:"Playfair Display",Georgia,"Times New Roman",serif;
+    --sans:"Helvetica Neue",Arial,sans-serif;
+    --mono:"SF Mono","Courier New",monospace;
+  }
+  html,body{ background:#fff; }
+  .slide{
+    width:13.33in; height:7.5in; background:var(--bg); color:var(--ink);
+    page-break-after:always; position:relative; overflow:hidden;
+    padding:0.62in 0.72in; display:flex; flex-direction:column;
+  }
+  .slide:last-child{ page-break-after:auto; }
+  .eyebrow{ font-family:var(--mono); font-size:9.5px; letter-spacing:.32em; text-transform:uppercase; color:var(--golddeep); }
+  h1{ font-family:var(--serif); font-weight:700; font-size:40px; line-height:1.04; letter-spacing:-.01em; margin:10px 0 6px; }
+  h1 em{ font-style:italic; font-weight:400; }
+  .sub{ font-family:var(--sans); font-size:15px; color:var(--ink50); font-style:italic; max-width:9in; }
+  .rule{ height:1px; background:var(--linestrong); margin:14px 0 16px; }
+  .body{ display:flex; gap:34px; flex:1; min-height:0; }
+  .col{ flex:1; min-width:0; }
+  ul{ list-style:none; display:flex; flex-direction:column; gap:11px; margin-top:4px; }
+  li{ font-family:var(--sans); font-size:14.5px; line-height:1.45; color:var(--ink2); padding-left:18px; position:relative; }
+  li::before{ content:""; position:absolute; left:0; top:8px; width:6px; height:6px; background:var(--gold); border-radius:50%; }
+  li b{ color:var(--ink); font-weight:700; }
+  .shots{ display:flex; flex-direction:column; gap:12px; justify-content:center; }
+  .shots.row{ flex-direction:row; }
+  .shot{ border:1px solid var(--linestrong); border-radius:8px; overflow:hidden; background:var(--white); box-shadow:0 20px 50px -28px rgba(26,22,20,.45); }
+  .shot img{ display:block; width:100%; height:auto; }
+  .foot{ position:absolute; left:0.72in; right:0.72in; bottom:0.34in; display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--mono); font-size:8px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink40); border-top:1px solid var(--line); padding-top:8px; }
+  .pageno{ color:var(--golddeep); }
+
+  /* cover */
+  .cover{ justify-content:center; align-items:flex-start; }
+  .cover .brand{ font-family:var(--serif); font-style:italic; font-size:30px; }
+  .cover h1{ font-size:58px; max-width:10in; margin-top:24px; }
+  .cover .sub{ font-size:18px; margin-top:14px; }
+  .cover .meta{ margin-top:46px; font-family:var(--mono); font-size:10px; letter-spacing:.28em; text-transform:uppercase; color:var(--golddeep); }
+  .bigstat{ background:var(--ink); color:var(--bg); border-radius:10px; padding:22px 26px; display:flex; gap:30px; align-items:center; margin-top:6px; }
+  .bigstat .n{ font-family:var(--serif); font-size:46px; line-height:1; color:var(--goldsoft); }
+  .bigstat .t{ font-family:var(--sans); font-size:14px; line-height:1.4; }
+  .loop{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:6px 0 4px; }
+  .loop span{ font-family:var(--serif); font-style:italic; font-size:20px; color:var(--ink); }
+  .loop .arr{ color:var(--gold); font-family:var(--sans); font-style:normal; font-size:16px; }
+  .quote{ font-family:var(--serif); font-style:italic; font-size:22px; color:var(--golddeep); margin-top:10px; }
+  /* data table */
+  table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  th,td{ text-align:left; padding:9px 12px; font-family:var(--sans); font-size:13px; vertical-align:top; border-bottom:1px solid var(--line); }
+  th{ font-family:var(--mono); font-size:8.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink40); }
+  td.src{ font-weight:700; color:var(--ink); width:30%; }
+  td.where{ color:var(--golddeep); font-family:var(--mono); font-size:11px; width:22%; }
+  td.live{ color:var(--ink2); font-style:italic; }
+  .tag{ display:inline-block; font-family:var(--mono); font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--golddeep); border:1px solid var(--goldsoft); background:var(--goldtint); border-radius:999px; padding:3px 9px; }
+</style>
+</head>
+<body>
+
+<!-- 1 KAPAK -->
+<section class="slide cover">
+  <div class="brand"><em>Pusula</em></div>
+  <div class="eyebrow" style="margin-top:8px">Yaşayan Uzman · People-first AI</div>
+  <h1><em>Aynı uzman,</em><br/>genişleyen bakış.</h1>
+  <div class="sub">İnsan ana sahnedir; operasyonel verim onun <b>sonucu</b>. Tek AI motoru, kapalı döngü: Tanı → Geliştir → Yerleştir.</div>
+  <div class="meta">ZARA · Atelye · Bornova &nbsp;·&nbsp; Inditex AI Hackathon 2026</div>
+  <div class="foot"><span>Pusula · Yaşayan Uzman</span><span class="pageno">01 / 10</span></div>
+</section>
+
+<!-- 2 PROBLEM -->
+<section class="slide">
+  <div class="eyebrow">02 · Problem</div>
+  <h1>Üç kırık, <em>tek</em> kayıp.</h1>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="col">
+      <ul>
+        <li><b>İnsan gelişimi kâğıtta.</b> Takip dağınık, veri çıkmıyor, ustanın gözlemi kayboluyor.</li>
+        <li><b>Usta ayrılınca bilgi gidiyor.</b> Aktarım kurumsallaşmamış — her yeni başlayan sıfırdan.</li>
+        <li><b>Yerleşim yeteneği görmüyor.</b> Kim neyde gerçekten iyi? Vardiya bunu okumuyor.</li>
+        <li>Sonuç: akşam tepe-saatinde <b>güçlü el yanlış yerde</b>, açık talep kapatılamıyor.</li>
+      </ul>
+    </div>
+    <div class="col" style="display:flex;flex-direction:column;justify-content:center;gap:14px">
+      <div class="bigstat">
+        <div class="n">%17</div>
+        <div class="t"><b>Akşam 17–18 conversion</b><br/>trafik zirvede (743 kişi) ama dönüşüm dipte — gerçek 2025 verisi.</div>
+      </div>
+      <div class="sub">Bu cep = kaybedilen para. Pusula'nın hedefi: doğru insanı doğru ana yerleştirip bu cebi <b>rahatlatmak</b>.</div>
+    </div>
+  </div>
+  <div class="foot"><span>Pusula · Problem</span><span class="pageno">02 / 10</span></div>
+</section>
+
+<!-- 3 ÇÖZÜM -->
+<section class="slide">
+  <div class="eyebrow">03 · Çözüm</div>
+  <h1>Tek motor, <em>kapalı</em> döngü.</h1>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="col">
+      <div class="loop">
+        <span>Tanı</span><span class="arr">→</span><span>Geliştir</span><span class="arr">→</span><span>Yerleştir</span><span class="arr">→</span><span>Ölç</span><span class="arr">→</span><span>Güncelle</span>
+      </div>
+      <ul style="margin-top:14px">
+        <li>Kişinin <b>yaşayan profili</b> (yetkinlik + gerçekleşen KPI) hem gelişime hem yerleşime döner.</li>
+        <li>Sonuç ölçülür, modele geri yazılır — <b>her hafta daha keskin, daha güvenli</b>.</li>
+        <li>People ile açıyoruz (AI en yadsınamaz: senaryo keşfi, ustalık aktarımı), operasyonel parayla bağlıyoruz.</li>
+      </ul>
+      <div class="quote">"AI'ı çıkar → geriye bir şey kalmaz."</div>
+      <div class="sub">Painkiller, vitamin değil.</div>
+    </div>
+    <div class="col shots">
+      <div class="shot"><img src="gorseller/01-nav-moduller.png" alt="modüller"/></div>
+      <div class="sub" style="text-align:center">İNSAN · GELİŞİM · SONUÇ — tek akış, üç durak.</div>
+    </div>
+  </div>
+  <div class="foot"><span>Pusula · Kapalı döngü</span><span class="pageno">03 / 10</span></div>
+</section>
+
+<!-- 4 İNSAN -->
+<section class="slide">
+  <div class="eyebrow">04 · İnsan</div>
+  <h1>Yaşayan <em>profil</em>.</h1>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="col">
+      <ul>
+        <li><b>30 gerçek kişi</b> — rol-tipi (Satış Danışmanı / Commercial / Müdür) ve yaşam-evresi (Yeni→Koç) filtreli.</li>
+        <li><b>3 enerji:</b> Approacher · Welcomer · Mix&Match — yetkinlik deseninden.</li>
+        <li><b>Alan-spesifik sinyaller</b> (FR→satış, zone sell-through, welcome→merma) + <b>belirsizlik (n)</b>.</li>
+        <li><b>Yokluk ≠ başarısızlık:</b> veri yoksa yargı değil, keşif önerilir.</li>
+        <li>Sert skor yok — çok boyutlu, nitel, çalışan da görür.</li>
+      </ul>
+    </div>
+    <div class="col shots row">
+      <div class="shot"><img src="gorseller/02-ekip.png" alt="ekip"/></div>
+      <div class="shot"><img src="gorseller/03-profil.png" alt="profil"/></div>
+    </div>
+  </div>
+  <div class="foot"><span>Pusula · İnsan</span><span class="pageno">04 / 10</span></div>
+</section>
+
+<!-- 5 GELİŞİM DEFTER -->
+<section class="slide">
+  <div class="eyebrow">05 · Gelişim · Defter</div>
+  <h1>Dijital <em>takip kitapçığı</em>.</h1>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="col">
+      <ul>
+        <li><b>120 gerçek topic</b> — 3 rol × 3 seviye, Müşteri / Ürün / Süreçler, kitapçığa birebir.</li>
+        <li><b>İşaret tarihi + pill-notu:</b> koç ne yaptığını yazar → sistem öğrenir, daha iyi revize eder.</li>
+        <li><b>Öğretebilir</b> seviyesi → kişi otomatik <b>mentor adayı</b>.</li>
+        <li><b>Yaşam-evresine ayrı planlar</b> (hover): Yeni/Yetkin/Usta/Koç — herkesin planı farklı.</li>
+        <li>Yetkinlik 0–5 etiketle (sayı değil) · Dönem aksiyonu & raporu yazılabilir (AI taslak).</li>
+      </ul>
+    </div>
+    <div class="col shots row">
+      <div class="shot"><img src="gorseller/04-defter-takip.png" alt="takip"/></div>
+      <div class="shot"><img src="gorseller/06-defter-evre.png" alt="evre planları"/></div>
+    </div>
+  </div>
+  <div class="foot"><span>Pusula · Gelişim Defteri</span><span class="pageno">05 / 10</span></div>
+</section>
+
+<!-- 6 HAFIZA + USTA -->
+<section class="slide">
+  <div class="eyebrow">06 · Gelişim · Hafıza & Usta Yolu</div>
+  <h1>Bilgi kaybolmaz, <em>koçluk sahada</em>.</h1>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="col">
+      <ul>
+        <li><b>Öğrenen Hafıza:</b> koçluk gözlem arşivi + extract-then-confirm (yöntemi çıkar → koç onaylar).</li>
+        <li><b>Günün aksiyonları kuyruğu:</b> "sıradaki öğretilecekler", tiklenir, ilerler.</li>
+        <li><b>Animasyonlu mentor eşleşme</b> + müsait-saat eğitim slotları (önceki günden bilinir).</li>
+        <li><b>Eğitimcinin eğitimi:</b> koç da mentee; başarı sahada geçen zaman + mentee lifti.</li>
+        <li><b>Müfredat sinyali:</b> koç notlarındaki ortak desen → plan revizyon önerisi (form statik değil).</li>
+      </ul>
+    </div>
+    <div class="col shots row">
+      <div class="shot"><img src="gorseller/07-hafiza.png" alt="hafıza"/></div>
+      <div class="shot"><img src="gorseller/08-usta.png" alt="usta yolu"/></div>
+    </div>
+  </div>
+  <div class="foot"><span>Pusula · Öğrenen Hafıza & Usta Yolu</span><span class="pageno">06 / 10</span></div>
+</section>
+
+<!-- 7 YERLEŞTİRME -->
+<section class="slide">
+  <div class="eyebrow">07 · Sonuç · Yerleştirme (kalp)</div>
+  <h1>İnsan içgörüsü, <em>akşam cebini</em> rahatlatır.</h1>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="col">
+      <ul>
+        <li><b>Talep + Productivity → gerçek kadro.</b> Benzer-gün tahmini, prod sapması over/understaffing'i okur.</li>
+        <li><b>Surplus yönetimi:</b> boşa düşeni (düşük/orta yetkin) desteğe yönlendir → prod artar, manuel reviz biter.</li>
+        <li><b>Yetkinlikle yerleşim</b> + kademeli "Uygula": ustalar tepe kabine <b>akar</b> (canlı morph).</li>
+        <li><b>Koçluk-komşuluğu:</b> "koç chartta var ≠ vakit ayırıyor" → sahada 0 saat flag'i.</li>
+        <li>Akşam cebi <b>gergin → rahat</b>; kanıt öneride, kişide değil.</li>
+      </ul>
+    </div>
+    <div class="col shots row">
+      <div class="shot"><img src="gorseller/09-yerlestirme-kadro.png" alt="kadro"/></div>
+      <div class="shot"><img src="gorseller/10-yerlestirme-chart.png" alt="chart"/></div>
+    </div>
+  </div>
+  <div class="foot"><span>Pusula · Yerleştirme</span><span class="pageno">07 / 10</span></div>
+</section>
+
+<!-- 8 VERİ → CANLANMA -->
+<section class="slide">
+  <div class="eyebrow">08 · Veri → Canlanma</div>
+  <h1>Hangi veri nereye gelince <em>ne canlanır</em>.</h1>
+  <div class="rule"></div>
+  <table>
+    <tr><th>Veri kaynağı</th><th>Nereye gelir</th><th>Ne canlanır</th></tr>
+    <tr><td class="src">Orquest — saatlik trafik tahmini</td><td class="where">Yerleştirme</td><td class="live">Benzer-gün öğrenmesi + saatlik <b>gerekli kadro</b> hesabı.</td></tr>
+    <tr><td class="src">Productivity (satış / işçilik-saat)</td><td class="where">Yerleştirme</td><td class="live">Prod sapması → over/understaffing → <b>surplus</b> ya da "güçlü el lazım".</td></tr>
+    <tr><td class="src">KPI (Export.xlsx: conversion·UPT·ATV)</td><td class="where">Profil · Yerleştirme</td><td class="live">Akşam cebi göstergesi + <b>ASA→KPI</b> köprüsü; persona güncellenir.</td></tr>
+    <tr><td class="src">Yetkinlik matrisi (Orquest aptitude)</td><td class="where">Profil · Chart</td><td class="live">Day-0 prior; <b>yetkinliğe göre yerleşim</b> ve eşleşme.</td></tr>
+    <tr><td class="src">Alan çıktıları (FR→satış, zone, welcome→merma)</td><td class="where">Profil</td><td class="live">Dinamik <b>alan-spesifik boyut</b> + belirsizlik; yokluk→keşif.</td></tr>
+    <tr><td class="src">Kitapçık işaretleri + koç notları</td><td class="where">Defter · Hafıza · Müfredat</td><td class="live">Öğrenme pattern'i + <b>plan revizyon</b> önerisi.</td></tr>
+    <tr><td class="src">Gerçekleşen sonuç (dönem gelişimi / lift)</td><td class="where">Motor</td><td class="live">Objective ağırlıkları + profiller <b>kendini günceller</b>.</td></tr>
+  </table>
+  <div class="sub" style="margin-top:12px">Erken haftalar prior'a yaslanır; ~4 hafta sonra <b>veri-güdümlü</b> — her hafta daha güvenli (belirsizlik düşer).</div>
+  <div class="foot"><span>Pusula · Veri akışı</span><span class="pageno">08 / 10</span></div>
+</section>
+
+<!-- 9 SINIR & GÜVEN -->
+<section class="slide">
+  <div class="eyebrow">09 · Sınır & Güven</div>
+  <h1>Skor-tablosu <em>değil</em>.</h1>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="col">
+      <ul>
+        <li><b>Karar koçta</b> — öneri, dayatma değil.</li>
+        <li><b>Çalışan kendi profilini görür</b> — şeffaf, kıyaslamasız.</li>
+        <li><b>Değerlendirme gelişim için</b>, ceza/pay/disiplin için değil.</li>
+        <li><b>Belirsizlik gizlenmez</b>, gösterilir; yokluk ≠ başarısızlık.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <ul>
+        <li><b>Kişi sıralaması yok</b> (çok boyutlu, tek rakam yok).</li>
+        <li><b>EU AI Act Annex III</b> (işçi değerlendirme = yüksek risk) → insan gözetimi + şeffaflık + gelişim-odak.</li>
+        <li><b>Sert kısıtlar korunur</b>: mola · kapasite · yetkinlik.</li>
+        <li>Telemetri (sahada-süre) asla eval sinyali değil.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>Pusula · Sınır & güven</span><span class="pageno">09 / 10</span></div>
+</section>
+
+<!-- 10 KAPANIŞ -->
+<section class="slide">
+  <div class="eyebrow">10 · Şimdi & Sırada</div>
+  <h1>Çalışan demo, <em>gerçeğe hazır</em> mimari.</h1>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="col">
+      <div class="tag">Şimdi</div>
+      <ul style="margin-top:10px">
+        <li>Mock-ama-sadık: <b>gerçek roster</b>, gerçek kitapçık, gerçek 2025 akşam cebi.</li>
+        <li>Chart şekli <b>birebir solver çıktısı</b> → tek seam ile canlıya geçer (UI değişmeden).</li>
+        <li>main / solver / deployed sistem dokunulmadı.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="tag">Sırada</div>
+      <ul style="margin-top:10px">
+        <li>Canlı solver köprüsü (Orquest + CP-SAT).</li>
+        <li>Alan-sinyallerini canlı CX/satış verisine bağlama.</li>
+        <li>EN/ES submission paketi.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="quote" style="font-size:26px;margin-top:6px">"İnsan en önemlisidir; gerisi onun sonucudur."</div>
+  <div class="foot"><span>Pusula · Yaşayan Uzman</span><span class="pageno">10 / 10</span></div>
+</section>
+
+</body>
+</html>

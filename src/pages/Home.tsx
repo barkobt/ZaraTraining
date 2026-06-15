@@ -118,13 +118,14 @@ const STEPS = [
   { icon: Sparkles, t: "Dağıt & Ölç", d: "PDF/Excel çıktısını paylaş, KPI'lar geri akar, döngü kapanır." },
 ];
 
+const PF_IMG = (id: string) => `https://images.unsplash.com/photo-${id}?w=800&h=1000&fit=crop&q=80&auto=format&sat=-100`;
 const PUSULA_FEATURES = [
-  { n: "01", icon: Sunrise, t: "Günün Kuyruğu", d: "Koç güne tek ekranda başlar: onaylar, keşifler, eşleşmeler — karar her zaman insanda." },
-  { n: "02", icon: Activity, t: "Kanıt Motoru", d: "Skor yok, sıralama yok. Her öneri sinyal, kanal, çıkarım ve güven zinciriyle hesap verir." },
-  { n: "03", icon: BookOpen, t: "Gelişim Defteri", d: "120 konuluk kitapçık dijital hafızada: her tik tarihiyle, her statü kendi notuyla kalıcı." },
-  { n: "04", icon: MessageSquare, t: "Öğrenen Hafıza", d: "Gözlemler temalara, temalar müfredata dönüşür. Eğitim planı sahadan beslenir." },
-  { n: "05", icon: Sprout, t: "Usta Yolu", d: "Usta ayrılsa da yöntemi kurumda kalır — bilgi kurumsal hafızaya kodlanır." },
-  { n: "06", icon: TrendingUp, t: "Etki", d: "Soğuk başlar, her kapanan döngüyle keskinleşir: öneri isabeti 62'den 86'ya." },
+  { n: "01", icon: Sunrise, t: "Günün Kuyruğu", d: "Koç güne tek ekranda başlar: onaylar, keşifler, eşleşmeler — karar her zaman insanda.", img: PF_IMG("1441986300917-64674bd600d8") },
+  { n: "02", icon: Activity, t: "Kanıt Motoru", d: "Skor yok, sıralama yok. Her öneri sinyal, kanal, çıkarım ve güven zinciriyle hesap verir.", img: PF_IMG("1454165804606-c3d57bc86b40") },
+  { n: "03", icon: BookOpen, t: "Gelişim Defteri", d: "120 konuluk kitapçık dijital hafızada: her tik tarihiyle, her statü kendi notuyla kalıcı.", img: PF_IMG("1450101499163-c8848c66ca85") },
+  { n: "04", icon: MessageSquare, t: "Öğrenen Hafıza", d: "Gözlemler temalara, temalar müfredata dönüşür. Eğitim planı sahadan beslenir.", img: PF_IMG("1481627834876-b7833e8f5570") },
+  { n: "05", icon: Sprout, t: "Usta Yolu", d: "Usta ayrılsa da yöntemi kurumda kalır — bilgi kurumsal hafızaya kodlanır.", img: PF_IMG("1524758631624-e2822e304c36") },
+  { n: "06", icon: TrendingUp, t: "Etki", d: "Soğuk başlar, her kapanan döngüyle keskinleşir: öneri isabeti 62'den 86'ya.", img: PF_IMG("1460925895917-afdab827c52f") },
 ];
 
 const KICKERS = ["EĞİTİM", "OPERASYON", "ZEKÂ"];
@@ -561,18 +562,23 @@ export default function Home() {
             {PUSULA_FEATURES.map((f) => (
               <div key={f.n} className="bf-panel px-3 sm:px-4" style={{ width: "min(82vw, 400px)" }}>
                 <div
-                  className="bf-card relative h-[min(62vh,460px)] flex flex-col p-7 md:p-8"
+                  className="bf-card relative overflow-hidden h-[min(62vh,460px)] flex flex-col p-7 md:p-8"
                   style={{ background: "rgba(245,241,234,0.04)", border: "1px solid rgba(184,147,90,0.25)" }}
                 >
-                  <div className="flex items-center justify-between">
+                  {/* temalı grayscale görsel + karartma — metin okunur kalır */}
+                  <div aria-hidden className="absolute inset-0 pointer-events-none">
+                    <img src={f.img} alt="" loading="lazy" className="w-full h-full object-cover grayscale" style={{ opacity: 0.18 }} />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(26,22,20,0.25) 0%, rgba(26,22,20,0.78) 100%)" }} />
+                  </div>
+                  <div className="relative z-10 flex items-center justify-between">
                     <span className="font-mono text-[11px] tracking-[0.24em]" style={{ color: "var(--zara-gold-soft)" }}>{f.n} / 06</span>
                     <f.icon size={20} strokeWidth={1.5} style={{ color: "var(--zara-gold)" }} />
                   </div>
-                  <div className="mt-auto">
+                  <div className="relative z-10 mt-auto">
                     <h3 className="font-serif text-3xl mb-3" style={{ fontWeight: 500 }}>{f.t}</h3>
-                    <p className="text-sm font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.7)" }}>{f.d}</p>
+                    <p className="text-sm font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.78)" }}>{f.d}</p>
                   </div>
-                  <div className="mt-6 pt-4 flex items-center justify-between text-[10px] font-mono tracking-[0.22em]" style={{ borderTop: "1px solid rgba(184,147,90,0.14)", color: "rgba(245,241,234,0.3)" }}>
+                  <div className="relative z-10 mt-6 pt-4 flex items-center justify-between text-[10px] font-mono tracking-[0.22em]" style={{ borderTop: "1px solid rgba(184,147,90,0.18)", color: "rgba(245,241,234,0.4)" }}>
                     <span>// SIGNAL</span>
                     <span>0{f.n}·ZT</span>
                   </div>
