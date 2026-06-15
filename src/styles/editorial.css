@@ -1050,16 +1050,17 @@
 .pusula-shell {
   --ff-display: "Bodoni Moda", "Playfair Display", "Didot", serif;
   --ff-editorial: "Bodoni Moda", "Playfair Display", serif;
-  /* ── ZARA-APP MONOKROM (scoped — site geri kalanı krem kalır) ──
-     Saf beyaz zemin · saf siyah mürekkep · altın→siyah · gölgesiz · köşesiz.
-     Semantik ayrım renkle değil AĞIRLIKLA: dolu siyah = usta/onay ·
-     outline = güçlü · grİ = gelişiyor · kesik çizgi = keşif. */
+  /* ── ZARA-APP: monokrom TABAN + sıcak altın AKSAN ──────────
+     Taban siyah-beyaz monogram kalır (metin/çizgi siyah); altın yalnız
+     landing'le sürekliliği kuran ölçülü aksan: eyebrow, dot, ince hat, tint.
+     Semantik ayrım yine AĞIRLIKLA: dolu siyah = usta/onay · outline = güçlü. */
   --zara-bg: #ffffff; --zara-bg-alt: #f6f6f6; --zara-bg-warm: #fafafa; --zara-bg-white: #ffffff;
   --zara-ink: #0a0a0a; --zara-ink-soft: #141414; --zara-ink-2: #2b2b2b;
   --zara-ink-65: rgba(0, 0, 0, 0.65); --zara-ink-50: rgba(0, 0, 0, 0.5);
   --zara-ink-40: rgba(0, 0, 0, 0.52); --zara-ink-30: rgba(0, 0, 0, 0.4);
-  --zara-gold: #000; --zara-gold-deep: #000;
-  --zara-gold-soft: rgba(0, 0, 0, 0.26); --zara-gold-tint: rgba(0, 0, 0, 0.028);
+  /* altın landing'le aynı tonda geri döndü (eski #000 override soğuk/koparıyordu) */
+  --zara-gold: #B8935A; --zara-gold-deep: #8B6F47;
+  --zara-gold-soft: rgba(184, 147, 90, 0.34); --zara-gold-tint: rgba(184, 147, 90, 0.06);
   --zara-sage: rgba(0, 0, 0, 0.28);
   --zara-sage-ink: #555;
   --zara-line: rgba(0, 0, 0, 0.07); --zara-line-strong: rgba(0, 0, 0, 0.16);
@@ -1071,9 +1072,9 @@
 
 /* ── üst bar: marka · nav · canlı ──────────────────────── */
 .pusula-top {
-  display: flex; align-items: center; gap: 28px;
-  padding: 20px 40px; border-bottom: 1px solid var(--zara-line-strong);
-  position: sticky; top: 0; z-index: 30; background: var(--zara-bg);
+  display: flex; align-items: center; gap: 20px;
+  padding: 18px clamp(20px, 4vw, 64px); border-bottom: 1px solid var(--zara-line);
+  position: static; background: transparent;
 }
 .pusula-brand { display: flex; align-items: center; gap: 13px; }
 /* wordmark artık eve (Bugün) döner — buton sıfırlaması */
@@ -1116,7 +1117,7 @@
 .pusula-navmenu-sub { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-navmenu-item.on .pusula-navmenu-sub { color: rgba(255,255,255,0.55); }
 
-.pusula-main { flex: 1; min-width: 0; padding: 34px 40px 80px; max-width: 1180px; width: 100%; margin: 0 auto; }
+.pusula-main { flex: 1; min-width: 0; padding: 34px 40px 80px; max-width: 1400px; width: 100%; margin: 0 auto; }
 
 /* dil seçici (TR/EN/ES) */
 .pusula-right { display: flex; align-items: center; gap: 14px; }
@@ -1244,7 +1245,7 @@
 .pusula-asa-proven::before { content: "kanıt · "; font-style: normal; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); }
 
 /* ── PROFİL ────────────────────────────────────────────── */
-.pusula-profile { display: grid; grid-template-columns: 150px 1fr; gap: 32px; }
+.pusula-profile { display: grid; grid-template-columns: 172px 1fr; gap: 44px; }
 .pusula-profile-rail { display: flex; flex-direction: column; gap: 12px; }
 .pusula-profile-list { display: flex; flex-direction: column; gap: 3px; }
 .pusula-profile-pick { display: flex; align-items: center; gap: 10px; border: none; background: transparent; cursor: pointer; padding: 8px 10px; border-radius: 0; font-family: var(--ff-sans); font-size: 13px; color: var(--zara-ink-2); text-align: left; transition: background 200ms; }
@@ -2188,6 +2189,12 @@
 .pusula-profile-cols { gap: 36px 52px; }
 .pusula-profile-col { gap: 34px; }
 .pusula-curve { max-width: 260px; }
+/* orta boy ekran (sidebar açık, ~900–1140): 2-kolon profil + 3-kolon persona
+   sıkışıyordu — tek kolona indir, nefes alsın. */
+@media (min-width: 901px) and (max-width: 1140px) {
+  .pusula-profile-cols { grid-template-columns: 1fr; }
+  .pusula-persona { grid-template-columns: 1fr; gap: 16px; }
+}
 
 /* ══ Profil v2 — pcomp (yetkinlik DNA) · pfit (zone uyumu) · papt (aptitude) ══ */
 /* Yetkinlik kartları: nitel seviye + gelişim barı + kanıt satırı. Sayı yalnız n (kanıt hacmi). */
@@ -2559,23 +2566,65 @@
   .pvq-filters { margin-left: 0; }
 }
 
-/* ══ PUSULA v3.1 · ERİŞİLEBİLİRLİK + FERAHLIK ═══════════════ */
-/* ── kalıcı ikon rayı (desktop) — hover'da genişler ── */
-.pv4-rail { position: fixed; left: 0; top: 0; bottom: 0; z-index: 70; width: 58px; background: var(--zara-bg); border-right: 1px solid var(--zara-line); display: flex; flex-direction: column; align-items: stretch; padding: 14px 0 16px; gap: 2px; overflow: hidden; transition: width 280ms var(--ease-atelier); }
-.pv4-rail:hover { width: 218px; box-shadow: 12px 0 32px -24px rgba(0,0,0,0.18); }
-.pv4-rail-mark { padding: 4px 0 16px; text-align: center; font-family: var(--ff-display); font-style: italic; font-size: 19px; color: var(--zara-ink); flex-shrink: 0; }
-.pv4-rail:hover .pv4-rail-mark { text-align: left; padding-left: 21px; }
-.pv4-rail-item { position: relative; display: flex; align-items: center; gap: 14px; border: none; background: transparent; cursor: pointer; padding: 11px 0 11px 21px; color: var(--zara-ink-40); transition: color 200ms var(--ease-atelier), background 200ms; white-space: nowrap; }
+/* ══ PUSULA v4 · KALICI ETİKETLİ SOL SİDEBAR + ÇIKIŞLAR ═══════ */
+/* Tek navigasyon: desktop'ta hep-açık etiketli sidebar; rakip sticky künye
+   kalktı. Marka üstte (eve döner), bölümler gruplu, altta Atölye/Shift/Çıkış. */
+.pv4-rail {
+  position: fixed; left: 0; top: 0; bottom: 0; z-index: 70; width: 234px;
+  background: var(--zara-bg); border-right: 1px solid var(--zara-line);
+  display: flex; flex-direction: column; padding: 22px 0 14px; overflow-y: auto;
+}
+.pv4-rail-mark { display: flex; align-items: center; gap: 11px; padding: 0 22px 18px; flex-shrink: 0; border: none; background: transparent; cursor: pointer; text-align: left; color: inherit; }
+.pv4-rail-brand { font-family: var(--ff-display); font-size: 20px; line-height: 1; color: var(--zara-ink); }
+.pv4-rail-brand em { font-style: italic; font-weight: 400; }
+.pv4-rail-brand small { display: block; font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--zara-gold-deep); margin-top: 5px; }
+.pv4-rail-scroll { display: flex; flex-direction: column; gap: 1px; }
+.pv4-rail-group { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--zara-ink-30); padding: 15px 22px 6px; }
+.pv4-rail-item { position: relative; display: flex; align-items: center; gap: 13px; border: none; background: transparent; cursor: pointer; padding: 9.5px 22px; color: var(--zara-ink-50); transition: color 180ms var(--ease-atelier), background 180ms; white-space: nowrap; text-align: left; width: 100%; text-decoration: none; }
 .pv4-rail-item:hover { color: var(--zara-ink); background: var(--zara-bg-alt); }
 .pv4-rail-item.on { color: var(--zara-ink); }
-.pv4-rail-item.on::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 2px; background: var(--zara-ink); }
+.pv4-rail-item.on::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 2px; background: var(--zara-gold); }
 .pv4-rail-item svg { flex-shrink: 0; }
-.pv4-rail-label { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0; transform: translateX(-6px); transition: opacity 220ms var(--ease-atelier), transform 220ms var(--ease-atelier); }
-.pv4-rail-label i { font-style: normal; color: var(--zara-ink-30); margin-right: 6px; }
-.pv4-rail:hover .pv4-rail-label { opacity: 1; transform: translateX(0); }
-.pv4-rail-foot { margin-top: auto; padding-left: 21px; flex-shrink: 0; }
-.pv4-withrail .pv4-body { margin-left: 58px; }
-@media (max-width: 900px) { .pv4-rail { display: none; } .pv4-withrail .pv4-body { margin-left: 0; } }
+.pv4-rail-label { font-family: var(--ff-sans); font-size: 13.5px; }
+.pv4-rail-num { font-family: var(--ff-mono); font-size: 9px; color: var(--zara-ink-30); margin-left: auto; }
+.pv4-rail-foot { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 1px; }
+.pv4-rail-exit { color: var(--zara-ink-40); }
+.pv4-rail-exit:hover { color: var(--zara-ink); }
+.pv4-rail-exit svg { opacity: 0.65; }
+.pv4-rail-langrow { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px 2px; }
+.pv4-withrail .pv4-body { margin-left: 234px; }
+@media (max-width: 900px) { .pv4-rail { display: none; } .pv4-withrail .pv4-body { margin-left: 0; padding-bottom: 66px; } }
+
+/* ── mobil alt tab bar (sidebar gizliyken birincil nav) ── */
+.pv4-tabbar { display: none; }
+@media (max-width: 900px) {
+  .pv4-tabbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 71; background: var(--zara-bg); border-top: 1px solid var(--zara-line-strong); padding: 5px 4px calc(5px + env(safe-area-inset-bottom)); }
+  .pv4-tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; border: none; background: transparent; cursor: pointer; padding: 6px 2px; color: var(--zara-ink-40); }
+  .pv4-tab.on { color: var(--zara-ink); }
+  .pv4-tab.on svg { color: var(--zara-gold-deep); }
+  .pv4-tab span { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.05em; text-transform: uppercase; }
+}
+
+/* ── üst başlık: statik (sticky bug giderildi) · bölüm künyesi + arama ── */
+.pv4-head-section { display: flex; align-items: baseline; gap: 12px; }
+.pv4-head-idx { font-family: var(--ff-mono); font-size: 11px; color: var(--zara-gold-deep); }
+.pv4-head-label { font-family: var(--ff-display); font-style: italic; font-size: 22px; line-height: 1; color: var(--zara-ink); }
+.pv4-head-sub { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pv4-head-search { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 8px 14px; border-radius: 2px; font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-50); transition: border-color 180ms, color 180ms; }
+.pv4-head-search:hover { border-color: var(--zara-ink); color: var(--zara-ink); }
+.pv4-brand-mobile { display: none; }
+@media (max-width: 900px) {
+  .pv4-brand-mobile { display: flex; }
+  .pv4-head-section { display: none; }
+  .pv4-head-search span { display: none; }
+  .pv4-head-search { padding: 8px; }
+}
+
+/* ── tam-ekran menü çıkışları (mobil erişim) ── */
+.pv3-menu-exits { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-bottom: 10px; }
+.pv3-menu-exit { display: inline-flex; align-items: center; gap: 7px; border: none; background: transparent; cursor: pointer; padding: 0; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-50); text-decoration: none; transition: color 160ms; }
+.pv3-menu-exit:hover { color: var(--zara-ink); }
+.pv3-menu-exit svg { color: var(--zara-gold-deep); }
 
 /* ── menü: Zara-web iki kolon ── */
 .pv3-menu-cols { flex: 1; display: grid; grid-template-columns: 1.25fr 1fr; gap: clamp(24px, 5vw, 72px); align-items: start; }
@@ -2613,13 +2662,8 @@
 .pusula-place-head { margin-bottom: 34px; }
 @media (min-width: 901px) { .pusula-main { padding-left: clamp(28px, 4vw, 64px); padding-right: clamp(28px, 4vw, 64px); } }
 
-/* ── v3.1 geri bildirim: sade üst bar + ray ayarları + pusula gülü ── */
-.pv4-rail-mark { display: grid; place-items: center; color: var(--zara-ink); }
-.pv4-rail:hover .pv4-rail-mark { place-items: start; }
-.pv4-rail-foot { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-left: 0; }
-.pv4-rail:hover .pv4-rail-foot { align-items: flex-start; padding-left: 21px; }
-.pv4-rail-lang { display: flex; flex-direction: column; gap: 1px; }
-.pv4-rail-lang .pusula-lang-b { padding: 4px 8px; }
+/* ── v4 sidebar: dil satırı ── */
+.pv4-rail-langrow .pusula-lang-b { padding: 4px 8px; }
 /* dil üst barda yalnız mobil (desktop'ta rayda) */
 @media (min-width: 901px) { .pv4-lang-top { display: none; } }
 .pv4-login-compass { display: grid; place-items: center; color: var(--zara-ink); margin-bottom: 2px; }

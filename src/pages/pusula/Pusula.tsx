@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Archive,
+  ArrowLeft,
   BookOpen,
+  CalendarRange,
   CircleUser,
   GraduationCap,
   LayoutGrid,
   Lock,
+  LogOut,
   Map,
   Newspaper,
   Plus,
@@ -14,6 +17,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import { Link } from "react-router";
 import { LiveDot } from "./primitives";
 import { PusulaMark } from "./components/PusulaMark";
 import { trpc } from "@/providers/trpc";
@@ -169,6 +173,20 @@ function PusulaInner() {
     setQ("");
   };
 
+  // Çıkış: Pusula oturum token'ını sil, yeniden yükle → giriş kapısına döner.
+  const logout = () => {
+    localStorage.removeItem(AUTH_KEY);
+    window.location.reload();
+  };
+
+  // Mobil alt tab bar — en sık kullanılan 4 bölüm + tüm menü.
+  const TABS = [
+    { id: "bugun" as ViewId, Ico: Newspaper },
+    { id: "ekip" as ViewId, Ico: Users },
+    { id: "profil" as ViewId, Ico: CircleUser },
+    { id: "saha" as ViewId, Ico: Map },
+  ];
+
   // üretilmiş içerik (data-program) için aktif dili senkron set et (çocuklar render'dan önce)
   setActiveLang(lang);
 
@@ -239,61 +257,75 @@ function PusulaInner() {
   return (
     <LangCtx.Provider value={{ lang, setLang }}>
     <div className="zt-editorial pusula-shell pv4-withrail">
-      {/* ── KALICI İKON RAYI — bölümler her an görünür (hover'da genişler) ── */}
+      {/* ── KALICI ETİKETLİ SOL SİDEBAR — tek nav · gruplu · çıkışlı ── */}
       <nav className="pv4-rail" aria-label="Pusula">
-        <div className="pv4-rail-mark" aria-hidden>
-          <PusulaMark size={26} />
-        </div>
-        {MENU.map((m, i) => (
-          <button
-            key={m.id}
-            className={`pv4-rail-item ${view === m.id ? "on" : ""}`}
-            onClick={() => go(m.id)}
-            title={tr(m.labelKey, lang)}
-          >
-            <m.Ico size={17} strokeWidth={1.5} />
-            <span className="pv4-rail-label">
-              <i>{String(i + 1).padStart(2, "0")}</i> {tr(m.labelKey, lang)}
-            </span>
-          </button>
-        ))}
-        {/* ayarlar rayın altında: dil + canlı (kullanıcı yönergesi) */}
-        <div className="pv4-rail-foot">
-          <div className="pv4-rail-lang">
-            {LANGS.map((l) => (
+        <button className="pv4-rail-mark" onClick={() => go("bugun")} aria-label={tr("a11y.home", lang)}>
+          <PusulaMark size={24} />
+          <span className="pv4-rail-brand"><em>Pusula</em><small>ZARA · ATELYE</small></span>
+        </button>
+        <div className="pv4-rail-scroll">
+          {MENU.map((m, i) => (
+            <div key={m.id}>
+              {m.group && <div className="pv4-rail-group">{tr(m.group, lang)}</div>}
               <button
-                key={l}
-                className={`pusula-lang-b ${lang === l ? "on" : ""}`}
-                onClick={() => setLang(l)}
+                className={`pv4-rail-item ${view === m.id ? "on" : ""}`}
+                onClick={() => go(m.id)}
               >
-                {l.toUpperCase()}
+                <m.Ico size={16} strokeWidth={1.5} />
+                <span className="pv4-rail-label">{tr(m.labelKey, lang)}</span>
+                <span className="pv4-rail-num">{String(i + 1).padStart(2, "0")}</span>
               </button>
-            ))}
+            </div>
+          ))}
+        </div>
+        {/* ── çıkışlar: Atölye'ye / Shift Organizer / Çıkış + dil + canlı ── */}
+        <div className="pv4-rail-foot">
+          <div className="pv4-rail-group">Atölye</div>
+          <Link to="/" className="pv4-rail-item pv4-rail-exit">
+            <ArrowLeft size={16} strokeWidth={1.5} />
+            <span className="pv4-rail-label">Atölye'ye dön</span>
+          </Link>
+          <Link to="/shift-organizer" className="pv4-rail-item pv4-rail-exit">
+            <CalendarRange size={16} strokeWidth={1.5} />
+            <span className="pv4-rail-label">Shift Organizer</span>
+          </Link>
+          <button className="pv4-rail-item pv4-rail-exit" onClick={logout}>
+            <LogOut size={16} strokeWidth={1.5} />
+            <span className="pv4-rail-label">Çıkış</span>
+          </button>
+          <div className="pv4-rail-langrow">
+            <div className="pusula-lang">
+              {LANGS.map((l) => (
+                <button key={l} className={`pusula-lang-b ${lang === l ? "on" : ""}`} onClick={() => setLang(l)}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            <LiveDot label="" />
           </div>
-          <LiveDot label="" />
         </div>
       </nav>
 
       <div className="pv4-body">
       <header className="pusula-top">
-        <button className="pusula-brand pusula-brand-home" onClick={() => go("bugun")} aria-label={tr("a11y.home", lang)}>
-          <div>
-            <div className="pusula-brand-name">
-              <em>Pusula</em>
-            </div>
-            <div className="pusula-brand-sub">ZARA · ATELYE · BORNOVA</div>
-          </div>
+        {/* marka yalnız mobil (desktop'ta solda sidebar var) */}
+        <button className="pusula-brand pusula-brand-home pv4-brand-mobile" onClick={() => go("bugun")} aria-label={tr("a11y.home", lang)}>
+          <div className="pusula-brand-name"><em>Pusula</em></div>
         </button>
 
-        {/* bölüm künyesi — tıklayınca menü açılır */}
-        <button className="pv3-crumb" onClick={() => setMenuOpen(true)}>
-          <span className="pv3-crumb-idx">{String(idx + 1).padStart(2, "0")}</span>
-          <span className="pv3-crumb-label">{tr(MENU[idx].labelKey, lang)}</span>
-          <span className="pv3-crumb-sub">{tr(MENU[idx].subKey, lang)}</span>
-        </button>
+        {/* aktif bölüm künyesi — statik bağlam (sticky bug giderildi) */}
+        <div className="pv4-head-section">
+          <span className="pv4-head-idx">{String(idx + 1).padStart(2, "0")}</span>
+          <span className="pv4-head-label">{tr(MENU[idx].labelKey, lang)}</span>
+          <span className="pv4-head-sub">{tr(MENU[idx].subKey, lang)}</span>
+        </div>
 
-        <div className="pusula-right">
-          {/* dil: desktop'ta rayın altında — burada yalnız mobil */}
+        <div className="pusula-right" style={{ marginLeft: "auto" }}>
+          <button className="pv4-head-search" onClick={() => setMenuOpen(true)}>
+            <Search size={15} strokeWidth={1.6} />
+            <span>{tr("l.searchPerson", lang)}</span>
+          </button>
+          {/* dil: desktop'ta sidebar'da — burada yalnız mobil */}
           <div className="pusula-lang pv4-lang-top">
             {LANGS.map((l) => (
               <button key={l} className={`pusula-lang-b ${lang === l ? "on" : ""}`} onClick={() => setLang(l)}>
@@ -394,8 +426,12 @@ function PusulaInner() {
             </div>
 
             <div className="pv3-menu-foot">
+              <div className="pv3-menu-exits">
+                <Link to="/" className="pv3-menu-exit"><ArrowLeft size={13} strokeWidth={1.6} /> Atölye'ye dön</Link>
+                <Link to="/shift-organizer" className="pv3-menu-exit"><CalendarRange size={13} strokeWidth={1.6} /> Shift Organizer</Link>
+                <button className="pv3-menu-exit" onClick={logout}><LogOut size={13} strokeWidth={1.6} /> Çıkış</button>
+              </div>
               <span>ZARA · BORNOVA 3643</span>
-              <span>{tr("a.noscore", lang)}</span>
             </div>
           </motion.div>
         )}
@@ -423,6 +459,20 @@ function PusulaInner() {
         </AnimatePresence>
       </main>
       </div>
+
+      {/* ── MOBİL ALT TAB BAR — sidebar gizliyken birincil nav ── */}
+      <nav className="pv4-tabbar" aria-label="Pusula">
+        {TABS.map((t) => (
+          <button key={t.id} className={`pv4-tab ${view === t.id ? "on" : ""}`} onClick={() => go(t.id)}>
+            <t.Ico size={18} strokeWidth={1.5} />
+            <span>{tr(MENU.find((m) => m.id === t.id)!.labelKey, lang)}</span>
+          </button>
+        ))}
+        <button className="pv4-tab" onClick={() => setMenuOpen(true)}>
+          <LayoutGrid size={18} strokeWidth={1.5} />
+          <span>{tr("m.actions", lang)}</span>
+        </button>
+      </nav>
 
       <ProfileDrawer
         person={peek}
