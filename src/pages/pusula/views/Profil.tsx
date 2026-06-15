@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eyebrow, Headline } from "../primitives";
+import { Eyebrow } from "../primitives";
 import { employees, jobTypeLabel, teachingCard, teachingText } from "../data";
 import { MasteryLevel, type Employee } from "../types";
 import { PersonAvatar } from "../components/PersonAvatar";
@@ -83,7 +83,8 @@ export function Profil({
         <div className="pusula-profile-head">
           <PersonAvatar name={active.name} dark={active.level === MasteryLevel.Coach} size={56} />
           <div>
-            <Headline ital={active.name} roman={jobTypeLabel(active.id)} size={30} />
+            <h2 className="pusula-profile-name">{active.name}</h2>
+            <div className="pusula-profile-role">{jobTypeLabel(active.id)}</div>
             <div className="pusula-profile-meta">
               <MasteryChip level={active.level} />
               <ConfidenceDots level={active.confidence} />

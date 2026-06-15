@@ -10,7 +10,6 @@ import {
   strongPointOf,
 } from "../data-competency";
 import { sellingPersona } from "../data-program";
-import { notesFor } from "../data-hafiza";
 import { pick, useT } from "../i18n";
 import { PersonAvatar } from "./PersonAvatar";
 import { MasteryChip } from "./MasteryChip";
@@ -40,7 +39,6 @@ export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () =>
   const pendingApt = aptitudeSuggestions(person.id).length;
   const disc = discoveryFor(person.id);
   const teach = comps.filter((c) => c.state.kind === "proven" && c.state.teachable).length;
-  const lastNote = notesFor(person.id)[0];
   return (
     <button className="pusula-card" onClick={onOpen}>
       <div className="pusula-card-top">
@@ -56,7 +54,6 @@ export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () =>
 
       <div className="pusula-card-persona">
         <em>{persona.label}</em>
-        <span>{persona.energy}</span>
       </div>
 
       {/* yetkinlik DNA'sı — 6 kanaldan kanıt parmak izi (keşfedilmemiş = boş hücre) */}
@@ -89,13 +86,6 @@ export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () =>
             <span className="t-teach">{teach} {pick({ tr: "öğretebilir", en: "can teach", es: "puede enseñar" })}</span>
           )}
         </div>
-      )}
-
-      {lastNote && (
-        <p className="pusula-card-note">
-          “{lastNote.note.length > 72 ? `${lastNote.note.slice(0, 72)}…` : lastNote.note}”
-          <i> — {lastNote.date.split("-").reverse().join(".")}</i>
-        </p>
       )}
 
       <div className="pusula-card-foot">

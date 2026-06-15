@@ -4,28 +4,30 @@
 import type { CSSProperties, ReactNode } from "react";
 
 const MUTED = "var(--zara-ink-50)";
-const GOLD = "var(--zara-gold)";
 const INK = "var(--zara-ink)";
 
 export function Eyebrow({
   children,
   dot = true,
   gold = false,
+  className,
   style,
 }: {
   children: ReactNode;
   dot?: boolean;
   gold?: boolean;
+  className?: string;
   style?: CSSProperties;
 }) {
   return (
     <div
+      className={`pusula-eyebrow${className ? ` ${className}` : ""}`}
       style={{
         fontFamily: "var(--ff-mono)",
         fontSize: 10,
-        letterSpacing: "0.28em",
+        letterSpacing: "0.26em",
         textTransform: "uppercase",
-        color: gold ? GOLD : MUTED,
+        color: gold ? "var(--zara-gold-deep)" : MUTED,
         ...style,
       }}
     >
@@ -61,7 +63,7 @@ export function Headline({
         ...style,
       }}
     >
-      {ital && <em style={{ fontStyle: "italic", fontWeight: 300 }}>{ital} </em>}
+      {ital && <em style={{ fontStyle: "italic", fontWeight: 400 }}>{ital} </em>}
       {roman}
     </h2>
   );
