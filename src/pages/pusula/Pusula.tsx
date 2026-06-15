@@ -159,7 +159,15 @@ function PusulaLogin({ preview }: { preview?: boolean }) {
 }
 
 function PusulaInner() {
-  const [view, setView] = useState<ViewId>("bugun");
+  // Başlangıç bölümü ?view= ile derin-bağlanabilir (deep-link) — gerçek özellik
+  // + tasarım denetimi/screenshot'ı kolaylaştırır.
+  const initialView = ((): ViewId => {
+    if (typeof window === "undefined") return "bugun";
+    const v = new URLSearchParams(window.location.search).get("view") as ViewId | null;
+    const ids: ViewId[] = ["bugun", "ekip", "profil", "defter", "hafiza", "usta", "yerlestirme", "saha", "etki"];
+    return v && ids.includes(v) ? v : "bugun";
+  })();
+  const [view, setView] = useState<ViewId>(initialView);
   const [menuOpen, setMenuOpen] = useState(false);
   const [selected, setSelected] = useState<Employee | null>(null);
   const [peek, setPeek] = useState<Employee | null>(null);

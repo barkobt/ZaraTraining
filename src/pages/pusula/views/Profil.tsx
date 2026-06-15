@@ -78,7 +78,6 @@ export function Profil({
       </aside>
 
       <div className="pusula-profile-main">
-        <div className="pv4-how pv4-how-block">{t("how.profil")}</div>
         {/* ── KİM ── */}
         <div className="pusula-profile-head">
           <PersonAvatar name={active.name} dark={active.level === MasteryLevel.Coach} size={56} />
