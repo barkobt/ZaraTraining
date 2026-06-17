@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, BrainCircuit, Check, Clock, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowRight, BrainCircuit, Check, Clock, RefreshCw } from "lucide-react";
 import { Headline } from "../primitives";
 import { usePersistentState } from "../session-store";
 import { pick, useT } from "../i18n";
@@ -118,7 +118,7 @@ export function UstaYolu() {
 
       {/* müsait saat şeridi */}
       <div className="pusula-slack">
-        <span className="pusula-slack-eb"><Sparkles size={12} /> {pick({ tr: "Yarının eğitim pencereleri", en: "Tomorrow's training windows", es: "Ventanas de formación de mañana" })}</span>
+        <span className="pusula-slack-eb"><Clock size={12} strokeWidth={1.7} /> {pick({ tr: "Yarının eğitim pencereleri", en: "Tomorrow's training windows", es: "Ventanas de formación de mañana" })}</span>
         {SLACK_WINDOWS.map((w, i) => (
           <span key={i} className="pusula-slack-chip">{w()}</span>
         ))}

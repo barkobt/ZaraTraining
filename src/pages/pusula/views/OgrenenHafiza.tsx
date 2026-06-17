@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileText, Sparkles, Check, RotateCcw, BrainCircuit } from "lucide-react";
+import { FileText, Tag, Check, RotateCcw, BrainCircuit } from "lucide-react";
 import { Eyebrow, Headline } from "../primitives";
 import { pick, useT } from "../i18n";
 import { byId, employees } from "../data";
@@ -371,7 +371,7 @@ export function OgrenenHafiza() {
             rows={2}
           />
           <button className="pusula-coach-btn" onClick={extract} disabled={!draft.trim()}>
-            <Sparkles size={14} /> {pick({ tr: "Etiketle", en: "Tag it", es: "Etiquetar" })}
+            <Tag size={14} strokeWidth={1.7} /> {pick({ tr: "Etiketle", en: "Tag it", es: "Etiquetar" })}
           </button>
         </div>
 

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, CalendarPlus, Check, Compass, Sparkles } from "lucide-react";
+import { ArrowRight, CalendarPlus, Check, Compass } from "lucide-react";
 import { Headline } from "../primitives";
 import { byId, employees, pocket } from "../data";
 import {
@@ -361,7 +361,7 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
 
       <div className="pusula-assure pusula-assure-row">
         <span>
-          <Sparkles size={11} strokeWidth={1.8} /> {pick({ tr: "Her aksiyon önerdir — karar koçundur", en: "Every action is a suggestion — the coach decides", es: "Cada acción es una sugerencia — decide el coach" })}
+          {pick({ tr: "Her aksiyon önerdir — karar koçundur", en: "Every action is a suggestion — the coach decides", es: "Cada acción es una sugerencia — decide el coach" })}
         </span>
         <span>{pick({ tr: "Skor yok · sıralama yok", en: "No scores · no rankings", es: "Sin puntajes · sin rankings" })}</span>
       </div>
