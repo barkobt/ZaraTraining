@@ -2739,6 +2739,11 @@
    seviye tablarından ayrışıp "okunan metrik" hissi verir (design-council). */
 .pusula-pulse--summary { background: var(--zara-bg-alt); margin-top: 4px; }
 .pusula-pulse--summary .pusula-pulse-cell u { background: var(--zara-bg-white); }
+/* "ikinci navigasyon" sinyallerini söndür (design-council son rötuş):
+   eşit-segment dikey ayraçları kaldır + davranışsal KELİME italik-serif
+   ikizini roman+küçük yap (italik-serif tek sahibi seviye tabları kalsın). */
+.pusula-pulse--summary .pusula-pulse-cell { border-right: none; }
+.pusula-pulse--summary .pusula-pulse-cell em.word { font-style: normal; font-size: 15px; }
 .pusula-pulse-cell { position: relative; padding: 16px 18px 18px; border-right: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 4px; }
 .pusula-pulse-cell:last-child { border-right: none; }
 .pusula-pulse-cell em { font-family: var(--ff-display); font-style: italic; font-size: 26px; line-height: 1; color: var(--zara-ink); }
