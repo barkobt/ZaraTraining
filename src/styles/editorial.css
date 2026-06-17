@@ -1212,6 +1212,10 @@
 .pusula-card-dna i.p2 { height: 23px; background: rgba(0, 0, 0, 0.72); }
 .pusula-card-dna i.p3 { height: 30px; background: var(--zara-gold); }
 .pusula-card:hover .pusula-card-dna i.p3 { background: var(--zara-gold-deep); }
+/* OPSİYON: bar altı kanal etiketleri — 6 kolon, küçük mono, taşmasın diye
+   2 satıra sarar (kesmez). Aktif/altın bar etiketi koyulaşır. */
+.pusula-card-dna-labels { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 5px; }
+.pusula-card-dna-labels span { font-family: var(--ff-mono); font-size: 7px; line-height: 1.2; letter-spacing: 0.02em; text-transform: uppercase; color: var(--zara-ink-40); text-align: center; overflow-wrap: anywhere; hyphens: auto; }
 /* durum etiketleri */
 .pusula-card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .pusula-card-tags span { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 9px; border: 1px solid var(--zara-line-strong); color: var(--zara-ink-65); }

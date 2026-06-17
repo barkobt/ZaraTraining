@@ -68,6 +68,12 @@ export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () =>
           return <i key={c.comp} className={cls} title={compShort(c.comp)} />;
         })}
       </div>
+      {/* OPSİYON: DNA barlarının altına kanal kısa adları (hangi bar hangisi). */}
+      <div className="pusula-card-dna-labels" aria-hidden>
+        {comps.map((c) => (
+          <span key={c.comp} title={compShort(c.comp)}>{compShort(c.comp)}</span>
+        ))}
+      </div>
 
       <div className="pusula-card-lines">
         <div className="pusula-card-line">
