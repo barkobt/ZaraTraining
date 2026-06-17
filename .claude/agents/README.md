@@ -1,8 +1,9 @@
 # ZARA Atelye — Agent Ekibi
 
 Bu klasördeki `.md` dosyaları Claude Code **subagent** tanımlarıdır
-(`subagent_type` = dosya adı). Agentlar **iki AYRI sete** bölünür; tetikleyiciler
-karışmasın diye aşağıdaki harita SABİTtir. **Yeni agent eklerken bu tabloyu güncelle.**
+(`subagent_type` = dosya adı). Agentlar **üç AYRI sete** bölünür (A: shift ·
+B: pusula görsel · C: database); tetikleyiciler karışmasın diye aşağıdaki harita
+SABİTtir. **Yeni agent eklerken bu tabloyu güncelle.**
 
 ## Set 0 — orchestrator (önce bu konuşur)
 
@@ -53,11 +54,35 @@ ya da genel görsel bağlamda **"agentleri çalıştır"**. Set A (shift) bununl
 
 ---
 
+## Set C — database (3 agent, `db-` önekli)
+
+Bu set **yalnız veritabanı işleri içindir** (şema, migration, query katmanı,
+ekran↔DB bağı) ve Set A/Set B'den BAĞIMSIZDIR. Önek `db-` = karışmama garantisi.
+
+| Agent | Sorduğu soru | Önkoşul |
+|---|---|---|
+| **db-schema-auditor** | schema.ts ↔ migration ↔ canlı DB tutarlı mı? Drift / uygulanmamış migration / yıkıcı değişiklik var mı? | `.env.local` `DATABASE_URL` |
+| **db-binding-auditor** | Pusula & shift-organizer ekranları DB'ye doğru bağlı mı? Mutation persist ediyor mu, hangi veri mock? ("yansımadı" şüphesini kanıtla/çürüt) | `.env.local` `DATABASE_URL` |
+| **db-query-council** | Query katmanı + tRPC sözleşmesi doğru mu? create/update alan tutarsızlığı, Drizzle/hata/N+1 riski var mı? | — |
+
+**Tetikleyici:** **"database agentları çalıştır"** / **"db agentları"** — ya da
+veritabanı (db/, api/_lib/queries/, drizzle, schema/migration) üzerinde değişiklikten
+sonra bağlam DB iken **"agentları çalıştır"** dendiğinde — bu 3 agent'ı **tek mesajda
+paralel** spawn et, raporları özetle. Set A (shift) ve Set B (görsel) bununla ÇALIŞMAZ.
+
+> Kural: Set C salt-okunur denetler — `db:migrate`/`db:push`/yazma işini agent
+> kendi başına yapmaz; bulguyu döndürür, uygulama kararı ana asistanda/kullanıcıda.
+
+---
+
 ## Çakışma kuralı (önemli)
 
 - Belirsiz tek başına **"agentları çalıştır"**: o anki bağlam shift-organizer ise
-  **Set A**, pusula/genel görsel ise **Set B**. Bağlam net değilse hangi seti
-  istediğini kullanıcıya SOR — yanlış seti çalıştırma.
+  **Set A**, pusula/genel görsel ise **Set B**, veritabanı (db/şema/query/bağ) ise
+  **Set C**. Bağlam net değilse hangi seti istediğini kullanıcıya SOR — yanlış seti
+  çalıştırma.
+- Açık tetikleyiciler (karışmaz): "shift agentları" → A · "pusula agentları" /
+  "görsel kurul" → B · "database agentları" / "db agentları" → C.
 - Yeni bir set (başka sayfa için) eklenirse: o sete benzersiz isim öneki ver
   (Set A'daki `shift-*` gibi), bu README'ye satır ekle, tetikleme cümlesini
   netleştir. Önek = setlerin karışmamasının garantisi.
