@@ -10,7 +10,6 @@ import { useGSAP } from "@gsap/react";
 import { ProjectCard, type Project } from "@/components/ProjectCard";
 import { ZMark } from "@/components/ZMark";
 import { CornerVignette } from "@/components/CornerVignette";
-import { PusulaCompass } from "@/components/PusulaCompass";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 // iOS adres çubuğu gizlenirken tetiklenen resize fırtınası scrub trigger'ları
@@ -537,7 +536,9 @@ export default function Home() {
           <div className="bf-track">
             {/* intro paneli — marka compass'ı watermark */}
             <div className="bf-panel relative px-6 sm:px-10 md:px-16" style={{ width: "min(92vw, 640px)" }}>
-              <PusulaCompass dark heading={26} className="absolute right-[-70px] top-1/2 -translate-y-1/2 w-[360px] opacity-[0.22] pointer-events-none hidden lg:block" />
+              {/* komedi compass yerine ters-çevrilmiş kroki blueprint'i — koyu
+                  zeminde açık mimari çizgiler ("Pusula sahayı tanır"). */}
+              <img src="/pusula-plan.png" alt="" aria-hidden className="absolute right-[-90px] top-1/2 -translate-y-1/2 w-[420px] opacity-[0.12] pointer-events-none hidden lg:block" style={{ filter: "invert(1) grayscale(1)" }} />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-4 text-[10px] font-mono tracking-[0.28em] uppercase" style={{ color: "rgba(245,241,234,0.45)" }}>
                   <span>38.45° N · 27.21° E</span>
