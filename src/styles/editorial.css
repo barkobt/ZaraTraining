@@ -877,7 +877,8 @@
    ============================================================ */
 .so-shell { min-height: 100vh; background: var(--zara-bg); }
 .so-head {
-  position: sticky; top: 0; z-index: 30;
+  /* top: 46 — paylaşılan AtelyeBar (46px) altına yapışır */
+  position: sticky; top: 46px; z-index: 30;
   background: rgba(242,239,233,0.86); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--zara-line-strong);
   padding: 16px 40px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
@@ -2578,7 +2579,8 @@
 /* Tek navigasyon: desktop'ta hep-açık etiketli sidebar; rakip sticky künye
    kalktı. Marka üstte (eve döner), bölümler gruplu, altta Atölye/Shift/Çıkış. */
 .pv4-rail {
-  position: fixed; left: 0; top: 0; bottom: 0; z-index: 70; width: 234px;
+  /* top: 46 — paylaşılan AtelyeBar (46px) altına iner */
+  position: fixed; left: 0; top: 46px; bottom: 0; z-index: 70; width: 234px;
   background: var(--zara-bg); border-right: 1px solid var(--zara-line);
   display: flex; flex-direction: column; padding: 22px 0 14px; overflow-y: auto;
 }
