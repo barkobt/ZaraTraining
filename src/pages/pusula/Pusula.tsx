@@ -223,6 +223,12 @@ function PusulaInner() {
     };
   }, [lang]);
 
+  // Görünüm (tab) değişince sayfayı en üste al — kullanıcı önceki view'de
+  // aşağıdayken yeni view'e geçince ortada/altta kalmasın.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [view]);
+
   // menü açıkken: Escape kapatır, arka plan kaymaz
   useEffect(() => {
     if (!menuOpen) return;
