@@ -2500,8 +2500,9 @@
 .pv3-cockpit { display: flex; flex-direction: column; gap: 0; }
 .pv3-masthead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 10px; }
 /* sol künye grubu: tarih başlığı + altında gazete "baskı künyesi" kicker'ı */
-.pv3-mast-left { display: flex; flex-direction: column; gap: 3px; }
-.pv3-edition { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-50); }
+.pv3-mast-left { display: flex; flex-direction: column; gap: 4px; }
+/* text-indent 2px: italik serif tarihin optik sol-kaçışını telafi eder (hizalı kicker) */
+.pv3-edition { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-50); text-indent: 2px; }
 .pv3-date { font-family: var(--ff-display); font-style: italic; font-size: 17px; color: var(--zara-ink); text-transform: capitalize; }
 .pv3-store { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.22em; color: var(--zara-ink-40); }
 .pv3-ticker { overflow: hidden; border-top: 1px solid var(--zara-ink); border-bottom: 1px solid var(--zara-line); padding: 7px 0; margin-bottom: 26px; }
