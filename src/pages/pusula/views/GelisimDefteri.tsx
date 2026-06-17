@@ -254,7 +254,7 @@ export function GelisimDefteri() {
           {/* ── TAKİP ── */}
           {mode === "takip" && (
             <>
-              <div className="pusula-pills" style={{ marginBottom: 16 }}>
+              <div className="pusula-pills" style={{ marginBottom: 8 }}>
                 {GUIDEBOOK_ROLES.map((r) => (
                   <button key={r} className={`pusula-pill ${role === r ? "on" : ""}`} onClick={() => setRole(r)}>
                     {roleLabel(r)}

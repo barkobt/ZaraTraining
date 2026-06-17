@@ -1506,7 +1506,9 @@
   background-repeat: no-repeat; background-position: right 4px center;
 }
 .pusula-book-emp select:focus { outline: none; border-bottom-color: var(--zara-ink); }
-.pusula-asa-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 22px 0 0; border-top: 1px solid var(--zara-line); background: transparent; margin-bottom: 18px; }
+/* ASA strip rol pill'leriyle TEK grup — ayıran üst-border/padding kaldırıldı
+   (design-council [P1]: 6 kontrol bandı → daha az; rol+sorumluluk aynı seviye). */
+.pusula-asa-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 0; background: transparent; margin-bottom: 22px; }
 .pusula-asa-strip-eb { flex-basis: 100%; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-gold-deep); margin-bottom: 4px; }
 .pusula-asa-chip { font-family: var(--ff-sans); font-size: 13px; line-height: 1.4; color: var(--zara-ink-2); padding: 8px 14px; border: 1px solid var(--zara-line-strong); border-radius: 0; }
 .pusula-asa-chip em { font-style: normal; font-family: var(--ff-mono); font-size: 9px; color: var(--zara-ink-40); margin-left: 9px; }
