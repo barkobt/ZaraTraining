@@ -280,8 +280,17 @@ export function GelisimDefteri() {
                   </button>
                 ))}
               </div>
-              {/* NABIZ BANDI — defterin tek bakışta durumu (cockpit dili) */}
-              <div className="pusula-pulse">
+              {/* Künye satırı — navigasyon zincirini (rol→ASA→seviye) kapatır */}
+              <div className="pusula-book-legend">
+                <span>{section?.topics.length} {plang({ tr: "konu", en: "topics", es: "temas" })} · {roleLabel(role)} · {section?.weeks}</span>
+                <span className="pusula-book-legend-stats">
+                  {plang({ tr: "Plan ", en: "Plan adapted to the ", es: "Plan adaptado al nivel " })}<em>{masteryShort(emp.level)}</em>{plang({ tr: " seviyesine göre uyarlanır · her tik tarih + nota düşülür", en: " level · each tick logs a date + note", es: " · cada marca registra fecha + nota" })}
+                </span>
+              </div>
+
+              {/* NABIZ BANDI — listenin hemen üstünde "durum özeti" (artık navigasyon
+                  zincirinden ayrı; seviye tablarıyla tipografik ikiz bitişikliği yok). */}
+              <div className="pusula-pulse pusula-pulse--summary">
                 <div className="pusula-pulse-cell">
                   <em>
                     {marked}
@@ -304,13 +313,6 @@ export function GelisimDefteri() {
                   <em>{Object.values(history).filter((m) => m.status !== "Boş" && m.log[m.status as MarkStatus]?.date === TODAY).length}</em>
                   <span>{plang({ tr: "bugün işlenen", en: "logged today", es: "registrado hoy" })}</span>
                 </div>
-              </div>
-
-              <div className="pusula-book-legend">
-                <span>{section?.topics.length} {plang({ tr: "konu", en: "topics", es: "temas" })} · {roleLabel(role)} · {section?.weeks}</span>
-                <span className="pusula-book-legend-stats">
-                  {plang({ tr: "Plan ", en: "Plan adapted to the ", es: "Plan adaptado al nivel " })}<em>{masteryShort(emp.level)}</em>{plang({ tr: " seviyesine göre uyarlanır · her tik tarih + nota düşülür", en: " level · each tick logs a date + note", es: " · cada marca registra fecha + nota" })}
-                </span>
               </div>
 
               {/* hızlı filtre — uzun kitapçıkta kolay gezinme */}
