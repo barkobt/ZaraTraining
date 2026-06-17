@@ -381,7 +381,7 @@ export default function Home() {
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           disablePictureInPicture
           className="hero-video absolute inset-0 w-full h-full object-cover pointer-events-none motion-reduce:hidden"
           style={{ filter: "grayscale(0.85) contrast(1.05) brightness(0.95)", zIndex: 0, opacity: 0, visibility: "hidden" }}
@@ -538,7 +538,7 @@ export default function Home() {
             <div className="bf-panel relative px-6 sm:px-10 md:px-16" style={{ width: "min(92vw, 640px)" }}>
               {/* komedi compass yerine ters-çevrilmiş kroki blueprint'i — koyu
                   zeminde açık mimari çizgiler ("Pusula sahayı tanır"). */}
-              <img src="/pusula-plan.png" alt="" aria-hidden className="absolute right-[-90px] top-1/2 -translate-y-1/2 w-[420px] opacity-[0.12] pointer-events-none hidden lg:block" style={{ filter: "invert(1) grayscale(1)" }} />
+              <img src="/pusula-plan.png" alt="" aria-hidden loading="lazy" decoding="async" width={420} height={420} className="absolute right-[-90px] top-1/2 -translate-y-1/2 w-[420px] opacity-[0.12] pointer-events-none hidden lg:block" style={{ filter: "invert(1) grayscale(1)" }} />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-4 text-[10px] font-mono tracking-[0.28em] uppercase" style={{ color: "rgba(245,241,234,0.45)" }}>
                   <span>38.45° N · 27.21° E</span>
