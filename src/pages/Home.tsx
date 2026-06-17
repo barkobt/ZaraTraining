@@ -32,7 +32,7 @@ const TOOLS: Project[] = [
     href: "/shift-organizer",
     accent: "#1A1614",
     image:
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&h=1200&fit=crop&q=85&auto=format",
     available: true,
     status: "AÇIK",
     index: 0,
@@ -46,7 +46,7 @@ const TOOLS: Project[] = [
     href: "/buenas-dias",
     accent: "#8B6F47",
     image:
-      "https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?w=900&h=1200&fit=crop&q=85&auto=format",
     available: true,
     status: "AÇIK",
     index: 1,
@@ -78,7 +78,7 @@ const EDUCATION: Project[] = [
     href: "/fitting-room",
     accent: "#B8935A",
     image:
-      "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=900&h=1200&fit=crop&q=85&auto=format",
     available: true,
     status: "AÇIK",
     index: 0,
@@ -92,7 +92,7 @@ const EDUCATION: Project[] = [
     href: "#",
     accent: "#8B6F47",
     image:
-      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&h=1200&fit=crop&q=85&auto=format",
     available: false,
     status: "YAKINDA",
     index: 1,
@@ -106,7 +106,7 @@ const EDUCATION: Project[] = [
     href: "#",
     accent: "#9B8F80",
     image:
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&h=1200&fit=crop&q=85&auto=format",
     available: false,
     status: "YAKINDA",
     index: 2,
@@ -119,7 +119,7 @@ const STEPS = [
   { icon: Sparkles, t: "Dağıt & Ölç", d: "PDF/Excel çıktısını paylaş, KPI'lar geri akar, döngü kapanır." },
 ];
 
-const PF_IMG = (id: string) => `https://images.unsplash.com/photo-${id}?w=800&h=1000&fit=crop&q=80&auto=format&sat=-100`;
+const PF_IMG = (id: string) => `https://images.unsplash.com/photo-${id}?w=800&h=1000&fit=crop&q=80&auto=format`;
 const PUSULA_FEATURES = [
   { n: "01", icon: Sunrise, t: "Günün Kuyruğu", d: "Koç güne tek ekranda başlar: onaylar, keşifler, eşleşmeler — karar her zaman insanda.", img: PF_IMG("1441986300917-64674bd600d8") },
   { n: "02", icon: Activity, t: "Kanıt Motoru", d: "Skor yok, sıralama yok. Her öneri sinyal, kanal, çıkarım ve güven zinciriyle hesap verir.", img: PF_IMG("1454165804606-c3d57bc86b40") },

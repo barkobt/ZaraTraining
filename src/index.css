@@ -446,6 +446,10 @@ html.lenis, html.lenis body { height: auto; }
   border-color: rgba(184, 147, 90, 0.55) !important;
   background: rgba(245, 241, 234, 0.07) !important;
 }
+/* hover'da temalı görsel grayscale'den renge döner + hafif belirginleşir
+   (ProjectCard'larla aynı "üzerine gelince renklenir" dili; koyu temada ölçülü). */
+.bf-card img { transition: filter 450ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 450ms cubic-bezier(0.22, 0.61, 0.36, 1); }
+.bf-card:hover img { filter: grayscale(0) !important; opacity: 0.34 !important; }
 
 /* Mobil / reduced-motion fallback: pin yok, dikey akış */
 .bf-fallback .bf-viewport { height: auto; overflow: visible; }
