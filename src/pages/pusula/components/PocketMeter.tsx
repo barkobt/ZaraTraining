@@ -25,7 +25,7 @@ export function PocketMeter({ pocket, fraction }: { pocket: PocketState; fractio
         ? pick({ tr: "rahat", en: "calm", es: "tranquilo" })
         : pick({ tr: "rahatlıyor", en: "easing", es: "relajándose" });
   const fill = 0.3 + 0.46 * f;
-  const color = eased ? "var(--zara-sage)" : "rgba(191, 149, 80, 0.45)";
+  const color = eased ? "var(--zara-sage)" : "rgba(191, 149, 80, 0.6)";
 
   return (
     <div className="pusula-pocket">
