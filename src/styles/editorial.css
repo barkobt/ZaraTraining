@@ -2004,8 +2004,8 @@
 .pusula-transfers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; }
 /* soy hattı (lineage rail): default soluk altın = "aktarım önerildi";
    onaylanınca ink'e koyulaşır = "yöntem kuruma yazıldı" (iki agent convergent). */
-.pusula-transfer { border: 1px solid var(--zara-line); border-left: 2px solid var(--zara-gold-soft); background: var(--zara-bg-white, #fff); padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 12px; transition: border-color 300ms var(--ease-atelier); }
-.pusula-transfer.ok { border-left: 2px solid var(--zara-ink); }
+.pusula-transfer { border: 1px solid var(--zara-line); border-left: 3px solid var(--zara-gold); background: var(--zara-bg-white, #fff); padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 12px; transition: border-color 300ms var(--ease-atelier); }
+.pusula-transfer.ok { border-left: 3px solid var(--zara-ink); }
 .pusula-transfer-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .pusula-transfer-pair { display: inline-flex; align-items: center; gap: 8px; color: var(--zara-ink-40); }
 .pusula-transfer-conf { display: inline-flex; align-items: center; gap: 8px; }
@@ -2016,7 +2016,7 @@
 /* fokus = aktarılan ŞEY → kartın kahramanı (design-council P1) */
 .pusula-transfer-focus { font-family: var(--ff-sans); font-size: 15px; line-height: 1.5; color: var(--zara-ink); }
 .pusula-transfer-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.pusula-transfer-meta .tag { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); border: 1px solid var(--zara-line-strong); padding: 4px 9px; }
+.pusula-transfer-meta .tag { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink); border: 1px solid var(--zara-line-strong); padding: 4px 9px; }
 .pusula-transfer-meta .slot { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.06em; color: var(--zara-ink-50); }
 .pusula-transfer-acts { display: flex; gap: 10px; margin-top: 4px; }
 .pusula-transfer-slotbtn { border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 7px 13px; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-65); transition: all 200ms; }
@@ -2031,11 +2031,7 @@
 .pusula-codified-chip i { font-style: normal; color: var(--zara-ink-40); }
 @media (max-width: 860px) { .pusula-transfers { grid-template-columns: 1fr; } }
 
-/* USTA YOLU — hikâye şeridi + öğretebilir havuzu + yöntem etiketi */
-.pusula-usta-story { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border: 1px solid var(--zara-line); padding: 13px 18px; margin-bottom: 14px; }
-.pusula-usta-story span { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-50); }
-.pusula-usta-story span.last { color: var(--zara-ink); box-shadow: inset 0 -1px 0 var(--zara-ink); padding-bottom: 3px; }
-.pusula-usta-story i { font-style: normal; color: var(--zara-ink-30); }
+/* USTA YOLU — öğretebilir havuzu + yöntem etiketi (usta-story kaldırıldı) */
 .pusula-teachpool { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
 .pusula-teachpool-chip { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--zara-line-strong); padding: 5px 11px 5px 6px; font-family: var(--ff-sans); font-size: 11.5px; font-weight: 500; color: var(--zara-ink); }
 .pusula-teachpool-chip em { font-family: var(--ff-mono); font-style: normal; font-weight: 400; font-size: 7.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-ink-40); }
