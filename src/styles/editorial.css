@@ -1288,6 +1288,20 @@
 .pusula-profile-role { margin-top: 7px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--zara-gold-deep); }
 /* bölüm başlıkları "bölüm" hissi versin: eyebrow altına hairline kural */
 .pusula-profile-block > .pusula-eyebrow { padding-bottom: 11px; margin-bottom: 2px; border-bottom: 1px solid var(--zara-line); }
+/* bölüm folyo numaraları — gazete "section" hissi + wayfinding; sessiz ink,
+   altın rasyonuna dokunmaz (numara nötr, başlık kendi tonunu korur). */
+.pusula-profile-main { counter-reset: pblock; }
+.pusula-profile-block { counter-increment: pblock; }
+.pusula-profile-block > .pusula-eyebrow::before {
+  content: counter(pblock, decimal-leading-zero);
+  margin-right: 9px;
+  color: var(--zara-ink-30);
+  font-variant-numeric: tabular-nums;
+}
+/* dikiş ayracı — geçmiş KANIT ↔ gelecek TAHMİN eşiği ("kanıt ≠ tahmin").
+   Kesik çizgi + üstüne oturan mono damga (atölye dikiş-payı dili). */
+.pusula-seam { position: relative; margin: 40px 0 16px; height: 0; border-top: 1px dashed var(--zara-line-strong); text-align: center; }
+.pusula-seam span { position: relative; top: -6px; background: var(--zara-bg); padding: 0 14px; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-profile-asa { display: flex; flex-direction: column; gap: 16px; }
 .pusula-profile-curveword { font-family: var(--ff-sans); font-size: 12.5px; font-style: italic; color: var(--zara-ink-50); }
 
