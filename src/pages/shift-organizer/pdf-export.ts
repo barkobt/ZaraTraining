@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import autoTable, { type Styles } from "jspdf-autotable";
 import type { GenerateResult, ShiftInputForChart } from "./ChartResult";
 import { ROBOTO_REGULAR_BASE64 } from "./fonts/roboto-regular-base64";
 
@@ -71,6 +71,166 @@ function fmtDate(iso: string): string {
   return `${m[3]}.${m[2]}.${m[1]}`;
 }
 
+/** Kesirli saat: 14 → "14", 14.5 → "14.5". 1/2'ler 0.5 sayılır; saat alt-toplamı
+ *  ve günlük toplam (toplam insan-saat) buçuklu olabilir. */
+function fmtHalf(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+}
+
+/** Tarih eyebrow'unu (charSpace ile) TAM ortalanmış çizer — jsPDF'in align
+ *  center'ı charSpace'i hesaba katmadığı için genişliği elle hesaplıyoruz. */
+function drawCenteredEyebrow(doc: jsPDF, text: string, centerX: number, y: number, charSpace: number) {
+  const w = doc.getTextWidth(text) + charSpace * Math.max(0, text.length - 1);
+  doc.text(text, centerX - w / 2, y, { charSpace });
+}
+
+// ─── "Günün Bilgileri" ikonları — jsPDF vektör primitifleriyle çizilen ince
+//     line-icon set (DS altın aksan #B8935A). EMOJİ YOK; kurumsal, editöryel. ───
+type InfoIcon = "leader" | "qr" | "runner" | "phone" | "action" | "bag" | "plus";
+
+function drawInfoIcon(doc: jsPDF, type: InfoIcon, cx: number, cy: number) {
+  doc.setDrawColor(184, 147, 90);
+  doc.setFillColor(184, 147, 90);
+  doc.setLineWidth(0.3);
+  switch (type) {
+    case "leader": // dolu eşkenar dörtgen — liderlik aksanı
+      doc.triangle(cx, cy - 1.3, cx + 1.1, cy, cx, cy + 1.3, "F");
+      doc.triangle(cx, cy - 1.3, cx - 1.1, cy, cx, cy + 1.3, "F");
+      break;
+    case "runner": // sağ ok — akış / runner
+      doc.line(cx - 1.3, cy, cx + 1.2, cy);
+      doc.line(cx + 1.2, cy, cx + 0.5, cy - 0.6);
+      doc.line(cx + 1.2, cy, cx + 0.5, cy + 0.6);
+      break;
+    case "phone": // telefon — iPod
+      doc.roundedRect(cx - 0.85, cy - 1.4, 1.7, 2.8, 0.35, 0.35, "S");
+      doc.line(cx - 0.35, cy + 0.95, cx + 0.35, cy + 0.95);
+      break;
+    case "action": // askı — aksiyon familyaları
+      doc.line(cx - 1.3, cy + 0.7, cx + 1.3, cy + 0.7);
+      doc.line(cx - 1.3, cy + 0.7, cx, cy - 0.5);
+      doc.line(cx + 1.3, cy + 0.7, cx, cy - 0.5);
+      doc.line(cx, cy - 0.5, cx, cy - 1.1);
+      break;
+    case "bag": // çanta — Tempe / ACC (aksesuar)
+      doc.roundedRect(cx - 1.0, cy - 0.4, 2.0, 1.9, 0.25, 0.25, "S");
+      doc.line(cx - 0.55, cy - 0.4, cx - 0.4, cy - 1.3);
+      doc.line(cx + 0.55, cy - 0.4, cx + 0.4, cy - 1.3);
+      doc.line(cx - 0.4, cy - 1.3, cx + 0.4, cy - 1.3);
+      break;
+    case "plus": // artı — istek noktası
+      doc.line(cx, cy - 1.2, cx, cy + 1.2);
+      doc.line(cx - 1.2, cy, cx + 1.2, cy);
+      break;
+    case "qr": // QR kare — CX QR
+      doc.rect(cx - 1.0, cy - 1.0, 0.8, 0.8, "F");
+      doc.rect(cx + 0.2, cy - 1.0, 0.8, 0.8, "F");
+      doc.rect(cx - 1.0, cy + 0.2, 0.8, 0.8, "F");
+      doc.rect(cx + 0.2, cy + 0.2, 0.8, 0.8, "S");
+      break;
+  }
+  doc.setLineWidth(0.2);
+}
+
+type InfoItem = { icon: InfoIcon; key: string; value: string };
+
+/**
+ * "Günün Bilgileri" panelini çizer (sorumlular + altInfo): ince altın ayraç +
+ * serif başlık, her satırda ikon + aralıklı uppercase anahtar + mürekkep değer.
+ * Sayfa taşarsa YENİ SAYFA açar (eskiden `break` ile kesiliyordu → alan PDF'inde
+ * "1-2 satır yazılıp gerisi çıkmıyor" bug'ı). Final y döner.
+ */
+function renderDayInfo(
+  doc: jsPDF,
+  startY: number,
+  result: GenerateResult,
+  altInfo: ChartAltInfo | undefined,
+  pageWidth: number,
+  pageHeight: number,
+  margin: number,
+  /** Günlük toplam insan-saat (örn 97.5) — başlık satırının sağ ucunda gösterilir. */
+  grandTotal?: number,
+): number {
+  const resp = (result.responsibilities ?? {}) as Record<string, string | null | undefined>;
+  const items: InfoItem[] = [];
+  const add = (icon: InfoIcon, key: string, value: string | null | undefined) => {
+    if (value && value.trim()) items.push({ icon, key, value: value.trim() });
+  };
+  add("leader", "Liderlik", resp["Liderlik"]);
+  add("qr", "CX Sorumlusu", resp["CX Sorumlusu"]);
+  add("runner", "Runner Lider", resp["Runner Lider"]);
+  add("phone", "iPod Sorumlusu", resp["iPod Sorumlusu"]);
+  add("action", "Aksiyon Sorumlusu", resp["Aksiyon Sorumlusu"]);
+  add("action", "Haftanın aksiyon familyaları", altInfo?.aksiyon);
+  add("qr", "CX QR hedefi", altInfo?.cxQr);
+  add("phone", "iPod satışı hedefi / sorumlusu", altInfo?.ipod);
+  add("bag", "Tempe / ACC sorumlusu", altInfo?.tempe);
+  add("plus", "İstek noktası sorumlusu", altInfo?.istek);
+  if (items.length === 0) return startY;
+
+  const bottom = pageHeight - margin;
+  let y = startY;
+
+  // İnce altın ayraç + serif başlık
+  doc.setDrawColor(184, 147, 90);
+  doc.setLineWidth(0.4);
+  doc.line(margin, y, pageWidth - margin, y);
+  doc.setLineWidth(0.2);
+  y += 6.5;
+  doc.setFont("times", "normal");
+  doc.setFontSize(12.5);
+  doc.setTextColor(26, 22, 20);
+  doc.text("Günün Bilgileri", margin, y);
+  // Sağ uçta günlük toplam insan-saat (1/2'ler 0.5) — serif değer + mono etiket.
+  if (grandTotal != null) {
+    doc.setFont("times", "normal");
+    doc.setFontSize(14);
+    doc.setTextColor(26, 22, 20);
+    const tv = `${fmtHalf(grandTotal)} sa`;
+    doc.text(tv, pageWidth - margin, y, { align: "right" });
+    const tvW = doc.getTextWidth(tv);
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(6.8);
+    doc.setTextColor(150, 138, 120);
+    doc.text("GÜNLÜK TOPLAM", pageWidth - margin - tvW - 3, y, { align: "right", charSpace: 0.15 });
+  }
+  y += 7;
+
+  // ── ASLA yeni sayfaya taşma. Önce tek sütunda adaptif yükseklikle dene; sığmazsa
+  //    İKİ SÜTUNA geç (sağdaki boşluk). Her şey TEK sayfada kalır. ──
+  const topY = y;
+  const avail = Math.max(8, bottom - topY);
+  const MIN_RH = 5.0;
+  const MAX_RH = 7.2;
+  // Tek sütunda OKUNAKLI (≥MIN_RH) yükseklikle sığar mı? Sığmazsa 2 sütuna geç.
+  // rowH'u available alandan TÜRET (taban clamp YOK) → rowsPerCol*rowH ≤ avail,
+  // yani ASLA sayfa altına taşmaz (kullanıcı: yeni sayfa açma, yana geç).
+  const cols = Math.min(MAX_RH, avail / items.length) < MIN_RH ? 2 : 1;
+  const rowsPerCol = Math.ceil(items.length / cols);
+  const rowH = Math.min(MAX_RH, avail / rowsPerCol);
+  const colW = (pageWidth - margin * 2) / cols;
+  const valSize = cols === 2 ? 8.4 : 9;
+
+  items.forEach((it, i) => {
+    const col = Math.floor(i / rowsPerCol);
+    const x = margin + col * colW;
+    const yy = topY + (i - col * rowsPerCol) * rowH;
+    drawInfoIcon(doc, it.icon, x + 1.9, yy - 1.0);
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(7.1);
+    doc.setTextColor(150, 138, 120);
+    const keyT = it.key.toLocaleUpperCase("tr-TR");
+    doc.text(keyT, x + 6.5, yy, { charSpace: 0.2 });
+    const kw = doc.getTextWidth(keyT) + 0.2 * Math.max(0, keyT.length - 1) + 3.5;
+    doc.setFontSize(valSize);
+    doc.setTextColor(26, 22, 20);
+    const valX = x + 6.5 + kw;
+    // Değer sütun sınırını aşmasın (2-sütunda uzun "aksiyon familyaları").
+    doc.text(it.value, valX, yy, { maxWidth: Math.max(20, x + colW - valX - 2) });
+  });
+  return topY + rowsPerCol * rowH;
+}
+
 /**
  * Chart sonucunu **chart1.pdf paritesinde** PDF olarak indir.
  *
@@ -100,14 +260,17 @@ export function exportChartToPdf(
   doc.addFont("Roboto-Regular.ttf", "Roboto", "bold");  // bold alias regular'a
   doc.setFont("Roboto", "normal");
 
-  // ─── Başlık: italik "Günlük Chart" — chart1 referans ───
-  // Roboto-Italic embed etmiyoruz (bundle ekonomisi); başlık jsPDF italic emulation ile
+  // ─── Başlık: SERİF "Günlük Chart" (jsPDF built-in Times — editöryel DS serif
+  //     hissi, "ü" WinAnsi'de var) + altına TAM ortalı aralıklı tarih eyebrow ───
+  doc.setFont("times", "normal");
+  doc.setFontSize(21);
+  doc.setTextColor(26, 22, 20); // DS mürekkep #1A1614
+  doc.text("Günlük Chart", pageWidth / 2, 15, { align: "center" });
+  // Tarih eyebrow: "17 · 06 · 2026" — geniş aralık, sıcak stone, tam ortalı
   doc.setFont("Roboto", "normal");
-  doc.setFontSize(16);
-  doc.setTextColor(0);
-  // İtalik karakterleri elle eğmek yerine düz Roboto bold + spaced caps yaklaşımı
-  // chart1 görsel olarak italik diyor ama "Günlük Chart" iki kelime; düz bold bırakıyoruz.
-  doc.text("Günlük Chart", pageWidth / 2, 14, { align: "center" });
+  doc.setFontSize(8);
+  doc.setTextColor(150, 138, 120);
+  drawCenteredEyebrow(doc, fmtDate(shiftDate).split(".").join("  ·  "), pageWidth / 2, 20.5, 0.5);
 
   // ─── Tablo verisi ───
   const hours = [...new Set(result.chart.map((c) => c.hour))].sort((a, b) => a - b);
@@ -160,6 +323,21 @@ export function exportChartToPdf(
     }
   }
 
+  // ─── Saat başına AKTİF (alt toplam) — 1/2'ler 0.5 sayılır → kesirli (örn 14.5).
+  //     Günlük toplam = Σ = toplam insan-saat (örn 97.5). ───
+  const loadByHour = new Map<number, number>();
+  for (const h of hours) {
+    let sum = 0;
+    for (const r of roles) {
+      for (const p of byKey.get(`${h}|${r}`) ?? []) {
+        sum += halfBreakSetByHour.get(h)?.has(p) ? 0.5 : 1;
+      }
+    }
+    loadByHour.set(h, sum);
+  }
+  const grandTotal = [...loadByHour.values()].reduce((a, b) => a + b, 0);
+  const maxLoad = Math.max(1, ...loadByHour.values());
+
   // ─── Head: [tarih_hücresi, saat1, saat2, ...] (hepsi sarı) ───
   const head = [
     [fmtDate(shiftDate), ...hours.map(fmtHour)],
@@ -191,11 +369,30 @@ export function exportChartToPdf(
   // 7pt fontla 14mm hücreye ~14-16 karakter sığar (Kaan Ovezoglu, Sevilay OK).
   const tableHeight = 22;  // mm per row (data rows)
 
+  // Editöryel palet (DS): şampanya-altın header/sol sütun, mürekkep yazı,
+  // ince sıcak-gri grid, krem alt-satır tonu. Tablo YAPISI değişmez.
+  const CHAMPAGNE: [number, number, number] = [233, 216, 181]; // #E9D8B5
+  const INK: [number, number, number] = [26, 22, 20];          // #1A1614
+  const WARM_LINE: [number, number, number] = [201, 192, 178]; // sıcak stone
+  const CREAM_ALT: [number, number, number] = [250, 248, 243]; // #FAF8F3
+
+  // Saat sütunlarının x-geometrisini yakala (yoğunluk şeridi tablo ile hizalı çizilsin).
+  const colGeom = new Map<number, { cx: number; x: number; w: number }>();
+
   autoTable(doc, {
-    startY: 22,
+    startY: 24,
     head,
     body,
     theme: "grid",
+    didDrawCell: (data) => {
+      if (data.section === "head") {
+        colGeom.set(data.column.index, {
+          cx: data.cell.x + data.cell.width / 2,
+          x: data.cell.x,
+          w: data.cell.width,
+        });
+      }
+    },
     styles: {
       font: "Roboto",
       fontSize: 7,                // ↓ 8.5 → 7 (isim sığması için)
@@ -203,24 +400,30 @@ export function exportChartToPdf(
       minCellHeight: tableHeight,
       valign: "middle",
       halign: "center",
-      lineColor: [0, 0, 0],
-      lineWidth: 0.25,
-      textColor: [20, 20, 20],
+      lineColor: WARM_LINE,
+      lineWidth: 0.2,
+      textColor: INK,
       overflow: "linebreak",
     },
     headStyles: {
-      fillColor: [255, 230, 128],   // chart1 sarı
-      textColor: [0, 0, 0],
+      fillColor: CHAMPAGNE,
+      textColor: INK,
       fontStyle: "bold",
       fontSize: 7.5,
       halign: "center",
       minCellHeight: 9,
       cellPadding: 1.5,
     },
+    // Çift sıralarda çok hafif krem ton — okunabilirlik, sakin editöryel his.
+    alternateRowStyles: {
+      fillColor: CREAM_ALT,
+    },
     columnStyles: {
-      // İlk sütun: tarih/rol etiketi (sarı, bold, ortalı, biraz daha geniş)
+      // İlk sütun: tarih/rol etiketi (şampanya, bold, ortalı, biraz daha geniş).
+      // columnStyles alternateRowStyles'ı ezer → sol sütun her satırda altın kalır.
       0: {
-        fillColor: [255, 230, 128],
+        fillColor: CHAMPAGNE,
+        textColor: INK,
         fontStyle: "bold",
         halign: "center",
         cellWidth: 26,            // ↑ 22 → 26 (KABİN WELCOMER tek satıra sığsın)
@@ -232,77 +435,55 @@ export function exportChartToPdf(
       const txt = data.cell.text;
       if (txt.length === 1 && (txt[0] === "" || txt[0] === "—")) {
         data.cell.text = [""];
+        return;
+      }
+      // Uzun isim/çok kişi sütunu taşırmasın: en uzun satıra göre fontu kademeli
+      // küçült (tablo yapısı korunur, hücre genişler/taşar yerine yazı sığar).
+      if (data.section === "body" && data.column.index > 0) {
+        const longest = txt.reduce((m, t) => Math.max(m, t.length), 0);
+        if (longest > 14) data.cell.styles.fontSize = 5.5;
+        else if (longest > 11) data.cell.styles.fontSize = 6;
       }
     },
     tableWidth: pageWidth - margin * 2,
-    margin: { left: margin, right: margin, top: 22 },
+    margin: { left: margin, right: margin, top: 24 },
   });
 
-  // ─── Alt info satırları ───
-  // chart1: "Haftanın aksiyon familyaları: ...", "CX QR hedefi: ...", vb.
-  // Sadece dolu olanlar yazılır. Bold key + normal value.
-  let y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
-    .finalY + 14;
+  const tableFinalY = (doc as unknown as { lastAutoTable: { finalY: number } })
+    .lastAutoTable.finalY;
 
-  // Günün Sorumluları (Liderlik, CX, Runner Lider, iPod, Aksiyon) — Chart UI'sında
-  // ResponsibilitiesPanel ile seçilir, DB'de charts.responsibilities jsonb'sine
-  // persist olur. PDF altında ayrı bir bölüm olarak listelenir.
-  const resp = (result.responsibilities ?? {}) as Record<string, string | null | undefined>;
-  const respItems: Array<{ key: string; value: string | undefined }> = [
-    { key: "Liderlik", value: resp["Liderlik"] ?? undefined },
-    { key: "CX Sorumlusu", value: resp["CX Sorumlusu"] ?? undefined },
-    { key: "Runner Lider", value: resp["Runner Lider"] ?? undefined },
-    { key: "iPod Sorumlusu", value: resp["iPod Sorumlusu"] ?? undefined },
-    { key: "Aksiyon Sorumlusu", value: resp["Aksiyon Sorumlusu"] ?? undefined },
-  ];
-  const hasResp = respItems.some((it) => it.value && it.value.trim());
-
-  if (hasResp) {
-    // Başlık: "Günün Sorumluları"
-    doc.setFont("Roboto", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(20);
-    doc.text("Günün Sorumluları", margin, y);
-    y += 6;
-    for (const it of respItems) {
-      if (!it.value || !it.value.trim()) continue;
-      if (y > pageHeight - 12) break;
-      doc.setFont("Roboto", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(20);
-      const labelText = `${it.key}: `;
-      doc.text(labelText, margin, y);
-      const labelWidth = doc.getTextWidth(labelText);
-      doc.setFont("Roboto", "bold");
-      doc.text(it.value, margin + labelWidth, y);
-      y += 7;
+  // ─── GÜN RİTMİ şeridi: saat başına AKTİF altın bar + kesirli alt-toplam + pik ───
+  const stripTop = tableFinalY + 3;
+  const barMaxH = 5.5;
+  const baseY = stripTop + barMaxH;
+  const numY = baseY + 3;
+  const c0 = colGeom.get(0);
+  doc.setFont("Roboto", "normal");
+  doc.setFontSize(6.4);
+  doc.setTextColor(150, 138, 120);
+  if (c0) doc.text("AKTİF", c0.x + 1.5, baseY - 0.8, { charSpace: 0.12 });
+  for (let i = 1; i <= hours.length; i++) {
+    const g = colGeom.get(i);
+    if (!g) continue;
+    const load = loadByHour.get(hours[i - 1]) ?? 0;
+    const barH = Math.max(0.4, (load / maxLoad) * barMaxH);
+    const isPeak = Math.abs(load - maxLoad) < 1e-9 && load > 0;
+    const bw = Math.min(3.6, g.w * 0.4);
+    if (isPeak) doc.setFillColor(184, 147, 90); // tam altın
+    else doc.setFillColor(214, 198, 165); // açık altın tint
+    doc.rect(g.cx - bw / 2, baseY - barH, bw, barH, "F");
+    if (isPeak) {
+      // pik saatin üstünde minik altın üçgen göz-çıpası
+      doc.setFillColor(184, 147, 90);
+      doc.triangle(g.cx - 1, stripTop - 1.8, g.cx + 1, stripTop - 1.8, g.cx, stripTop - 0.4, "F");
     }
-    y += 4; // alt info bölümünden önce bir nefes alanı
+    doc.setFontSize(6.4);
+    doc.setTextColor(26, 22, 20);
+    doc.text(fmtHalf(load), g.cx, numY, { align: "center" });
   }
 
-  const altItems: Array<{ key: string; value: string | undefined; bold?: boolean }> = [
-    { key: "Haftanın aksiyon familyaları", value: altInfo?.aksiyon, bold: true },
-    { key: "CX QR hedefi", value: altInfo?.cxQr },
-    { key: "IPOD Satışı hedefi / sorumlusu", value: altInfo?.ipod, bold: true },
-    { key: "Tempe / ACC sorumlusu", value: altInfo?.tempe, bold: true },
-    { key: "İstek noktası sorumlusu", value: altInfo?.istek, bold: true },
-  ];
-
-  for (const it of altItems) {
-    if (!it.value || !it.value.trim()) continue;
-    if (y > pageHeight - 12) break;
-    doc.setFont("Roboto", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(20);
-    const labelText = `${it.key}: `;
-    doc.text(labelText, margin, y);
-    const labelWidth = doc.getTextWidth(labelText);
-    if (it.bold) {
-      doc.setFont("Roboto", "bold");
-    }
-    doc.text(it.value, margin + labelWidth, y);
-    y += 7;
-  }
+  // ─── Günün Bilgileri (sorumlular + altInfo) — ikonlu; sağ-altta günlük toplam ───
+  renderDayInfo(doc, numY + 4, result, altInfo, pageWidth, pageHeight, margin, grandTotal);
 
   doc.save(`shift-${shiftDate}.pdf`);
 }
@@ -415,13 +596,21 @@ export function exportAreaChartToPdf(
   doc.addFont("Roboto-Regular.ttf", "Roboto", "bold");
   doc.setFont("Roboto", "normal");
 
-  // Başlık
-  doc.setFontSize(15);
-  doc.setTextColor(0);
-  doc.text("Günlük Chart — Alan Bazlı", pageWidth / 2, 13, { align: "center" });
-  doc.setFontSize(9);
-  doc.setTextColor(110);
-  doc.text(fmtDate(shiftDate), pageWidth / 2, 18, { align: "center" });
+  // Başlık — SERİF (built-in Times) + tam ortalı tarih eyebrow (ana PDF ile aynı dil)
+  doc.setFont("times", "normal");
+  doc.setFontSize(19);
+  doc.setTextColor(26, 22, 20);
+  doc.text("Günlük Chart", pageWidth / 2, 14, { align: "center" });
+  doc.setFont("Roboto", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(150, 138, 120);
+  drawCenteredEyebrow(
+    doc,
+    "ALAN BAZLI  ·  " + fmtDate(shiftDate).split(".").join("  ·  "),
+    pageWidth / 2,
+    19.5,
+    0.5,
+  );
 
   // ─── Ortak veri: saatler + (hour|role)→kişiler ───
   const hours = [...new Set(result.chart.map((c) => c.hour))].sort((a, b) => a - b);
@@ -469,13 +658,26 @@ export function exportAreaChartToPdf(
   const labelName = (name: string, hour: number): string =>
     halfBreakSetByHour.get(hour)?.has(name) ? `${name} 1/2` : name;
 
-  let y = 24;
-  const ROW_H = 11;
+  // Günlük toplam insan-saat (1/2'ler 0.5). Ana PDF ile BİREBİR aynı sonuç için
+  // aynı kaynaktan (byKey = hour|role deduped) sayıyoruz — iki ayrı hesap sapmasın.
+  let areaGrandTotal = 0;
+  for (const [key, persons] of byKey) {
+    const h = Number(key.split("|")[0]);
+    for (const p of persons) areaGrandTotal += halfBreakSetByHour.get(h)?.has(p) ? 0.5 : 1;
+  }
+
+  // Tüm 5 tablo + Günün Bilgileri TEK sayfaya sığsın diye sıkı yükseklikler.
+  let y = 23;
+  const ROW_H = 8.5;
+  const BAND_H = 6.2;
+  // Saat sütunları 5 tabloda BİREBİR aynı grid (alt alta hizalı) — sabit genişlik.
+  const COL0_W = 26;
+  const hourW = (tableWidth - COL0_W) / hours.length;
 
   for (const area of AREA_TABLES) {
     // Bu alan için tablo yüksekliği tahmini → sayfa taşarsa yeni sayfa.
     const dataRows = area.roles.length + 1; // alt-roller + MOLA
-    const estH = 7 /*başlık bandı*/ + 8 /*head*/ + dataRows * ROW_H + 5;
+    const estH = BAND_H + 7 /*head*/ + dataRows * ROW_H + 8 /*AKTİF şeridi + gap*/;
     if (y + estH > pageHeight - margin) {
       doc.addPage();
       y = margin + 4;
@@ -483,17 +685,20 @@ export function exportAreaChartToPdf(
 
     // Renkli başlık bandı + geometrik alan sembolü (AreaGlyph ile aynı)
     doc.setFillColor(area.color[0], area.color[1], area.color[2]);
-    doc.rect(margin, y, tableWidth, 7, "F");
-    drawAreaGlyph(doc, area.glyph, margin + 4, y + 3.5, 3.4);
+    doc.rect(margin, y, tableWidth, BAND_H, "F");
+    drawAreaGlyph(doc, area.glyph, margin + 4, y + BAND_H / 2, 3.2);
     doc.setTextColor(255);
     doc.setFont("Roboto", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(8.5);
     const labelX = margin + 8;
-    doc.text(`${area.label}`, labelX, y + 4.9);
+    doc.text(area.label, labelX, y + BAND_H / 2 + 1.0);
+    // Etiket genişliğini BOLD ölç (font küçültülmeden) — yoksa alt-yazı bitişik
+    // düşüyordu ("FITTING ROOMKabin"). + boşluk payı.
+    const labelW = doc.getTextWidth(area.label);
     doc.setFont("Roboto", "normal");
-    doc.setFontSize(7.5);
-    doc.text(area.sub, labelX + doc.getTextWidth(area.label) + 4, y + 4.9);
-    y += 7;
+    doc.setFontSize(7);
+    doc.text(area.sub, labelX + labelW + 5, y + BAND_H / 2 + 1.0);
+    y += BAND_H;
 
     const head = [["", ...hours.map(fmtHour)]];
     const body: string[][] = [];
@@ -514,19 +719,29 @@ export function exportAreaChartToPdf(
     const headTint = lighten(area.color, 0.78);
     const labelTint = lighten(area.color, 0.88);
 
+    const areaColGeom = new Map<number, { cx: number; x: number; w: number }>();
     autoTable(doc, {
       startY: y,
       head,
       body,
       theme: "grid",
+      didDrawCell: (data) => {
+        if (data.section === "head") {
+          areaColGeom.set(data.column.index, {
+            cx: data.cell.x + data.cell.width / 2,
+            x: data.cell.x,
+            w: data.cell.width,
+          });
+        }
+      },
       styles: {
         font: "Roboto",
-        fontSize: 7,
-        cellPadding: 1.5,
+        fontSize: 6.8,
+        cellPadding: 1.2,
         minCellHeight: ROW_H,
         valign: "middle",
         halign: "center",
-        lineColor: [210, 210, 210],
+        lineColor: [201, 192, 178], // ana PDF ile aynı sıcak-gri grid
         lineWidth: 0.2,
         textColor: [25, 25, 25],
         overflow: "linebreak",
@@ -535,25 +750,36 @@ export function exportAreaChartToPdf(
         fillColor: headTint,
         textColor: [40, 40, 40],
         fontStyle: "bold",
-        fontSize: 7,
+        fontSize: 6.5,
         halign: "center",
-        minCellHeight: 7,
+        minCellHeight: 6,
         cellPadding: 1,
       },
-      columnStyles: {
-        0: {
-          fillColor: labelTint,
-          textColor: [area.color[0], area.color[1], area.color[2]],
-          fontStyle: "bold",
-          halign: "left",
-          cellWidth: 28,
-          fontSize: 7.5,
-        },
-      },
+      // Sabit sütun genişlikleri → 5 tablonun saat kutuları birebir hizalı.
+      columnStyles: ((): Record<number, Partial<Styles>> => {
+        const cs: Record<number, Partial<Styles>> = {
+          0: {
+            fillColor: labelTint,
+            textColor: [area.color[0], area.color[1], area.color[2]],
+            fontStyle: "bold",
+            halign: "left",
+            cellWidth: COL0_W,
+            fontSize: 7,
+          },
+        };
+        for (let i = 1; i <= hours.length; i++) cs[i] = { cellWidth: hourW };
+        return cs;
+      })(),
       didParseCell: (data) => {
         const txt = data.cell.text;
         if (txt.length === 1 && (txt[0] === "" || txt[0] === "—")) {
           data.cell.text = [""];
+        }
+        // Uzun isim sütunu taşırmasın — kademeli font küçültme (ana PDF ile aynı).
+        if (data.section === "body" && data.column.index > 0) {
+          const longest = txt.reduce((m, t) => Math.max(m, t.length), 0);
+          if (longest > 14) data.cell.styles.fontSize = 5.5;
+          else if (longest > 11) data.cell.styles.fontSize = 6;
         }
         // MOLA satırı sol etiketini gri yap (rol değil)
         if (data.section === "body" && data.column.index === 0 && data.cell.raw === "MOLA") {
@@ -564,76 +790,52 @@ export function exportAreaChartToPdf(
       margin: { left: margin, right: margin },
     });
 
-    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 5;
+    const areaFinalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+
+    // ── Bu alanın AKTİF şeridi: saat başına kişi (1/2'ler 0.5), alan rengiyle.
+    //    Boş saatler "0" → alanlar-arası dengesizlik (WOMAN dolu / TRF boş) görünür. ──
+    const aBarMaxH = 3;
+    const aBaseY = areaFinalY + 1.5 + aBarMaxH;
+    const aNumY = aBaseY + 2.5;
+    const aLoad = hours.map((h) =>
+      area.roles.reduce(
+        (n, r) =>
+          n +
+          (byKey.get(`${h}|${r}`) ?? []).reduce(
+            (m, p) => m + (halfBreakSetByHour.get(h)?.has(p) ? 0.5 : 1),
+            0,
+          ),
+        0,
+      ),
+    );
+    const aMax = Math.max(1, ...aLoad);
+    const a0 = areaColGeom.get(0);
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(5.6);
+    doc.setTextColor(150, 138, 120);
+    if (a0) doc.text("AKTİF", a0.x + 1.5, aBaseY - 0.4, { charSpace: 0.1 });
+    for (let i = 1; i <= hours.length; i++) {
+      const g = areaColGeom.get(i);
+      if (!g) continue;
+      const load = aLoad[i - 1];
+      const bw = Math.min(3.2, g.w * 0.38);
+      if (load > 0) {
+        doc.setFillColor(area.color[0], area.color[1], area.color[2]);
+        const barH = Math.max(0.4, (load / aMax) * aBarMaxH);
+        doc.rect(g.cx - bw / 2, aBaseY - barH, bw, barH, "F");
+      }
+      doc.setFontSize(5.6);
+      if (load > 0) doc.setTextColor(26, 22, 20);
+      else doc.setTextColor(180, 175, 168);
+      doc.text(fmtHalf(load), g.cx, aNumY, { align: "center" });
+    }
+    y = aNumY + 3;
   }
 
-  // ─── Alt bilgi (sorumlular + altInfo) — mevcut PDF ile aynı içerik ───
-  renderAreaBottomInfo(doc, y, result, altInfo, pageHeight, margin);
+  // ─── Günün Bilgileri — ana PDF ile AYNI ikonlu/sayfa-taşması güvenli renderer.
+  //     Eski renderAreaBottomInfo `break` ile kesiyordu → "1-2 satır yazılıp
+  //     gerisi çıkmıyor" bug'ı. renderDayInfo taşınca yeni sayfa açar. ───
+  renderDayInfo(doc, y + 6, result, altInfo, pageWidth, pageHeight, margin, areaGrandTotal);
 
   doc.save(`shift-${shiftDate}-alan.pdf`);
-}
-
-/** Sorumlular + günün operasyonel bilgileri — alan PDF'inin altına. */
-function renderAreaBottomInfo(
-  doc: jsPDF,
-  startY: number,
-  result: GenerateResult,
-  altInfo: ChartAltInfo | undefined,
-  pageHeight: number,
-  margin: number,
-) {
-  let y = startY + 6;
-  if (y > pageHeight - 20) {
-    doc.addPage();
-    y = margin + 4;
-  }
-
-  const resp = (result.responsibilities ?? {}) as Record<string, string | null | undefined>;
-  const respItems = [
-    { key: "Liderlik", value: resp["Liderlik"] },
-    { key: "CX Sorumlusu", value: resp["CX Sorumlusu"] },
-    { key: "Runner Lider", value: resp["Runner Lider"] },
-    { key: "iPod Sorumlusu", value: resp["iPod Sorumlusu"] },
-    { key: "Aksiyon Sorumlusu", value: resp["Aksiyon Sorumlusu"] },
-  ];
-  if (respItems.some((it) => it.value && it.value.trim())) {
-    doc.setFont("Roboto", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(20);
-    doc.text("Günün Sorumluları", margin, y);
-    y += 6;
-    for (const it of respItems) {
-      if (!it.value || !it.value.trim()) continue;
-      if (y > pageHeight - 12) break;
-      doc.setFont("Roboto", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(20);
-      const lt = `${it.key}: `;
-      doc.text(lt, margin, y);
-      doc.setFont("Roboto", "bold");
-      doc.text(it.value, margin + doc.getTextWidth(lt), y);
-      y += 7;
-    }
-    y += 4;
-  }
-
-  const altItems = [
-    { key: "Haftanın aksiyon familyaları", value: altInfo?.aksiyon },
-    { key: "CX QR hedefi", value: altInfo?.cxQr },
-    { key: "IPOD Satışı hedefi / sorumlusu", value: altInfo?.ipod },
-    { key: "Tempe / ACC sorumlusu", value: altInfo?.tempe },
-    { key: "İstek noktası sorumlusu", value: altInfo?.istek },
-  ];
-  for (const it of altItems) {
-    if (!it.value || !it.value.trim()) continue;
-    if (y > pageHeight - 12) break;
-    doc.setFont("Roboto", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(20);
-    const lt = `${it.key}: `;
-    doc.text(lt, margin, y);
-    doc.setFont("Roboto", "bold");
-    doc.text(it.value, margin + doc.getTextWidth(lt), y);
-    y += 7;
-  }
 }
