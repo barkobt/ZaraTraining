@@ -85,6 +85,16 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
     { weekday: "long", day: "numeric", month: "long" },
   );
 
+  // Gazete "baskı künyesi" — sabahları ERKEN, sonra GEÇ baskı; No. = yılın günü
+  // (gerçek bir yayın sayısı gibi günlük artar). Altın yok, saf mürekkep.
+  const _now = new Date();
+  const edition = pick({
+    tr: _now.getHours() < 12 ? "ERKEN BASKI" : "GEÇ BASKI",
+    en: _now.getHours() < 12 ? "MORNING EDITION" : "LATE EDITION",
+    es: _now.getHours() < 12 ? "EDICIÓN MAÑANA" : "EDICIÓN TARDE",
+  });
+  const editionNo = Math.ceil((Date.now() - Date.UTC(_now.getFullYear(), 0, 0)) / 86400000);
+
   const ticker = [
     pick({ tr: `${pocket.window} cep · trafik ${pocket.trafficPeak} · conversion %${pocket.convBefore[0]}`, en: `${pocket.window} pocket · traffic ${pocket.trafficPeak} · conversion ${pocket.convBefore[0]}%`, es: `hueco ${pocket.window} · tráfico ${pocket.trafficPeak} · conversión ${pocket.convBefore[0]}%` }),
     pick({ tr: "Welcome · 2 ürün alarmı/saat", en: "Welcome · 2 product alarms/hr", es: "Welcome · 2 alarmas/h" }),
@@ -222,7 +232,10 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
     <div className="pv3-cockpit">
       {/* manşet satırı */}
       <div className="pv3-masthead">
-        <span className="pv3-date">{today}</span>
+        <span className="pv3-mast-left">
+          <span className="pv3-date">{today}</span>
+          <span className="pv3-edition">{edition} · No. {editionNo}</span>
+        </span>
         <span className="pv4-how">{t("how.bugun")}</span>
         <span className="pv3-store">ZARA · BORNOVA 3643</span>
       </div>

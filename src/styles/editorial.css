@@ -1208,7 +1208,7 @@
    rampası söndürülmüş ki en üst ALTIN tepe TEK baskın doku olsun. */
 .pusula-card-dna { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; align-items: end; height: 44px; padding-top: 4px; padding-bottom: 5px; border-bottom: 1px solid var(--zara-line); }
 .pusula-card-dna i { display: block; width: 100%; border-radius: 1.5px 1.5px 0 0; transition: height 420ms var(--ease-atelier), background 420ms var(--ease-atelier); }
-.pusula-card-dna i.un { height: 5px; background: transparent; border: 1px dashed var(--zara-line-strong); border-bottom: none; }
+.pusula-card-dna i.un { height: 5px; background: transparent; border: 1px dashed var(--zara-line); border-bottom: none; }
 .pusula-card-dna i.em { height: 12px; background: rgba(0, 0, 0, 0.14); }
 .pusula-card-dna i.p0 { height: 18px; background: rgba(0, 0, 0, 0.26); }
 .pusula-card-dna i.p1 { height: 26px; background: rgba(0, 0, 0, 0.42); }
@@ -2499,6 +2499,9 @@
 /* ── BUGÜN — ön sayfa ── */
 .pv3-cockpit { display: flex; flex-direction: column; gap: 0; }
 .pv3-masthead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 10px; }
+/* sol künye grubu: tarih başlığı + altında gazete "baskı künyesi" kicker'ı */
+.pv3-mast-left { display: flex; flex-direction: column; gap: 3px; }
+.pv3-edition { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-50); }
 .pv3-date { font-family: var(--ff-display); font-style: italic; font-size: 17px; color: var(--zara-ink); text-transform: capitalize; }
 .pv3-store { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.22em; color: var(--zara-ink-40); }
 .pv3-ticker { overflow: hidden; border-top: 1px solid var(--zara-ink); border-bottom: 1px solid var(--zara-line); padding: 7px 0; margin-bottom: 26px; }
