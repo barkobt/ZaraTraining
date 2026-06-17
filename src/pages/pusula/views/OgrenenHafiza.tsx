@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileText, Tag, Check, RotateCcw, BrainCircuit } from "lucide-react";
+import { FileText, Tag, Check, RotateCcw } from "lucide-react";
 import { Eyebrow, Headline } from "../primitives";
 import { pick, useT } from "../i18n";
 import { byId, employees } from "../data";
@@ -172,7 +172,6 @@ export function OgrenenHafiza() {
         <div className="pusula-patterns-head">
           <span className="pusula-patterns-eb">
             <span className="pusula-mem-folio">II</span>
-            <BrainCircuit size={13} strokeWidth={1.6} />
             {pick({ tr: "Örüntüler · hafıza ne öğreniyor", en: "Patterns · what the memory is learning", es: "Patrones · qué aprende la memoria" })}
           </span>
           <span className="pusula-patterns-sub">
@@ -250,7 +249,6 @@ export function OgrenenHafiza() {
       <div className="pusula-patterns-head pusula-mem-archead">
         <span className="pusula-patterns-eb">
           <span className="pusula-mem-folio">III</span>
-          <FileText size={13} strokeWidth={1.6} />
           {pick({ tr: "Arşiv · gözlem kayıtları", en: "Archive · observation records", es: "Archivo · registros de observación" })}
         </span>
       </div>

@@ -1643,7 +1643,7 @@
 /* KOÇLUK AKSİYONLARI — kaynaklı takip defteri: saat·kişi·iş·kaynak·durum (boş sağ yarı yok) */
 .pusula-dayq { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 16px 20px 14px; margin-bottom: 22px; }
 .pusula-dayq-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--zara-ink); }
-.pusula-dayq-head > span:first-child { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink); }
+.pusula-dayq-head > span:first-child { display: inline-flex; align-items: center; gap: 10px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink); }
 .pusula-dayq-prog { display: inline-flex; align-items: center; gap: 10px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); }
 .pusula-dayq-prog u { width: 72px; height: 2px; background: var(--zara-line); text-decoration: none; display: inline-block; }
 .pusula-dayq-prog b { display: block; height: 100%; background: var(--zara-ink); transition: width 350ms var(--ease-atelier); }
@@ -2792,8 +2792,7 @@
 .pusula-patterns-eb { display: inline-flex; align-items: center; gap: 8px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--zara-ink); }
 /* folyo numarası — bölümleri "numaralı arşiv klasörü" gibi omurgaya bağlar
    (design-council). Display italik, nötr ink-30; altın rasyonuna dokunmaz. */
-.pusula-mem-folio { font-family: var(--ff-display); font-style: italic; font-size: 17px; line-height: 1; color: var(--zara-ink-30); }
-.pusula-dayq-head .pusula-mem-folio { margin-right: 10px; }
+.pusula-mem-folio { font-family: var(--ff-display); font-style: italic; font-size: 17px; line-height: 1; color: var(--zara-ink-40); }
 .pusula-mem-archead { margin-top: 10px; }
 .pusula-patterns-sub { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-patterns-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
