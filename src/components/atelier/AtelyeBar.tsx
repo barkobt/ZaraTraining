@@ -55,6 +55,7 @@ export function AtelyeBar({ active }: { active: "pusula" | "shift" }) {
               <>
                 <a.Icon size={14} strokeWidth={1.5} color={on ? "var(--zara-gold)" : "rgba(255,255,255,0.6)"} />
                 <span
+                  className="hidden sm:inline"
                   style={{
                     fontFamily: "var(--ff-sans)",
                     fontSize: 13,
@@ -97,7 +98,7 @@ export function AtelyeBar({ active }: { active: "pusula" | "shift" }) {
           >
             tek döngü · insan ↔ operasyon
           </span>
-          <span style={{ fontFamily: "var(--ff-mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap" }}>
+          <span className="hidden md:inline" style={{ fontFamily: "var(--ff-mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap" }}>
             Mağaza 3643 · Bornova
           </span>
           <UserCircle size={18} strokeWidth={1.5} color="rgba(255,255,255,0.7)" />

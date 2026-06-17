@@ -1182,7 +1182,7 @@
 .pusula-card-line > span:last-child {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.pusula-card:hover { transform: translateY(-3px); box-shadow: var(--panel-shadow-soft); }
+/* (ölü :hover kuralı kaldırıldı — gerçek hover satır ~2422'de: -5px + altın kenar) */
 /* üst satır GRID: uzun isim sarar, evre çipi ASLA taşmaz */
 .pusula-card-top { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: start; gap: 12px; }
 .pusula-card-id { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
@@ -1198,24 +1198,27 @@
 .pusula-card-persona { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
 .pusula-card-persona em { font-family: var(--ff-display); font-style: italic; font-weight: 400; font-size: 15.5px; color: var(--zara-ink); }
 /* yetkinlik DNA şeridi — 6 kanal kanıt parmak izi */
-/* DNA başlığı — geniş-aralıklı mono eyebrow, sağda altın kanal sayısı */
-.pusula-card-dna-head { display: flex; align-items: baseline; justify-content: space-between; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--zara-ink-40); margin-bottom: -4px; }
-.pusula-card-dna-head span:last-child { color: var(--zara-gold-deep); }
-/* DNA strip — DÜZ çubuk değil, DOKUNSAL "parmak izi" bar grafiği. Yükseklik =
-   ustalık; en üst seviye ALTIN tepe (gold = ustalık, sisteme uygun aksan). */
-.pusula-card-dna { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; align-items: end; height: 30px; padding-bottom: 5px; border-bottom: 1px solid var(--zara-line); }
+/* DNA bloğu — head + strip + etiketler tek ritim (kartın 16px flex gap'i
+   bloğun ETRAFINA; içeride sıkı 6px). */
+.pusula-card-dna-block { display: flex; flex-direction: column; gap: 6px; }
+/* DNA başlığı — geniş mono eyebrow; kanal sayısı altınla yarışmasın
+   (altın rasyonu yalnız bar tepesinde). */
+.pusula-card-dna-head { display: flex; align-items: baseline; justify-content: space-between; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--zara-ink-40); }
+/* DNA strip — DOKUNSAL "parmak izi" bar grafiği. Yükseklik = ustalık; grayscale
+   rampası söndürülmüş ki en üst ALTIN tepe TEK baskın doku olsun. */
+.pusula-card-dna { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; align-items: end; height: 44px; padding-top: 4px; padding-bottom: 5px; border-bottom: 1px solid var(--zara-line); }
 .pusula-card-dna i { display: block; width: 100%; border-radius: 1.5px 1.5px 0 0; transition: height 420ms var(--ease-atelier), background 420ms var(--ease-atelier); }
-.pusula-card-dna i.un { height: 4px; background: transparent; border: 1px dashed var(--zara-line-strong); border-bottom: none; }
-.pusula-card-dna i.em { height: 9px; background: rgba(0, 0, 0, 0.16); }
-.pusula-card-dna i.p0 { height: 13px; background: rgba(0, 0, 0, 0.30); }
-.pusula-card-dna i.p1 { height: 18px; background: rgba(0, 0, 0, 0.50); }
-.pusula-card-dna i.p2 { height: 23px; background: rgba(0, 0, 0, 0.72); }
-.pusula-card-dna i.p3 { height: 30px; background: var(--zara-gold); }
-.pusula-card:hover .pusula-card-dna i.p3 { background: var(--zara-gold-deep); }
-/* OPSİYON: bar altı kanal etiketleri — 6 kolon, küçük mono, taşmasın diye
-   2 satıra sarar (kesmez). Aktif/altın bar etiketi koyulaşır. */
-.pusula-card-dna-labels { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 5px; }
-.pusula-card-dna-labels span { font-family: var(--ff-mono); font-size: 7px; line-height: 1.2; letter-spacing: 0.02em; text-transform: uppercase; color: var(--zara-ink-40); text-align: center; overflow-wrap: anywhere; hyphens: auto; }
+.pusula-card-dna i.un { height: 5px; background: transparent; border: 1px dashed var(--zara-line-strong); border-bottom: none; }
+.pusula-card-dna i.em { height: 12px; background: rgba(0, 0, 0, 0.14); }
+.pusula-card-dna i.p0 { height: 18px; background: rgba(0, 0, 0, 0.26); }
+.pusula-card-dna i.p1 { height: 26px; background: rgba(0, 0, 0, 0.42); }
+.pusula-card-dna i.p2 { height: 34px; background: rgba(0, 0, 0, 0.55); }
+.pusula-card-dna i.p3 { height: 44px; background: var(--zara-gold); box-shadow: inset 0 0 0 1px var(--zara-gold-deep); }
+.pusula-card:hover .pusula-card-dna i.p3 { background: var(--zara-gold-deep); box-shadow: none; }
+/* bar altı kanal etiketleri — TEK satır mono (ritim bozulmasın); sığmayan
+   uzun ad … ile kırpılır (tam ad title'da). */
+.pusula-card-dna-labels { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.pusula-card-dna-labels span { font-family: var(--ff-mono); font-size: 6.5px; line-height: 1; letter-spacing: 0; text-transform: uppercase; color: var(--zara-ink-40); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* durum etiketleri */
 .pusula-card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .pusula-card-tags span { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 9px; border: 1px solid var(--zara-line-strong); color: var(--zara-ink-65); }

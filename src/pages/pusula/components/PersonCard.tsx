@@ -57,6 +57,7 @@ export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () =>
       </div>
 
       {/* yetkinlik DNA'sı — 6 kanaldan kanıt parmak izi (keşfedilmemiş = boş hücre) */}
+      <div className="pusula-card-dna-block">
       <div className="pusula-card-dna-head" aria-hidden>
         <span>Yetkinlik DNA'sı</span>
         <span>06 kanal</span>
@@ -73,6 +74,7 @@ export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () =>
         {comps.map((c) => (
           <span key={c.comp} title={compShort(c.comp)}>{compShort(c.comp)}</span>
         ))}
+      </div>
       </div>
 
       <div className="pusula-card-lines">
