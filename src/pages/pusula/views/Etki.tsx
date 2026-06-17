@@ -109,7 +109,7 @@ export function Etki() {
               const tt = i / (HIT_RATE.length - 2);
               return (
                 <line key={`seg${i}`} x1={hx(i)} y1={hy(v)} x2={hx(i + 1)} y2={hy(HIT_RATE[i + 1])}
-                  stroke="#0a0a0a" strokeOpacity={0.3 + tt * 0.7} strokeWidth={1 + tt * 2.4} strokeLinecap="round" />
+                  stroke="#0a0a0a" strokeOpacity={0.4 + tt * 0.6} strokeWidth={1.1 + tt * 2.3} strokeLinecap="round" />
               );
             })}
             {HIT_RATE.map((v, i) => {
@@ -121,8 +121,8 @@ export function Etki() {
                   {/* D1 = soğuk: içi boş outline · D-son = keskin: dolu + altın halka (ustalık) */}
                   {last && <circle cx={hx(i)} cy={hy(v)} r={7} fill="none" stroke="var(--zara-gold)" strokeWidth={1.3} />}
                   <circle cx={hx(i)} cy={hy(v)} r={first ? 2.6 : last ? 4 : 3}
-                    fill={first ? "#fff" : "#0a0a0a"} fillOpacity={first ? 1 : 0.3 + tt * 0.7}
-                    stroke="#0a0a0a" strokeWidth={first ? 1.2 : 0} strokeOpacity={0.55} />
+                    fill={first ? "#fff" : "#0a0a0a"} fillOpacity={first ? 1 : 0.4 + tt * 0.6}
+                    stroke="#0a0a0a" strokeWidth={first ? 1.3 : 0} strokeOpacity={0.7} />
                   <text x={hx(i)} y={hy(v) - 9} textAnchor="middle" className="petki-val">%{v}</text>
                   <text x={hx(i)} y={HH - 10} textAnchor="middle" className="petki-stage">D{i + 1}</text>
                 </g>
