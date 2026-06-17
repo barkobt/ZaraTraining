@@ -1238,6 +1238,11 @@
 .pusula-drawer-foot { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid var(--zara-line); margin-top: auto; }
 .pusula-fulllink { align-self: flex-start; border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 10px 18px; border-radius: 0; font-family: var(--ff-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink); transition: all 320ms var(--ease-atelier); }
 .pusula-fulllink:hover { background: var(--zara-ink); color: var(--zara-bg); }
+/* çapraz-link: kişiyi Shift Organizer'da aç — altın aksanlı "öteki uygulama" affordance'ı */
+.pusula-drawer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pusula-crosslink { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--zara-gold); background: var(--zara-gold-tint); cursor: pointer; padding: 10px 16px; border-radius: 0; font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-gold-deep); transition: all 320ms var(--ease-atelier); }
+.pusula-crosslink:hover { background: var(--zara-gold); color: #fff; }
+.pusula-crosslink svg { flex: 0 0 auto; }
 .pusula-drawer-note { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-40); }
 
 /* ── ASA çubuğu ────────────────────────────────────────── */
