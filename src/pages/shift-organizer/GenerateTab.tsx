@@ -327,6 +327,9 @@ export function GenerateTab({
   });
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [parseReport, setParseReport] = useState<ParseReport | null>(null);
+  // Parse edilip de personel kadrosunda eşleşmeyen isimler — eskiden sessizce
+  // düşüyordu ("yeni katılan okunmuyor" bug'ının asıl kökü). Artık UI'da gösterilir.
+  const [unmatchedNames, setUnmatchedNames] = useState<string[]>([]);
   const [pasteText, setPasteText] = useState("");
   const [showPaste, setShowPaste] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -357,38 +360,82 @@ export function GenerateTab({
     return arr;
   }, [startHour, endHour]);
 
+  // İsim normalize + AKSAN KATLAMA. Orquest PDF metni Türkçe aksanları düşürüyor
+  // ("Yağmur Haşhaş" → "Yagmur Hashas", "İlkim" → "Ilkim", "Cansın" → "Cansin")
+  // ama kadroda isimler düzgün Türkçe. Bu yüzden HER İKİ tarafı da ASCII'ye
+  // katlayıp karşılaştırıyoruz: NFD ile aksanları (ş→s ğ→g ö→o ü→u ç→c â→a)
+  // çıkar, noktasız ı → i, sonra küçült. Büyük/küçük + Türkçe-harf farkı biter.
+  const normName = (s: string) =>
+    s
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "") // birleşik aksan işaretlerini sil
+      .replace(/ı/g, "i") // noktasız ı → i (İ, NFD'de zaten I oldu)
+      .toLowerCase() // I/İ→i ve genel küçültme
+      .trim()
+      .replace(/\s+/g, " ");
+
+  // Belirsizlikte (0 veya >1 aday) eşleşme YOK: yanlış kişiye shift yazmaktansa
+  // "bulunamadı" deyip kullanıcıya göstermek güvenli (homonim "iki Mehmet" tuzağı).
+  const uniqueOne = <T,>(arr: T[]): T | undefined => (arr.length === 1 ? arr[0] : undefined);
+
   function matchStaff(name: string) {
-    const n = name.toLowerCase().trim();
-    // 1) tam shortName eşleşmesi
-    let target = staff.find((s) => s.shortName.toLowerCase() === n);
+    const n = normName(name);
+    if (!n) return undefined;
+    const nTokens = n.split(" ").filter(Boolean);
+    const nSet = new Set(nTokens);
+    // 1) tam shortName eşleşmesi (tek aday şart — çift kayıt sessizce ilkine yazmasın)
+    let target = uniqueOne(staff.filter((s) => normName(s.shortName) === n));
     if (target) return target;
-    // 2) tam fullName eşleşmesi
-    target = staff.find((s) => s.fullName.toLowerCase() === n);
+    // 2) tam fullName eşleşmesi (aksan katlandığı için "Yağmur Haşhaş" ↔ "Yagmur Hashas")
+    target = uniqueOne(staff.filter((s) => normName(s.fullName) === n));
     if (target) return target;
-    // 3) fullName içinde geçiyor
-    target = staff.find((s) => s.fullName.toLowerCase().includes(n));
-    if (target) return target;
-    // 4) name içinde shortName geçiyor (örn parser "Pelin Aydin" döndü, db'de "Pelin")
-    target = staff.find((s) => n.includes(s.shortName.toLowerCase()));
-    return target;
+    // 3) parser ismi, kadro fullName'inin alt kümesi (db "Pelin Aydin", parser "Pelin Y.").
+    //    Substring DEĞİL, kelime-bazlı ("Ali" ⊄ "Alican"). En az AD+SOYAD (≥2 kelime)
+    //    şart — tek kelime ("Veli") yanlışlıkla "Ali Veli"ye yazmasın; tek kelime
+    //    yalnız shortName (strateji 5) üzerinden çözülür.
+    if (nTokens.length >= 2) {
+      const fullMatches = staff.filter((s) => {
+        const hay = new Set(normName(s.fullName).split(" ").filter(Boolean));
+        return nTokens.every((t) => hay.has(t));
+      });
+      if (fullMatches.length === 1) return fullMatches[0];
+    }
+    // 4) kadro fullName'i, parser isminin alt kümesi (db "Yiğit Alp", parser
+    //    "Yigit Alp Sanlier"). Yanlış pozitifi önlemek için kadro adı ≥2 kelime olmalı.
+    const rosterMatches = staff.filter((s) => {
+      const full = normName(s.fullName).split(" ").filter(Boolean);
+      return full.length >= 2 && full.every((t) => nSet.has(t));
+    });
+    if (rosterMatches.length === 1) return rosterMatches[0];
+    // 5) shortName, parser kelimelerinden biri (db "Pelin", parser "Pelin Aydin").
+    const shortMatches = staff.filter((s) => nSet.has(normName(s.shortName)));
+    if (shortMatches.length === 1) return shortMatches[0];
+    return undefined;
   }
 
   const applyParsed = (parsed: ParsedShift[]) => {
     const unmatched: string[] = [];
     if (parsed.length === 0) return unmatched;
+    // Eşleştirmeyi setState updater'ının DIŞINDA yap. React StrictMode (dev)
+    // updater fonksiyonunu iki kez çağırır; `unmatched.push` gibi yan etkiler
+    // updater içinde olursa isimler ÇİFTLENİR ("listede iki kez görünüyor" bug'ı).
+    const matched: Array<{ id: number; p: ParsedShift }> = [];
+    for (const p of parsed) {
+      const target = matchStaff(p.name);
+      if (!target) {
+        unmatched.push(p.name);
+        continue;
+      }
+      matched.push({ id: target.id, p });
+    }
     setShiftsState((prev) => {
       const next = { ...prev };
       // Reset all included → false; only matched ones become true
       for (const id of Object.keys(next)) {
         next[Number(id)].included = false;
       }
-      for (const p of parsed) {
-        const target = matchStaff(p.name);
-        if (!target) {
-          unmatched.push(p.name);
-          continue;
-        }
-        next[target.id] = {
+      for (const { id, p } of matched) {
+        next[id] = {
           start: p.startHour,
           end: p.endHour,
           included: true,
@@ -417,7 +464,7 @@ export function GenerateTab({
         );
         return;
       }
-      applyParsed(report.shifts);
+      setUnmatchedNames(applyParsed(report.shifts));
     } catch (err) {
       setPdfError(`PDF parse hatası: ${(err as Error).message}`);
     }
@@ -432,7 +479,7 @@ export function GenerateTab({
       setPdfError(`Metinden vardiya çıkarılamadı.`);
       return;
     }
-    applyParsed(report.shifts);
+    setUnmatchedNames(applyParsed(report.shifts));
     setShowPaste(false);
     setPasteText("");
   };
@@ -565,8 +612,23 @@ export function GenerateTab({
 
           {parseReport && parseReport.shifts.length > 0 && (
             <div className="mb-3 border border-emerald-300 bg-emerald-50 p-2 text-[11px] text-emerald-900">
-              BASIC bölümünden <strong>{parseReport.shifts.length}</strong> personel için
-              vardiya çıkarıldı.
+              Okunabilir bölümlerden (BASIC / FR / TRF / WOMAN){" "}
+              <strong>{parseReport.shifts.length}</strong> kişi için vardiya çıkarıldı
+              {unmatchedNames.length > 0 && (
+                <>, bunlardan <strong>{parseReport.shifts.length - unmatchedNames.length}</strong> tanesi kadroyla eşleşti</>
+              )}
+              .
+            </div>
+          )}
+
+          {unmatchedNames.length > 0 && (
+            <div className="mb-3 border border-amber-400 bg-amber-50 p-2 text-[11px] text-amber-900">
+              <strong>{unmatchedNames.length} kişi personel kaydında bulunamadı — chart'a EKLENMEDİ:</strong>{" "}
+              {unmatchedNames.join(", ")}.
+              <div className="mt-1 text-amber-800">
+                Bu kişileri önce “Yetkinlik” sekmesinden personel olarak ekleyip PDF'i
+                tekrar yükleyin (isim, kadrodaki isimle birebir aynı yazılmalı).
+              </div>
             </div>
           )}
 
