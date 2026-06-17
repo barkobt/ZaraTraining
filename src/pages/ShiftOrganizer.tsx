@@ -185,6 +185,9 @@ function ShiftOrganizerInner({
             tenureLevel: editPerson.tenureLevel,
             isManager: editPerson.isManager,
             note: editPerson.note,
+            homeArea: editPerson.homeArea,
+            duty: editPerson.duty,
+            employment: editPerson.employment,
           }}
           onClose={() => setEditPerson(null)}
           onSubmit={(data) => {

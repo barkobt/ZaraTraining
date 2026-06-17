@@ -13,6 +13,19 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
+      // Korumalı procedure'lar için erişim anahtarı: localStorage'daki shift veya
+      // pusula şifresi `x-app-password` header'ı ile gider. Sunucu protectedQuery'de
+      // doğrular. Public procedure'lar (landing/analytics) header'ı yok sayar.
+      headers() {
+        try {
+          const token =
+            localStorage.getItem("shift_organizer_auth_v1") ||
+            localStorage.getItem("pusula_auth_v1");
+          return token ? { "x-app-password": token } : {};
+        } catch {
+          return {};
+        }
+      },
       fetch(input, init) {
         return globalThis.fetch(input, {
           ...(init ?? {}),

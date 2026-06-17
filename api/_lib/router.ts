@@ -1,4 +1,4 @@
-import { createRouter, publicQuery } from "./middleware.js";
+import { createRouter, publicQuery, protectedQuery } from "./middleware.js";
 import { z } from "zod";
 import { SCORING_TABLE, calculateCabin } from "../../contracts/constants.js";
 import { createParticipant, getParticipantById, getAllParticipants } from "./queries/participants.js";
@@ -24,7 +24,7 @@ import {
   updateChartResponsibilities,
 } from "./queries/charts.js";
 import { getStore, updateStore, getSystemInfo } from "./queries/stores.js";
-import { logPageView, getAnalyticsStats } from "./queries/analytics.js";
+import { logEvent, getAnalyticsStats } from "./queries/analytics.js";
 import { solveShift, pingSolver } from "./solver-client.js";
 import { staffRowsToSolverInput } from "./shift-mapping.js";
 import { env } from "./lib/env.js";
@@ -156,13 +156,49 @@ export const appRouter = createRouter({
       }),
   }),
 
-  // Site-içi sayfa görüntüleme analitiği. Mevcut audit_log tablosunu yeniden
-  // kullanır (DB migration YOK): logPageView fire-and-forget yazar, stats okur.
+  // Ürün analitiği. `analytics_events` tablosuna yazar (tekil ziyaretçi + tıklama).
+  // logEvent fire-and-forget; stats admin paneli için okur.
   audit: createRouter({
+    // Geriye dönük uyum: eski logPageView imzası → page_view event'i (session'sız
+    // çağrılırsa 'anon' atanır; yeni çağıranlar sessionId geçer).
     logPageView: publicQuery
-      .input(z.object({ route: z.string().min(1).max(300), ua: z.string().max(500).optional() }))
+      .input(
+        z.object({
+          route: z.string().min(1).max(200),
+          ua: z.string().max(500).optional(),
+          sessionId: z.string().max(40).optional(),
+        }),
+      )
       .mutation(async ({ input }) => {
-        await logPageView(input.route, input.ua ?? null);
+        await logEvent({
+          sessionId: input.sessionId ?? "anon",
+          eventType: "page_view",
+          path: input.route,
+          ua: input.ua ?? null,
+        });
+        return { ok: true };
+      }),
+    // Genel olay (click/dwell/…) — tıklama ısı verisi buradan birikir.
+    logEvent: publicQuery
+      .input(
+        z.object({
+          sessionId: z.string().min(1).max(40),
+          eventType: z.string().min(1).max(30),
+          path: z.string().min(1).max(200),
+          element: z.string().max(120).nullable().optional(),
+          meta: z.unknown().optional(),
+          ua: z.string().max(500).optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        await logEvent({
+          sessionId: input.sessionId,
+          eventType: input.eventType,
+          path: input.path,
+          element: input.element ?? null,
+          meta: input.meta ?? null,
+          ua: input.ua ?? null,
+        });
         return { ok: true };
       }),
     stats: publicQuery.query(async () => getAnalyticsStats()),
@@ -262,13 +298,13 @@ export const appRouter = createRouter({
   }),
 
   staff: createRouter({
-    list: publicQuery
+    list: protectedQuery
       .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
       .query(async ({ input }) => {
         return listStaff(input?.storeId ?? DEFAULT_STORE_ID);
       }),
 
-    create: publicQuery
+    create: protectedQuery
       .input(
         z.object({
           storeId: z.number().int().positive().optional(),
@@ -276,7 +312,12 @@ export const appRouter = createRouter({
           shortName: z.string().min(1).max(30),
           tenureLevel: z.string().min(1).max(20),
           isManager: z.boolean().optional(),
+          isBlacklisted: z.boolean().optional(),
           note: z.string().nullable().optional(),
+          // Alan-bazlı v2: kişi oluştururken de set edilebilsin (update ile simetri).
+          homeArea: z.string().max(20).nullable().optional(),
+          duty: z.string().max(10).nullable().optional(),        // COM | CX | COACH
+          employment: z.string().max(2).nullable().optional(),   // FT | PT
         }),
       )
       .mutation(async ({ input }) => {
@@ -286,12 +327,16 @@ export const appRouter = createRouter({
           shortName: input.shortName,
           tenureLevel: input.tenureLevel,
           isManager: input.isManager ?? false,
+          isBlacklisted: input.isBlacklisted ?? false,
           note: input.note ?? null,
+          homeArea: input.homeArea ?? null,
+          duty: input.duty ?? null,
+          employment: input.employment ?? null,
         });
         return row;
       }),
 
-    update: publicQuery
+    update: protectedQuery
       .input(
         z.object({
           id: z.number().int().positive(),
@@ -312,7 +357,7 @@ export const appRouter = createRouter({
         return updateStaff(id, patch);
       }),
 
-    delete: publicQuery
+    delete: protectedQuery
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input }) => {
         await deleteStaff(input.id);
@@ -321,7 +366,7 @@ export const appRouter = createRouter({
   }),
 
   competency: createRouter({
-    update: publicQuery
+    update: protectedQuery
       .input(
         z.object({
           staffId: z.number().int().positive(),
@@ -336,13 +381,13 @@ export const appRouter = createRouter({
   }),
 
   solverConfig: createRouter({
-    get: publicQuery
+    get: protectedQuery
       .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
       .query(async ({ input }) => {
         return getSolverConfig(input?.storeId ?? DEFAULT_STORE_ID);
       }),
 
-    update: publicQuery
+    update: protectedQuery
       .input(
         z.object({
           storeId: z.number().int().positive().optional(),
@@ -361,13 +406,13 @@ export const appRouter = createRouter({
         return upsertSolverConfig(storeId ?? DEFAULT_STORE_ID, patch);
       }),
 
-    forbiddenPairs: publicQuery
+    forbiddenPairs: protectedQuery
       .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
       .query(async ({ input }) => {
         return listForbiddenPairs(input?.storeId ?? DEFAULT_STORE_ID);
       }),
 
-    addForbiddenPair: publicQuery
+    addForbiddenPair: protectedQuery
       .input(
         z.object({
           storeId: z.number().int().positive().optional(),
@@ -384,7 +429,7 @@ export const appRouter = createRouter({
         return { ok: true };
       }),
 
-    removeForbiddenPair: publicQuery
+    removeForbiddenPair: protectedQuery
       .input(
         z.object({
           storeId: z.number().int().positive().optional(),
@@ -405,7 +450,7 @@ export const appRouter = createRouter({
   chart: createRouter({
     ping: publicQuery.query(async () => pingSolver()),
 
-    generate: publicQuery
+    generate: protectedQuery
       .input(
         z.object({
           storeId: z.number().int().positive().optional(),
@@ -497,11 +542,11 @@ export const appRouter = createRouter({
         };
       }),
 
-    getById: publicQuery
+    getById: protectedQuery
       .input(z.object({ id: z.number().int().positive() }))
       .query(async ({ input }) => getChartById(input.id)),
 
-    list: publicQuery
+    list: protectedQuery
       .input(
         z
           .object({
@@ -514,14 +559,14 @@ export const appRouter = createRouter({
         listChartsForStore(input?.storeId ?? DEFAULT_STORE_ID, input?.limit ?? 50),
       ),
 
-    delete: publicQuery
+    delete: protectedQuery
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input }) => {
         await deleteChart(input.id);
         return { ok: true };
       }),
 
-    updateResponsibilities: publicQuery
+    updateResponsibilities: protectedQuery
       .input(
         z.object({
           id: z.number().int().positive(),
@@ -538,11 +583,11 @@ export const appRouter = createRouter({
   }),
 
   store: createRouter({
-    get: publicQuery
+    get: protectedQuery
       .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
       .query(async ({ input }) => getStore(input?.storeId ?? DEFAULT_STORE_ID)),
 
-    update: publicQuery
+    update: protectedQuery
       .input(
         z.object({
           storeId: z.number().int().positive().optional(),
@@ -558,7 +603,7 @@ export const appRouter = createRouter({
   }),
 
   system: createRouter({
-    info: publicQuery
+    info: protectedQuery
       .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
       .query(async ({ input }) => {
         const dbInfo = await getSystemInfo(input?.storeId ?? DEFAULT_STORE_ID);
