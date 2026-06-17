@@ -102,7 +102,9 @@
 .canvas { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .topbar {
   position: sticky; top: 0; z-index: 30;
-  background: rgba(245,241,234,0.86); backdrop-filter: blur(10px);
+  /* blur 10→5 + zemin opaklığı 0.86→0.92: sticky header arkada içerik kayarken
+     blur'u her frame yeniden hesaplar — yarıya indirildi (frosted his korunur). */
+  background: rgba(245,241,234,0.92); backdrop-filter: blur(5px);
   border-bottom: 1px solid var(--zara-line-strong);
   padding: 16px 40px; display: flex; align-items: center; gap: 20px;
 }
@@ -881,7 +883,8 @@
 .so-head {
   /* top: 46 — paylaşılan AtelyeBar (46px) altına yapışır */
   position: sticky; top: 46px; z-index: 30;
-  background: rgba(242,239,233,0.86); backdrop-filter: blur(10px);
+  /* perf: blur 10→5 + opaklık 0.92 (geniş matris arkada kayarken pahalı blur) */
+  background: rgba(242,239,233,0.92); backdrop-filter: blur(5px);
   border-bottom: 1px solid var(--zara-line-strong);
   padding: 16px 40px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
 }
@@ -902,6 +905,14 @@
 .so-tab .tc { font-size: 9px; opacity: 0.6; }
 .so-logout { border: none; background: transparent; cursor: pointer; color: var(--zara-ink-30); padding: 6px; display: inline-grid; place-items: center; }
 .so-logout:hover { color: var(--zara-ink); }
+/* Shift mobil (shift-responsive-auditor P1/P2): sticky blur'u kaldır (perf —
+   geniş matris arkada kayarken pahalı), opak zemin; sekmeler tek satır scroll. */
+@media (max-width: 760px) {
+  .so-head { backdrop-filter: none; background: var(--zara-bg-warm); padding: 12px 18px; gap: 14px; }
+  .so-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; margin-left: 0; scrollbar-width: none; }
+  .so-tabs::-webkit-scrollbar { display: none; }
+  .so-tab { min-height: 40px; }
+}
 
 /* ── matrix (yetkinlik) inline kontrol yardımcıları ─────── */
 .mx-sel { border: 1px solid var(--zara-line); background: var(--zara-bg-white); border-radius: 3px; padding: 5px 8px; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--zara-ink); cursor: pointer; outline: none; max-width: 100%; }
