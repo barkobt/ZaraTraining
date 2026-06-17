@@ -442,7 +442,7 @@ export default function Home() {
           </div>
 
           {/* Başlık — İTALİK YOK, sade serif, kelime-maske reveal */}
-          <h1 className="font-serif text-[15vw] sm:text-[11vw] md:text-[9vw] lg:text-[8vw] leading-[0.92] tracking-[-0.035em] text-ink" style={{ fontWeight: 600 }}>
+          <h1 className="font-serif text-[15vw] sm:text-[11vw] md:text-[9vw] lg:text-[8vw] leading-[0.92] tracking-[-0.035em] text-ink" style={{ fontWeight: 500 }}>
             <span className="block overflow-hidden">
               <span className="hero-word inline-block">Atelye,</span>
             </span>
@@ -490,7 +490,7 @@ export default function Home() {
               <div className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
               <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">OPERASYON</div>
             </div>
-            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Araçlar.</h2>
+            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 500 }}>Araçlar.</h2>
             <p className="mt-5 max-w-xl text-sm sm:text-base text-ink/60 font-sans leading-relaxed">Günlük operasyonu çeviren üç araç. Tıkla, çalışmaya git.</p>
           </div>
           <div data-stagger className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -541,7 +541,7 @@ export default function Home() {
                   <span>38.45° N · 27.21° E</span>
                   <span style={{ color: "var(--zara-gold-soft)" }}>BORNOVA</span>
                 </div>
-                <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em]" style={{ fontWeight: 600 }}>Pusula,<br />içeriden.</h2>
+                <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em]" style={{ fontWeight: 500 }}>Pusula,<br />içeriden.</h2>
                 <p className="mt-5 max-w-md text-sm sm:text-base font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.72)" }}>
                   İnsan ana sahnedir; performans onun sonucudur. Altı yetenek, tek öğrenen döngüde.
                 </p>
@@ -598,7 +598,7 @@ export default function Home() {
               <div className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
               <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">EĞİTİM</div>
             </div>
-            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Atelye Eğitim.</h2>
+            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 500 }}>Atelye Eğitim.</h2>
             <p className="mt-5 max-w-xl text-sm sm:text-base text-ink/60 font-sans leading-relaxed">Sahaya çıkmadan önce — senaryolarla öğren, kabinini bul.</p>
           </div>
           <div data-stagger className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -618,7 +618,7 @@ export default function Home() {
               <div className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
               <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">AKIŞ</div>
             </div>
-            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Nasıl çalışır?</h2>
+            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 500 }}>Nasıl çalışır?</h2>
           </div>
           <div data-stagger data-flat className="grid grid-cols-1 md:grid-cols-3 gap-px" style={{ background: "var(--zara-line-strong)" }}>
             {STEPS.map((s, i) => (
@@ -640,7 +640,7 @@ export default function Home() {
       <section className="cta-section relative z-10 px-4 sm:px-6 md:px-12 py-24 md:py-32 text-center overflow-hidden">
         <div aria-hidden className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[60vw] max-w-[900px] pointer-events-none rounded-full" style={{ background: "radial-gradient(circle, var(--zara-glow) 0%, transparent 65%)" }} />
         <div data-reveal className="relative max-w-2xl mx-auto">
-          <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.0] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Hazır olduğunda, başla.</h2>
+          <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.0] tracking-[-0.02em] text-ink" style={{ fontWeight: 500 }}>Hazır olduğunda, başla.</h2>
           <p className="mt-5 text-sm sm:text-base text-ink/60 font-sans">Operasyonun ev sahibi seni bekliyor.</p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Link
