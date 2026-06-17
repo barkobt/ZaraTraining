@@ -56,6 +56,10 @@ export function OgrenenHafiza() {
   const [addedNotes, setAddedNotes] = usePersistentState<Record<string, ArchiveNote[]>>("hafiza.added", {});
   const notes = [...(addedNotes[empId] ?? []), ...notesFor(empId)].sort((a, b) => b.date.localeCompare(a.date));
   const [selected, setSelected] = useState<ArchiveNote | null>(notes[0] ?? null);
+  // Tahsis numarası — gözlem kuruma kayıtlı TEKİL kimlik alır (müze/arşiv dili).
+  // "Bireysel gözlem → kurumsal hafıza" dönüşümünü tek jetonla somutlaştırır.
+  const accNo = (n: ArchiveNote) =>
+    `ZA · ${n.date.slice(0, 4)} · ${n.date.slice(5, 7)} · ${(([...n.id].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 997, 7)) % 900) + 100}`;
 
   // örüntüler — eklenen notlar kümelere CANLI düşer; öneri onayı kalıcı
   const patterns = notePatterns(Object.values(addedNotes).flat());
@@ -323,6 +327,7 @@ export function OgrenenHafiza() {
                 <div className="pusula-paper-head">
                   <div>
                     <div className="pusula-paper-eb">{pick({ tr: "Gözlem Formu", en: "Observation Form", es: "Formulario de Observación" })} · {kindLabel(selected.kind)}</div>
+                    <div className="pusula-paper-acc" title={pick({ tr: "Kurum arşiv kayıt no", en: "Institutional archive no.", es: "N.º de archivo institucional" })}>{accNo(selected)}</div>
                     <h3>{selected.topic}</h3>
                   </div>
                   <div className="pusula-paper-date">{selected.date.split("-").reverse().join(".")}</div>

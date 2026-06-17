@@ -1714,6 +1714,8 @@
 .pusula-paper { position: relative; overflow: hidden; background: #fff; border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); padding: 30px 32px; box-shadow: var(--panel-shadow-soft); }
 .pusula-paper-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--zara-ink); padding-bottom: 16px; margin-bottom: 22px; }
 .pusula-paper-eb { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-40); margin-bottom: 6px; }
+/* tahsis numarası jetonu — kuruma kayıt; bordered tabular mono, arşiv dili */
+.pusula-paper-acc { display: inline-block; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; color: var(--zara-ink-50); font-variant-numeric: tabular-nums; border: 1px solid var(--zara-line-strong); padding: 2px 8px; border-radius: 0; margin-bottom: 9px; }
 .pusula-paper-head h3 { margin: 0; font-family: var(--ff-display); font-size: 24px; font-weight: 500; line-height: 1.1; }
 .pusula-paper-date { font-family: var(--ff-mono); font-size: 11px; color: var(--zara-ink-2); white-space: nowrap; }
 .pusula-paper-row { margin-bottom: 18px; }
