@@ -1,116 +1,62 @@
+/* ── ZARA Atölye tasarım token'ları · TEK KAYNAK (design handoff'tan) ──
+   colors · typography · spacing saf-CSS değişkenleri ve .zt-* utility'leri
+   artık buradan gelir. fonts.css Google Fonts @import'unu taşır (index.html
+   da yüklüyor; tarayıcı URL'e göre dedup eder). @import'lar @tailwind'den
+   ÖNCE olmalı (PostCSS/Vite kuralı). */
+@import "./styles/fonts.css";
+@import "./styles/colors.css";
+@import "./styles/typography.css";
+@import "./styles/spacing.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 36 28% 94%;
-    --foreground: 20 25% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 20 25% 8%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 25% 8%;
-    --primary: 20 25% 8%;
-    --primary-foreground: 36 28% 96%;
-    --secondary: 36 18% 88%;
-    --secondary-foreground: 20 25% 8%;
-    --muted: 36 14% 82%;
-    --muted-foreground: 20 12% 38%;
-    --accent: 35 38% 52%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 70% 55%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 36 18% 80%;
-    --input: 36 18% 80%;
-    --ring: 35 38% 52%;
-    --radius: 0.25rem;
+    /* ── TEK KAYNAK NOTU ───────────────────────────────────────
+       shadcn HSL köprüsü, tüm zara renkleri, semantic alias'lar,
+       font ailesi-ağırlık-ölçek tokenları, tracking, spacing,
+       container, radii, border-w, shadow ve easing-duration tokenları
+       artık src/styles içindeki colors-typography-spacing dosyalarında
+       (dosyanın en üstünde @import edildi). Aşağıda YALNIZ design'da
+       karşılığı OLMAYAN bize-özel legacy alias'lar kalır. */
 
-    /* ── PAPER · cream "atelier" stack ─────────────────────── */
-    --zara-bg: #F5F1EA;
-    --zara-bg-alt: #EFEAE0;
-    --zara-bg-warm: #FAF6EE;
-    --zara-bg-white: #FFFFFF;
-
-    /* ── INK · printed-press blacks ────────────────────────── */
-    --zara-ink: #1A1614;
-    --zara-ink-soft: #2D2420;
-    --zara-ink-2: #3A322E;
-    --zara-ink-65: rgba(26, 22, 20, 0.65);
-    --zara-ink-50: rgba(26, 22, 20, 0.50);
-    --zara-ink-40: rgba(26, 22, 20, 0.40);
-    --zara-ink-30: rgba(26, 22, 20, 0.30);
-
-    /* ── LINES · barely-there hairlines ────────────────────── */
-    --zara-line: rgba(26, 22, 20, 0.08);
-    --zara-line-strong: rgba(26, 22, 20, 0.18);
-
-    /* ── METAL · gold + bronze + stone ─────────────────────── */
-    --zara-gold: #B8935A;
-    --zara-gold-soft: #D4B582;
-    --zara-gold-tint: rgba(184, 147, 90, 0.08);
-    --zara-bronze: #8B6F47;
-    --zara-stone: #9B8F80;
-
-    /* ── GLOW · TEK altın hâle standardı ───────────────────── */
-    /* Önceden sayfada 3 farklı yoğunluk (0.10/0.18/0.12) dolaşıyordu —
-       "ışık modeli kararsız" hissinin kökü. İki kademeye kilitlendi:
-       ambient (açık zeminler) + strong (köz/koyu showcase). */
-    --zara-glow: rgba(184, 147, 90, 0.12);
-    --zara-glow-strong: rgba(184, 147, 90, 0.18);
-
-    /* ── SEMANTIC · the only non-warm colors ───────────────── */
-    --zara-emerald: #059669;          /* LIVE dot only, never bulk fill */
-    --zara-destructive: #D04A3B;
-
-    /* ── TYPE STACKS ───────────────────────────────────────── */
-    /* Sade editorial serif (Img 2/3 referansı) — yüksek-kontrastlı Bodoni
-       yerine temiz, okunaklı Newsreader. İtalik kullanılmaz. */
-    --ff-display: "Newsreader", "Spectral", Georgia, "Times New Roman", serif;
+    /* --ff-editorial: editorial.css + atelier/Marquee italic serif
+       idiom'u bu adı kullanıyor; design karşılığı --ff-serif (typography.css). */
     --ff-editorial: "Newsreader", "Spectral", Georgia, serif;
-    --ff-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --ff-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 
-    /* ── TYPE TOKENS · italic-roman split for displays ─────── */
-    --t-display-xl: clamp(64px, 8vw, 120px) / 0.92 var(--ff-editorial);
-    --t-display-lg: clamp(48px, 6vw, 88px) / 0.95 var(--ff-editorial);
+    /* --zara-sage-ink: sage'in metin tonu (pozitif delta/ibre).
+       Design colors.css'te yok; editorial.css fallback'i kullanıyor. */
+    --zara-sage-ink: #5F6B4F;
+
+    /* --shadow-gold-glow: eski ad; design --shadow-gold (spacing.css). */
+    --shadow-gold-glow: var(--shadow-gold);
+
+    /* ── TYPE TOKENS (legacy composite) · DS-4 ölçeğine hizalı ─
+       `.display-*`/`.body`/`.eyebrow` shorthand'leri için. Değerler
+       yukarıdaki kanonik --fs-* ölçeğiyle eşitlendi. */
+    --t-display-xl: var(--fs-display-xl) / var(--lh-display) var(--ff-editorial);
+    --t-display-lg: var(--fs-display-lg) / var(--lh-display) var(--ff-editorial);
     --t-display-md: clamp(36px, 5vw, 64px) / 0.95 var(--ff-display);
-    --t-h1: 48px / 1.0 var(--ff-display);
-    --t-h2: 36px / 1.05 var(--ff-display);
-    --t-h3: 26px / 1.15 var(--ff-display);
-    --t-h4: 20px / 1.25 var(--ff-display);
-    --t-body-lg: 17px / 1.6 var(--ff-sans);
-    --t-body: 15px / 1.6 var(--ff-sans);
-    --t-body-sm: 13px / 1.55 var(--ff-sans);
-    --t-caption: 12px / 1.5 var(--ff-sans);
-    --t-mono-eyebrow: 10px / 1 var(--ff-mono);
-    --t-mono-meta: 11px / 1.4 var(--ff-mono);
-    --t-mono-code: 13px / 1.5 var(--ff-mono);
-
-    /* ── TRACKING · atelier prefers wide caps ──────────────── */
-    --track-mono: 0.30em;
-    --track-mono-sm: 0.25em;
-    --track-mono-xs: 0.20em;
-    --track-display: -0.02em;
-    --track-tight: -0.03em;
-
-    /* ── SHADOWS · cards "float" on paper, never glow ──────── */
-    --shadow-xs: 0 1px 2px 0 rgba(26, 22, 20, 0.05);
-    --shadow-card: 0 30px 80px -30px rgba(26, 22, 20, 0.25);
-    --shadow-cabin: 0 25px 60px -25px rgba(26, 22, 20, 0.55);
-    --shadow-gold-glow: 0 0 60px rgba(184, 147, 90, 0.20);
-
-    /* ── EASING & DURATION ─────────────────────────────────── */
-    --ease-atelier: cubic-bezier(0.22, 0.61, 0.36, 1);
-    --ease-curtain: cubic-bezier(0.65, 0, 0.35, 1);
-    --dur-quick: 300ms;
-    --dur-soft: 500ms;
-    --dur-reveal: 900ms;
-    --dur-curtain: 1700ms;
+    --t-h1: var(--fs-h1) / var(--lh-h1) var(--ff-display);
+    --t-h2: var(--fs-h2) / var(--lh-h2) var(--ff-display);
+    --t-h3: var(--fs-h3) / var(--lh-h3) var(--ff-display);
+    --t-h4: var(--fs-h4) / var(--lh-h4) var(--ff-display);
+    --t-body-lg: var(--fs-body-lg) / var(--lh-body-lg) var(--ff-sans);
+    --t-body: var(--fs-body) / var(--lh-body) var(--ff-sans);
+    --t-body-sm: var(--fs-body-sm) / var(--lh-body-sm) var(--ff-sans);
+    --t-caption: var(--fs-caption) / var(--lh-caption) var(--ff-sans);
+    --t-mono-eyebrow: var(--fs-eyebrow) / var(--lh-eyebrow) var(--ff-mono);
+    --t-mono-meta: var(--fs-meta) / var(--lh-meta) var(--ff-mono);
+    --t-mono-code: var(--fs-mono) / var(--lh-mono) var(--ff-mono);
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    font-size: var(--fs-body);        /* DS-4 base · 16px */
+    line-height: var(--lh-body);      /* 1.6 — body breathes */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: var(--zara-bg);
@@ -132,6 +78,9 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Newsreader', 'Spectral', Georgia, serif;
+    /* DS-4: başlıklar serif + MEDIUM (500), tarayıcı default'u olan
+       ağır bold 700 değil. Inline fontWeight verilenler yine ezer. */
+    font-weight: var(--fw-medium);
     letter-spacing: -0.01em;
   }
 
@@ -203,6 +152,9 @@
     color: var(--zara-ink);
   }
 
+  /* DS-4 .zt-* tipografi yardımcıları artık src/styles/typography.css'te
+     (dosya başında @import). Burada tekrar tanımlanmaz. */
+
   /* ── Color utilities ─────────────────────────────────────── */
   .fg-ink { color: var(--zara-ink); }
   .fg-gold { color: var(--zara-gold); }
@@ -217,6 +169,9 @@
   /* ── Hairline rules — used liberally between sections ────── */
   .rule { height: 1px; background: var(--zara-line); }
   .rule-strong { height: 1px; background: var(--zara-line-strong); }
+
+  /* DS-4 .zt-container/.zt-section/.zt-grid/.zt-rule layout yardımcıları
+     artık src/styles/spacing.css'te (dosya başında @import). */
 }
 
 /* === MOTION SYSTEM === */

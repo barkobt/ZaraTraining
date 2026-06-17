@@ -1,0 +1,141 @@
+/* ============================================================
+   ZARA ATELYE · TYPOGRAPHY SYSTEM
+   ------------------------------------------------------------
+   ONE scale, strictly ranked. The atelier hierarchy reads top to
+   bottom: editorial serif Displays & Headings (Newsreader) over a
+   quiet Inter body, punctuated by wide-tracked Mono eyebrows.
+
+   PRINCIPLES (the refactor brief):
+   · Fixed, predictable steps — every size is a token, in px.
+   · Headings are SERIF + MEDIUM (500), never heavy bold. Weight
+     is earned by typeface and size, not by bolding body copy.
+   · Body is SANS + REGULAR (400) with generous 1.6 line-height.
+   · Clear size AND line-height contrast separates head from body:
+     displays ride tight (0.92–1.0), body breathes (1.55–1.65).
+   ============================================================ */
+
+:root {
+  /* ── FONT STACKS ───────────────────────────────────────── */
+  --ff-display:   "Newsreader", "Spectral", Georgia, "Times New Roman", serif;  /* @kind font */
+  --ff-serif:     "Newsreader", "Spectral", Georgia, serif;  /* @kind font */
+  --ff-sans:      "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;  /* @kind font */
+  --ff-mono:      "JetBrains Mono", "SF Mono", ui-monospace, monospace;  /* @kind font */
+
+  /* ── WEIGHTS · a calm range, bold is rationed ──────────── */
+  --fw-light:     300;   /* @kind font */
+  --fw-regular:   400;   /* @kind font */
+  --fw-medium:    500;   /* @kind font */
+  --fw-semibold:  600;   /* @kind font */
+
+  /* ── TYPE SCALE · sizes (px), line-heights, tracking ──────
+     Major-third-ish ramp tuned to feel editorial, not generic.   */
+
+  /* Display — hero & chapter openers (serif, responsive clamp) */
+  --fs-display-2xl: clamp(72px, 9vw, 128px);  /* @kind font */
+  --fs-display-xl:  clamp(56px, 7vw, 96px);   /* @kind font */
+  --fs-display-lg:  clamp(44px, 5.5vw, 72px); /* @kind font */
+  --lh-display:     0.95;     /* @kind font */
+  --tr-display:     -0.03em;  /* @kind font */
+
+  /* Headings — section & card titles (serif, fixed px) */
+  --fs-h1: 48px;   --lh-h1: 1.05;  /* @kind font */  --tr-h1: -0.02em;  /* @kind font */
+  --fs-h2: 36px;   --lh-h2: 1.10;  /* @kind font */  --tr-h2: -0.02em;  /* @kind font */
+  --fs-h3: 26px;   --lh-h3: 1.20;  /* @kind font */  --tr-h3: -0.015em; /* @kind font */
+  --fs-h4: 20px;   --lh-h4: 1.30;  /* @kind font */  --tr-h4: -0.01em;  /* @kind font */
+
+  /* Body — running text & UI (sans, fixed px) */
+  --fs-body-lg: 18px;  --lh-body-lg: 1.65;  /* @kind font */
+  --fs-body:    16px;  --lh-body:    1.60;  /* @kind font */
+  --fs-body-sm: 14px;  --lh-body-sm: 1.55;  /* @kind font */
+  --fs-caption: 13px;  --lh-caption: 1.50;  /* @kind font */
+
+  /* Mono — eyebrows, meta, code, tabular numerals */
+  --fs-eyebrow: 11px;  --lh-eyebrow: 1.00;  /* @kind font */
+  --fs-meta:    11px;  --lh-meta:    1.40;  /* @kind font */
+  --fs-mono:    13px;  --lh-mono:    1.50;  /* @kind font */
+
+  /* ── TRACKING · the atelier loves wide mono caps ───────── */
+  --track-mono:     0.30em;   /* @kind font */
+  --track-mono-sm:  0.24em;   /* @kind font */
+  --track-mono-xs:  0.20em;   /* @kind font */
+  --track-tight:    -0.03em;  /* @kind font */
+  --track-display:  -0.02em;  /* @kind font */
+  --track-normal:   0;        /* @kind font */
+}
+
+/* ============================================================
+   TYPOGRAPHY UTILITIES
+   Apply the scale by name. Class = font + size + line + weight +
+   tracking + intended color, so a heading is one token away.
+   ============================================================ */
+
+.zt-display-2xl,
+.zt-display-xl,
+.zt-display-lg {
+  font-family: var(--ff-display);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+  color: var(--text-primary);
+}
+.zt-display-2xl { font-size: var(--fs-display-2xl); letter-spacing: var(--track-tight); }
+.zt-display-xl  { font-size: var(--fs-display-xl); }
+.zt-display-lg  { font-size: var(--fs-display-lg); }
+
+.zt-h1, .zt-h2, .zt-h3, .zt-h4 {
+  font-family: var(--ff-display);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+.zt-h1 { font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--tr-h1); }
+.zt-h2 { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--tr-h2); }
+.zt-h3 { font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--tr-h3); }
+.zt-h4 { font-size: var(--fs-h4); line-height: var(--lh-h4); letter-spacing: var(--tr-h4); }
+
+.zt-body-lg, .zt-body, .zt-body-sm, .zt-caption {
+  font-family: var(--ff-sans);
+  font-weight: var(--fw-regular);
+}
+.zt-body-lg { font-size: var(--fs-body-lg); line-height: var(--lh-body-lg); color: var(--text-secondary); }
+.zt-body    { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--text-primary); }
+.zt-body-sm { font-size: var(--fs-body-sm); line-height: var(--lh-body-sm); color: var(--text-secondary); }
+.zt-caption { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--text-muted); }
+
+/* Eyebrow — the most-used motif: wide-tracked uppercase mono. */
+.zt-eyebrow {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-eyebrow);
+  line-height: var(--lh-eyebrow);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--track-mono);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.zt-eyebrow--gold { color: var(--text-accent); }
+
+.zt-meta {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: var(--fw-regular);
+  letter-spacing: var(--track-mono-sm);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.zt-mono {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-mono);
+  line-height: var(--lh-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The italic "Atelye" wordmark idiom — light serif italic. */
+.zt-wordmark {
+  font-family: var(--ff-serif);
+  font-style: italic;
+  font-weight: var(--fw-light);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.zt-tnum { font-variant-numeric: tabular-nums; }

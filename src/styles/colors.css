@@ -1,0 +1,88 @@
+/* ============================================================
+   ZARA ATELYE · COLOR SYSTEM
+   ------------------------------------------------------------
+   A warm, printed-press palette. Cream paper, ink blacks, and a
+   single metal accent (gold/bronze). Color is rationed: the page
+   is paper + ink; gold marks the chosen / featured / live; the
+   only non-warm colors are the emerald LIVE dot and destructive
+   red — neither is ever used as a bulk fill.
+   ============================================================ */
+
+:root {
+  /* ── PAPER · cream "atelier" stack ─────────────────────── */
+  --zara-bg:        #F5F1EA;   /* default page — warm newsprint cream */
+  --zara-bg-alt:    #EFEAE0;   /* alternating sections, recessed wells */
+  --zara-bg-warm:   #FAF6EE;   /* lifted surfaces, lighter panels      */
+  --zara-bg-white:  #FFFFFF;   /* true white — cards, sheets, modals   */
+
+  /* ── INK · printed-press blacks ────────────────────────── */
+  --zara-ink:       #1A1614;   /* primary text, dark showcase fills    */
+  --zara-ink-soft:  #2D2420;   /* buttons, slightly-warmer ink         */
+  --zara-ink-2:     #3A322E;   /* tertiary ink                         */
+  --zara-ink-65:    rgba(26, 22, 20, 0.65);  /* secondary body text    */
+  --zara-ink-50:    rgba(26, 22, 20, 0.50);  /* eyebrows, captions      */
+  --zara-ink-40:    rgba(26, 22, 20, 0.40);  /* meta, de-emphasized     */
+  --zara-ink-30:    rgba(26, 22, 20, 0.30);  /* disabled, faint marks   */
+
+  /* ── LINES · barely-there hairlines ────────────────────── */
+  --zara-line:        rgba(26, 22, 20, 0.08);  /* default hairline rule */
+  --zara-line-strong: rgba(26, 22, 20, 0.18);  /* dividers, borders     */
+
+  /* ── METAL · the one accent — gold, bronze, stone ──────── */
+  --zara-gold:       #B8935A;  /* the accent — selected, featured, live */
+  --zara-gold-soft:  #D4B582;  /* lighter gold on dark grounds          */
+  --zara-gold-deep:  #9A7B45;  /* deeper gold — mastery, emphasis text  */
+  --zara-gold-tint:  rgba(184, 147, 90, 0.08);
+  --zara-bronze:     #8B6F47;  /* secondary metal — warmer, deeper      */
+  --zara-stone:      #9B8F80;  /* muted metal — neutral, quiet          */
+  --zara-sage:       #9DA391;  /* soft growth fill — "new" life stage   */
+
+  /* ── GLOW · two locked gold-halo intensities ───────────── */
+  --zara-glow:        rgba(184, 147, 90, 0.12);  /* ambient, light grounds */
+  --zara-glow-strong: rgba(184, 147, 90, 0.18);  /* dark showcase grounds  */
+
+  /* ── SEMANTIC · the only non-warm colors ───────────────── */
+  --zara-emerald:     #059669;  /* LIVE dot ONLY — never a bulk fill    */
+  --zara-destructive: #D04A3B;  /* errors, infeasible, destructive      */
+
+  /* ── SEMANTIC ALIASES · paint with intent, not hex ─────── */
+  --surface-page:    var(--zara-bg);
+  --surface-alt:     var(--zara-bg-alt);
+  --surface-warm:    var(--zara-bg-warm);
+  --surface-card:    var(--zara-bg-white);
+  --surface-invert:  var(--zara-ink);
+
+  --text-primary:    var(--zara-ink);
+  --text-secondary:  var(--zara-ink-65);
+  --text-muted:      var(--zara-ink-50);
+  --text-faint:      var(--zara-ink-40);
+  --text-on-invert:  var(--zara-bg);
+  --text-accent:     var(--zara-gold);
+
+  --border-hairline: var(--zara-line);
+  --border-default:  var(--zara-line-strong);
+  --accent:          var(--zara-gold);
+
+  /* ── shadcn/ui bridge (HSL channels) ───────────────────── */
+  /* Original app is shadcn "new-york". Kept so consuming code that
+     references Tailwind theme tokens still resolves to the palette. */
+  --background: 36 28% 94%;            /* @kind color */
+  --foreground: 20 25% 8%;             /* @kind color */
+  --card: 0 0% 100%;                   /* @kind color */
+  --card-foreground: 20 25% 8%;        /* @kind color */
+  --popover: 0 0% 100%;                /* @kind color */
+  --popover-foreground: 20 25% 8%;     /* @kind color */
+  --primary: 20 25% 8%;                /* @kind color */
+  --primary-foreground: 36 28% 96%;    /* @kind color */
+  --secondary: 36 18% 88%;             /* @kind color */
+  --secondary-foreground: 20 25% 8%;   /* @kind color */
+  --muted: 36 14% 82%;                 /* @kind color */
+  --muted-foreground: 20 12% 38%;      /* @kind color */
+  --accent-hsl: 35 38% 52%;            /* @kind color */
+  --accent-foreground: 0 0% 100%;      /* @kind color */
+  --destructive: 0 70% 55%;            /* @kind color */
+  --destructive-foreground: 0 0% 98%;  /* @kind color */
+  --border: 36 18% 80%;                /* @kind color */
+  --input: 36 18% 80%;                 /* @kind color */
+  --ring: 35 38% 52%;                  /* @kind color */
+}

@@ -27,7 +27,9 @@ module.exports = {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          // DS: shadcn accent HSL kanalı colors.css'te --accent-hsl olarak ayrıldı
+          // (--accent artık semantic = var(--zara-gold)). Çakışma fix.
+          DEFAULT: "hsl(var(--accent-hsl))",
           foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
@@ -48,6 +50,31 @@ module.exports = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      fontFamily: {
+        // Tailwind font-* utility'lerini DS stack'lerine bağla (var(--ff-*)).
+        display: ["var(--ff-display)"],
+        serif: ["var(--ff-serif)"],
+        sans: ["var(--ff-sans)"],
+        mono: ["var(--ff-mono)"],
+        editorial: ["var(--ff-editorial)"],
+      },
+      fontSize: {
+        // DS ölçeği → text-* utility'leri. [size, {lineHeight, letterSpacing}].
+        "display-2xl": ["var(--fs-display-2xl)", { lineHeight: "var(--lh-display)", letterSpacing: "var(--tr-display)" }],
+        "display-xl": ["var(--fs-display-xl)", { lineHeight: "var(--lh-display)", letterSpacing: "var(--tr-display)" }],
+        "display-lg": ["var(--fs-display-lg)", { lineHeight: "var(--lh-display)", letterSpacing: "var(--tr-display)" }],
+        h1: ["var(--fs-h1)", { lineHeight: "var(--lh-h1)", letterSpacing: "var(--tr-h1)" }],
+        h2: ["var(--fs-h2)", { lineHeight: "var(--lh-h2)", letterSpacing: "var(--tr-h2)" }],
+        h3: ["var(--fs-h3)", { lineHeight: "var(--lh-h3)", letterSpacing: "var(--tr-h3)" }],
+        h4: ["var(--fs-h4)", { lineHeight: "var(--lh-h4)", letterSpacing: "var(--tr-h4)" }],
+        "body-lg": ["var(--fs-body-lg)", { lineHeight: "var(--lh-body-lg)" }],
+        body: ["var(--fs-body)", { lineHeight: "var(--lh-body)" }],
+        "body-sm": ["var(--fs-body-sm)", { lineHeight: "var(--lh-body-sm)" }],
+        caption: ["var(--fs-caption)", { lineHeight: "var(--lh-caption)" }],
+        eyebrow: ["var(--fs-eyebrow)", { lineHeight: "var(--lh-eyebrow)" }],
+        meta: ["var(--fs-meta)", { lineHeight: "var(--lh-meta)" }],
+        "mono-code": ["var(--fs-mono)", { lineHeight: "var(--lh-mono)" }],
       },
       borderRadius: {
         xl: "calc(var(--radius) + 4px)",

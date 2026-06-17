@@ -1,0 +1,88 @@
+/* ============================================================
+   ZARA ATELYE · SPACING, LAYOUT, ELEVATION & MOTION
+   ------------------------------------------------------------
+   One spacing scale, base-4. Every gap, pad and margin is a step
+   on this ladder — 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 · 128.
+   No arbitrary in-betweens. Container padding is standardized so
+   every section's edge gutter lines up to the same rail.
+   ============================================================ */
+
+:root {
+  /* ── SPACING SCALE · base-4 ────────────────────────────── */
+  --space-0:   0;
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   24px;
+  --space-6:   32px;
+  --space-7:   48px;
+  --space-8:   64px;
+  --space-9:   96px;
+  --space-10:  128px;
+
+  /* ── LAYOUT · the editorial rail ───────────────────────── */
+  --container-max:    1280px;   /* max content width            */
+  --container-wide:   1440px;   /* hero / full-bleed sections    */
+  --gutter:           clamp(16px, 5vw, 48px);  /* @kind spacing */
+  --section-y:        clamp(80px, 12vh, 128px); /* @kind spacing */
+  --grid-gap:         32px;     /* default card-grid gap         */
+  --grid-gap-tight:   24px;
+
+  /* ── RADII · crisp, near-square — paper, not pills ─────── */
+  --radius-xs:   2px;
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;
+  --radius-full: 9999px;
+  --radius:      4px;   /* default — the atelier keeps corners tight */
+
+  /* ── BORDERS ───────────────────────────────────────────── */
+  --border-w:        1px;   /* @kind spacing */
+  --border-w-strong: 2px;   /* @kind spacing */
+
+  /* ── ELEVATION · cards float on paper, they never glow ─── */
+  --shadow-xs:    0 1px 2px 0 rgba(26, 22, 20, 0.05);
+  --shadow-sm:    0 2px 8px -2px rgba(26, 22, 20, 0.10);
+  --shadow-card:  0 30px 80px -30px rgba(26, 22, 20, 0.25);
+  --shadow-cabin: 0 25px 60px -25px rgba(26, 22, 20, 0.55);
+  --shadow-gold:  0 0 60px rgba(184, 147, 90, 0.20);
+
+  /* ── MOTION · slow, considered, cinematic ──────────────── */
+  --ease-atelier: cubic-bezier(0.22, 0.61, 0.36, 1);   /* @kind other */
+  --ease-curtain: cubic-bezier(0.65, 0, 0.35, 1);      /* @kind other */
+  --dur-quick:    300ms;   /* @kind other */
+  --dur-soft:     500ms;   /* @kind other */
+  --dur-reveal:   900ms;   /* @kind other */
+  --dur-curtain:  1700ms;  /* @kind other */
+}
+
+/* ============================================================
+   LAYOUT UTILITIES
+   ============================================================ */
+
+/* The container — standardized edge gutter, centered, capped. */
+.zt-container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.zt-container--wide { max-width: var(--container-wide); }
+
+/* Section vertical rhythm. */
+.zt-section { padding-block: var(--section-y); }
+
+/* Card grids — consistent gaps, responsive columns. */
+.zt-grid {
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+}
+@media (max-width: 900px) { .zt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .zt-grid { grid-template-columns: 1fr; } }
+
+/* Hairline rules — used liberally between sections. */
+.zt-rule        { height: 1px; background: var(--border-hairline); border: 0; }
+.zt-rule--strong{ height: 1px; background: var(--border-default); border: 0; }
