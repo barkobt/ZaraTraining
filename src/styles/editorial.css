@@ -1525,7 +1525,11 @@
 .pusula-level-tab.on .pusula-level-week { color: rgba(255,255,255,0.55); }
 .pusula-book-legend { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 4px 12px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); border-bottom: 1px solid var(--zara-line); margin-bottom: 8px; }
 .pusula-book-legend-stats { display: none; }
-.pusula-topics { display: flex; flex-direction: column; gap: 8px; }
+.pusula-topics { display: flex; flex-direction: column; gap: 8px; counter-reset: pcat; }
+/* kategori folyo numarası — gazete "section" hissi; nötr ink-30, altın
+   kategori başlığıyla kontrast (altın rasyonu korunur). */
+.pusula-catgroup { counter-increment: pcat; }
+.pusula-cathead > span:first-child::before { content: counter(pcat, decimal-leading-zero); margin-right: 9px; color: var(--zara-ink-30); font-variant-numeric: tabular-nums; letter-spacing: 0.08em; }
 .pusula-topic { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-white); transition: border-color 200ms; }
 .pusula-topic:hover { border-color: var(--zara-line-strong); }
 .pusula-topic.marked { border-color: var(--zara-line-strong); }

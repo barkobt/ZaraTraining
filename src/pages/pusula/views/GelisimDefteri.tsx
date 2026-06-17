@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, Sparkles, Layers, CheckCircle2, Circle } from "lucide-react";
+import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, Award, Layers, CheckCircle2, Circle } from "lucide-react";
 import { Headline } from "../primitives";
 import { employees } from "../data";
 import {
@@ -355,9 +355,9 @@ export function GelisimDefteri() {
 
                           {isTeach && (
                             <div className="pusula-teach-moment">
-                              <Sparkles size={13} strokeWidth={1.7} />
+                              <Award size={13} strokeWidth={1.7} />
                               <span>
-                                <strong>{plang({ tr: "Öğretebilir!", en: "Can teach!", es: "¡Puede enseñar!" })}</strong> {emp.name.split(" ")[0]} {plang({
+                                <strong>{plang({ tr: "Öğretebilir", en: "Can teach", es: "Puede enseñar" })}</strong> {emp.name.split(" ")[0]} {plang({
                                   tr: " bu konuda artık mentor adayı — Usta Aktarımına aday, Usta Yolu'na eklenebilir.",
                                   en: " is now a mentor candidate on this topic — a Mastery-Transfer candidate, can be added to the Mentor Path.",
                                   es: " ya es candidato a mentor en este tema — candidato a Transferencia de Maestría, se puede añadir a la Ruta de Mentor.",
