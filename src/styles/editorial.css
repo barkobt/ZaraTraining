@@ -590,6 +590,8 @@
 .pr-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .pr-name .pn { font-family: var(--ff-display); font-size: 15px; font-weight: 500; line-height: 1.15; }
 .pr-name .ps { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.2em; color: var(--zara-ink-40); }
+/* pr-pusula — SEMBOLİK pusula bağı: soluk altın, etkileşimsiz (pointer-events yok) */
+.pr-pusula { margin-left: auto; display: inline-grid; place-items: center; color: var(--zara-gold-deep); opacity: 0.45; pointer-events: none; flex: 0 0 auto; }
 .pr-del { position: absolute; right: 0; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--zara-ink-30); cursor: pointer; opacity: 0; padding: 4px; transition: opacity 140ms; }
 .person-row:hover .pr-del { opacity: 1; }
 .pr-del:hover { color: var(--zara-destructive); }
