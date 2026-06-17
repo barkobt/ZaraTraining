@@ -60,7 +60,9 @@ const TOOLS: Project[] = [
       "Yaşayan uzman — kişinin gerçek yetkinlik ve sonucundan profil çıkarır; gelişim planı ve vardiya yerleşimine çevirir. Akşam cebini rahatlatan, insan-onaylı motor.",
     href: "/pusula",
     accent: "#B8935A",
-    visual: <PusulaCompass className="w-[72%] max-w-[300px]" heading={26} />,
+    // Komedi pusula-iğnesi yerine handoff'tan gerçek mağaza krokisi (Pusula
+    // "sahayı tanır" — grayscale, hover'da renge/büyür ProjectCard deseni).
+    image: "/pusula-plan.png",
     available: true,
     status: "YENİ",
     index: 2,
