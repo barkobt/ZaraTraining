@@ -2815,7 +2815,8 @@
 /* ── ETKİ — gelişim → performans paneli ─────────────────── */
 /* 2×2 editorial grid: ① isabet (başköşe) ② olgunlaşma ③ conversion (band) ④ pilot */
 .petki-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 0; border: 1px solid var(--zara-line); }
-.petki-hitcard { padding: 24px 28px; border-right: 1px solid var(--zara-line); border-bottom: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 14px; }
+/* ① isabet kartı = savunulabilirliğin tepesi → tek altın üst-kenar (design-council P2) */
+.petki-hitcard { padding: 24px 28px; border-top: 3px solid var(--zara-gold); border-right: 1px solid var(--zara-line); border-bottom: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 14px; }
 .petki-hitsvg { display: block; }
 .petki-mat { padding: 24px 26px; border-bottom: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 14px; }
 .petki-mat-track { display: grid; grid-template-columns: repeat(4, 1fr); }
@@ -2826,6 +2827,8 @@
 .petki-mat-step small { font-family: var(--ff-sans); font-size: 9.5px; font-style: italic; color: var(--zara-ink-50); line-height: 1.4; }
 .petki-live { display: flex; flex-direction: column; gap: 4px; text-align: right; }
 .petki-live em { font-family: var(--ff-display); font-style: italic; font-size: 38px; line-height: 1; }
+/* boş oturum: kapanan döngü 0 iken dev "0" yerine sönük tire (design-council P1) */
+.petki-live em.zero { font-size: 22px; color: var(--zara-ink-40); }
 .petki-live span { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink); }
 .petki-live small { font-family: var(--ff-sans); font-size: 10px; font-style: italic; color: var(--zara-ink-40); }
 .petki-eb-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
