@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
 import type { Trajectory } from "../data-profile";
 
 /**
@@ -74,7 +73,7 @@ export function GrowthTrajectory({ traj }: { traj: Trajectory }) {
         ))}
       </svg>
       <div className="pusula-traj-pred">
-        <Sparkles size={13} strokeWidth={1.8} /> {traj.prediction}
+        {traj.prediction}
       </div>
     </div>
   );

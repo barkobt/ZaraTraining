@@ -1300,8 +1300,10 @@
 }
 /* dikiş ayracı — geçmiş KANIT ↔ gelecek TAHMİN eşiği ("kanıt ≠ tahmin").
    Kesik çizgi + üstüne oturan mono damga (atölye dikiş-payı dili). */
-.pusula-seam { position: relative; margin: 40px 0 16px; height: 0; border-top: 1px dashed var(--zara-line-strong); text-align: center; }
-.pusula-seam span { position: relative; top: -6px; background: var(--zara-bg); padding: 0 14px; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-seam { position: relative; margin: 48px 0 32px; height: 0; border-top: 1px dashed var(--zara-line-strong); }
+/* damga: absolute ile çizgi merkezine kilitle (height:0 + line-box top hilesi
+   çalışmıyordu — damga alta kayıyordu). bg, çizgiyi delip maskeler. */
+.pusula-seam span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--zara-bg); padding: 0 14px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink-50); white-space: nowrap; }
 .pusula-profile-asa { display: flex; flex-direction: column; gap: 16px; }
 .pusula-profile-curveword { font-family: var(--ff-sans); font-size: 12.5px; font-style: italic; color: var(--zara-ink-50); }
 
