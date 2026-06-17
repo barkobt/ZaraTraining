@@ -1,4 +1,4 @@
-import { createRouter, publicQuery, protectedQuery } from "./middleware.js";
+import { createRouter, publicQuery, protectedQuery, adminQuery } from "./middleware.js";
 import { z } from "zod";
 import { SCORING_TABLE, calculateCabin } from "../../contracts/constants.js";
 import { createParticipant, getParticipantById, getAllParticipants } from "./queries/participants.js";
@@ -154,6 +154,12 @@ export const appRouter = createRouter({
         if (!env.shiftOrganizerPassword) return { ok: true };
         return { ok: input.token === env.shiftOrganizerPassword };
       }),
+    // Admin/Buenas-dias PIN doğrulaması — ARTIK sunucuda. PinGuard bunu çağırır,
+    // başarılıysa PIN'i token olarak saklar; sonraki adminQuery çağrıları header'la
+    // doğrulanır. Eskiden PIN yalnız client sabitiydi (bundle'da okunabilir).
+    checkAdmin: publicQuery
+      .input(z.object({ pin: z.string().min(1).max(64) }))
+      .mutation(({ input }) => ({ ok: input.pin === env.adminPin })),
   }),
 
   // Ürün analitiği. `analytics_events` tablosuna yazar (tekil ziyaretçi + tıklama).
@@ -201,7 +207,7 @@ export const appRouter = createRouter({
         });
         return { ok: true };
       }),
-    stats: publicQuery.query(async () => getAnalyticsStats()),
+    stats: adminQuery.query(async () => getAnalyticsStats()),
   }),
 
   participant: createRouter({
@@ -260,7 +266,7 @@ export const appRouter = createRouter({
   }),
 
   admin: createRouter({
-    list: publicQuery.query(async () => {
+    list: adminQuery.query(async () => {
       const all = await getAllParticipants();
       return all.map((p) => {
         const cabinInfo = calculateCabin(p.totalScore);
@@ -276,7 +282,7 @@ export const appRouter = createRouter({
       });
     }),
 
-    stats: publicQuery.query(async () => {
+    stats: adminQuery.query(async () => {
       const all = await getAllParticipants();
       const stats = {
         total: all.length,
@@ -620,10 +626,10 @@ export const appRouter = createRouter({
   // Faz 1: days.calculate (Motor A), coefficients.list, specialDays.list/find.
   // Faz 2+: challenge.*, days.approve/close, calibration.*.
   buenasDias: createRouter({
-    ping: publicQuery.query(() => ({ ok: true, module: "buenas-dias", ts: Date.now() })),
+    ping: adminQuery.query(() => ({ ok: true, module: "buenas-dias", ts: Date.now() })),
 
     days: createRouter({
-      list: publicQuery
+      list: adminQuery
         .input(
           z
             .object({
@@ -636,7 +642,7 @@ export const appRouter = createRouter({
           listDays(input?.storeId ?? DEFAULT_STORE_ID, input?.limit ?? 50),
         ),
 
-      getByDate: publicQuery
+      getByDate: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -656,7 +662,7 @@ export const appRouter = createRouter({
        *
        * isSpecialDay otomatik (specialDays sorgusu). weather şimdilik 'normal'.
        */
-      ensure: publicQuery
+      ensure: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -698,7 +704,7 @@ export const appRouter = createRouter({
        *
        * Aktüel alanlar henüz girilmediyse ilgili metrik null döner; UI "—" gösterir.
        */
-      derived: publicQuery
+      derived: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -746,7 +752,7 @@ export const appRouter = createRouter({
        *
        * Faz 4b.
        */
-      calculateAndSave: publicQuery
+      calculateAndSave: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -830,7 +836,7 @@ export const appRouter = createRouter({
       // Motor A önizleme — referans veri girilince hedefleri üretir.
       // DB'ye YAZMAZ; sadece bir hesap çıktısı + breakdown döner.
       // Spec §3.1. Faz 3'te `upsert` ucu ayrı eklenecek (TASLAK kaydı yaratır).
-      calculate: publicQuery
+      calculate: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -895,7 +901,7 @@ export const appRouter = createRouter({
     }),
 
     coefficients: createRouter({
-      list: publicQuery.query(async () => listCoefficients()),
+      list: adminQuery.query(async () => listCoefficients()),
     }),
 
     // Kalibrasyon önerileri (spec §3.2 + §4.4).
@@ -903,15 +909,15 @@ export const appRouter = createRouter({
     // çakışıyor), o yüzden `accept`/`dismiss` kullanıyoruz.
     calibration: createRouter({
       // Bekleyen öneriler — UI üst çubukta gösterir.
-      pending: publicQuery.query(async () => listPendingCalibrations()),
+      pending: adminQuery.query(async () => listPendingCalibrations()),
 
       // Yöneticinin onayı: currentValue = lastSuggestedValue, örnekler arşivlenir.
-      accept: publicQuery
+      accept: adminQuery
         .input(z.object({ type: z.enum(COEFFICIENT_TYPE) }))
         .mutation(async ({ input }) => applyCalibration(input.type)),
 
       // "Şimdilik kalsın": currentValue korunur, lastSuggestedValue null'a çekilir.
-      dismiss: publicQuery
+      dismiss: adminQuery
         .input(z.object({ type: z.enum(COEFFICIENT_TYPE) }))
         .mutation(async ({ input }) => rejectCalibration(input.type)),
     }),
@@ -919,11 +925,11 @@ export const appRouter = createRouter({
     // Buenas Dias mağaza ayarları (compran/gap/productivity hedefleri, stretch vb.).
     // Faz 5'in setup ekranı bu uçları çağırır — şimdilik test/sanity için yeterli.
     settings: createRouter({
-      get: publicQuery
+      get: adminQuery
         .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
         .query(async ({ input }) => getStoreSettings(input?.storeId ?? DEFAULT_STORE_ID)),
 
-      update: publicQuery
+      update: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -943,11 +949,11 @@ export const appRouter = createRouter({
     }),
 
     specialDays: createRouter({
-      list: publicQuery
+      list: adminQuery
         .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
         .query(async ({ input }) => listSpecialDays(input?.storeId ?? DEFAULT_STORE_ID)),
 
-      find: publicQuery
+      find: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -958,7 +964,7 @@ export const appRouter = createRouter({
           findSpecialDay(input.storeId ?? DEFAULT_STORE_ID, input.date),
         ),
 
-      upsert: publicQuery
+      upsert: adminQuery
         .input(
           z.object({
             id: z.number().int().positive().optional(),
@@ -980,18 +986,18 @@ export const appRouter = createRouter({
           }),
         ),
 
-      delete: publicQuery
+      delete: adminQuery
         .input(z.object({ id: z.number().int().positive() }))
         .mutation(async ({ input }) => deleteSpecialDay(input.id)),
     }),
 
     // Aylık challenge'lar — setup ekranı + Motor B veri kaynağı.
     challenges: createRouter({
-      list: publicQuery
+      list: adminQuery
         .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
         .query(async ({ input }) => listChallenges(input?.storeId ?? DEFAULT_STORE_ID)),
 
-      getActive: publicQuery
+      getActive: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -1002,7 +1008,7 @@ export const appRouter = createRouter({
           getActiveChallenge(input.storeId ?? DEFAULT_STORE_ID, input.date),
         ),
 
-      upsert: publicQuery
+      upsert: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -1030,7 +1036,7 @@ export const appRouter = createRouter({
     // Motor B — challenge durum panosu. İki tier paralel.
     // Spec §3.3 + Motor A↔B karşılaştırma rozeti.
     challenge: createRouter({
-      status: publicQuery
+      status: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -1107,7 +1113,7 @@ export const appRouter = createRouter({
     daysMutations: createRouter({
       // Mevcut TASLAK'ı upsert et — Motor A çıktısını kalıcı kaydet.
       // `calculate` salt-okunur idi; bu uç DB'ye YAZAR.
-      upsertTargets: publicQuery
+      upsertTargets: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -1144,7 +1150,7 @@ export const appRouter = createRouter({
           }),
         ),
 
-      approve: publicQuery
+      approve: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -1155,7 +1161,7 @@ export const appRouter = createRouter({
           approveDay(input.storeId ?? DEFAULT_STORE_ID, input.date),
         ),
 
-      unapprove: publicQuery
+      unapprove: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -1166,7 +1172,7 @@ export const appRouter = createRouter({
           unapproveDay(input.storeId ?? DEFAULT_STORE_ID, input.date),
         ),
 
-      setActuals: publicQuery
+      setActuals: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -1192,7 +1198,7 @@ export const appRouter = createRouter({
           }),
         ),
 
-      close: publicQuery
+      close: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -1203,7 +1209,7 @@ export const appRouter = createRouter({
           closeDay(input.storeId ?? DEFAULT_STORE_ID, input.date),
         ),
 
-      reopen: publicQuery
+      reopen: adminQuery
         .input(
           z.object({
             storeId: z.number().int().positive().optional(),
@@ -1217,7 +1223,7 @@ export const appRouter = createRouter({
 
     // Hava durumu — Open-Meteo'dan bugünün durumu, sunny/normal/bad'e mapli.
     weather: createRouter({
-      today: publicQuery
+      today: adminQuery
         .input(z.object({ storeId: z.number().int().positive().optional() }).optional())
         .query(async ({ input }) => {
           const settings = await getStoreSettings(input?.storeId ?? DEFAULT_STORE_ID);
@@ -1232,7 +1238,7 @@ export const appRouter = createRouter({
        * Gap'i tek sayı olarak elle girmek zorunda kalmasın. Spec §3.4.
        * Saf hesap: Gap = satış% − visit%.
        */
-      gapFromChanges: publicQuery
+      gapFromChanges: adminQuery
         .input(
           z.object({
             visitChangePct: z.number(),

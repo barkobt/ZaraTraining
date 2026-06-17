@@ -1,16 +1,11 @@
 import { useState, useEffect } from "react";
 import { Lock, AlertCircle } from "lucide-react";
-import { ADMIN_PIN } from "@contracts/constants";
+import { trpc } from "@/providers/trpc";
 
-const STORAGE_KEY = "admin_access_granted";
-
-function checkAccess(): boolean {
-  return localStorage.getItem(STORAGE_KEY) === "true";
-}
-
-function grantAccess() {
-  localStorage.setItem(STORAGE_KEY, "true");
-}
+// PIN ARTIK sunucuda doğrulanır (auth.checkAdmin). Başarılı PIN, token olarak
+// bu anahtarda saklanır; tRPC client onu `x-app-password` header'ıyla gönderir,
+// sunucu adminQuery'de doğrular. Eski "admin_access_granted=true" bayrağı bırakıldı.
+const STORAGE_KEY = "admin_auth_v1";
 
 export function clearAccess() {
   localStorage.removeItem(STORAGE_KEY);
@@ -20,20 +15,33 @@ export function PinGuard({ children }: { children: React.ReactNode }) {
   const [hasAccess, setHasAccess] = useState(false);
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
+  const checkMut = trpc.auth.checkAdmin.useMutation();
 
   useEffect(() => {
-    setHasAccess(checkAccess());
+    // Token zaten saklıysa erişim aç (sunucu yine de her çağrıda doğrular).
+    setHasAccess(!!localStorage.getItem(STORAGE_KEY));
   }, []);
 
   const handleVerify = () => {
-    if (pin === ADMIN_PIN) {
-      grantAccess();
-      setHasAccess(true);
-      setError(false);
-    } else {
-      setError(true);
-      setPin("");
-    }
+    checkMut.mutate(
+      { pin },
+      {
+        onSuccess: (res) => {
+          if (res.ok) {
+            localStorage.setItem(STORAGE_KEY, pin);
+            setHasAccess(true);
+            setError(false);
+          } else {
+            setError(true);
+            setPin("");
+          }
+        },
+        onError: () => {
+          setError(true);
+          setPin("");
+        },
+      },
+    );
   };
 
   if (hasAccess) {

@@ -45,3 +45,21 @@ const requireAuth = t.middleware(({ ctx, next }) => {
 });
 
 export const protectedQuery = t.procedure.use(requireAuth);
+
+/**
+ * Admin procedure — admin/buenas-dias gibi yönetim alanları için. `x-app-password`
+ * header'ı env.adminPin ile eşleşmeli. ÖNCE bu yoktu: admin PIN client sabitiydi
+ * (ADMIN_PIN="000000", bundle'da okunabilir) ve API'de hiç doğrulanmıyordu.
+ * adminPin her zaman bir değere sahip (varsayılan "000000") → açık-mod yok, hep zorunlu.
+ */
+const requireAdmin = t.middleware(({ ctx, next }) => {
+  if (ctx.password !== env.adminPin) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Geçersiz veya eksik admin PIN'i.",
+    });
+  }
+  return next();
+});
+
+export const adminQuery = t.procedure.use(requireAdmin);

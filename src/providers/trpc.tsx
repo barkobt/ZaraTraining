@@ -13,14 +13,19 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
-      // Korumalı procedure'lar için erişim anahtarı: localStorage'daki shift veya
-      // pusula şifresi `x-app-password` header'ı ile gider. Sunucu protectedQuery'de
-      // doğrular. Public procedure'lar (landing/analytics) header'ı yok sayar.
+      // Korumalı procedure'lar için erişim anahtarı `x-app-password` header'ı ile
+      // gider. Rota-duyarlı: admin/buenas-dias'ta admin PIN'i (adminQuery için),
+      // diğer yerlerde shift/pusula şifresi (protectedQuery için). Public
+      // procedure'lar (landing/analytics) header'ı yok sayar.
       headers() {
         try {
-          const token =
-            localStorage.getItem("shift_organizer_auth_v1") ||
-            localStorage.getItem("pusula_auth_v1");
+          const path = window.location.pathname;
+          const isAdminArea =
+            path.startsWith("/admin") || path.startsWith("/buenas-dias");
+          const token = isAdminArea
+            ? localStorage.getItem("admin_auth_v1")
+            : localStorage.getItem("shift_organizer_auth_v1") ||
+              localStorage.getItem("pusula_auth_v1");
           return token ? { "x-app-password": token } : {};
         } catch {
           return {};

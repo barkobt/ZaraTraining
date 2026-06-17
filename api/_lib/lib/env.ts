@@ -16,4 +16,8 @@ export const env = {
   // Pusula demo kapısı — ayrı şifre dağıtılabilsin diye bağımsız env;
   // boşsa Shift Organizer şifresi Pusula'da da geçerlidir.
   pusulaPassword: optional("PUSULA_PASSWORD"),
+  // Admin/Buenas-dias PIN'i — ARTIK sunucu tarafında doğrulanır (eskiden yalnız
+  // client sabiti ADMIN_PIN="000000" idi, bundle'da okunup bypass edilebiliyordu).
+  // Üretimde ADMIN_PIN env'i AYARLANMALI; ayarlanmazsa eski varsayılana düşer.
+  adminPin: optional("ADMIN_PIN") || "000000",
 };
