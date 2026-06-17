@@ -2002,16 +2002,19 @@
 /* ── Evre Planları — her evre için ayrı, hover ile açılan tablo ── */
 /* USTA YOLU — aktarım kartları + kurumsal hafıza bandı */
 .pusula-transfers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; }
-.pusula-transfer { border: 1px solid var(--zara-line); background: var(--zara-bg-white, #fff); padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 12px; transition: border-color 240ms; }
-.pusula-transfer.ok { border-left: 3px solid var(--zara-ink); }
+/* soy hattı (lineage rail): default soluk altın = "aktarım önerildi";
+   onaylanınca ink'e koyulaşır = "yöntem kuruma yazıldı" (iki agent convergent). */
+.pusula-transfer { border: 1px solid var(--zara-line); border-left: 2px solid var(--zara-gold-soft); background: var(--zara-bg-white, #fff); padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 12px; transition: border-color 300ms var(--ease-atelier); }
+.pusula-transfer.ok { border-left: 2px solid var(--zara-ink); }
 .pusula-transfer-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .pusula-transfer-pair { display: inline-flex; align-items: center; gap: 8px; color: var(--zara-ink-40); }
 .pusula-transfer-conf { display: inline-flex; align-items: center; gap: 8px; }
-.pusula-transfer-conf i { font-family: var(--ff-mono); font-style: normal; font-size: 7px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-transfer-conf i { font-family: var(--ff-mono); font-style: normal; font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-transfer-names { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .pusula-transfer-names em { font-family: var(--ff-display); font-style: italic; font-size: 21px; line-height: 1.1; color: var(--zara-ink); }
-.pusula-transfer-names span { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); }
-.pusula-transfer-focus { font-family: var(--ff-sans); font-size: 13px; line-height: 1.5; color: var(--zara-ink-2); }
+.pusula-transfer-names span { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); }
+/* fokus = aktarılan ŞEY → kartın kahramanı (design-council P1) */
+.pusula-transfer-focus { font-family: var(--ff-sans); font-size: 15px; line-height: 1.5; color: var(--zara-ink); }
 .pusula-transfer-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .pusula-transfer-meta .tag { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); border: 1px solid var(--zara-line-strong); padding: 4px 9px; }
 .pusula-transfer-meta .slot { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.06em; color: var(--zara-ink-50); }
@@ -2034,7 +2037,7 @@
 .pusula-usta-story span.last { color: var(--zara-ink); box-shadow: inset 0 -1px 0 var(--zara-ink); padding-bottom: 3px; }
 .pusula-usta-story i { font-style: normal; color: var(--zara-ink-30); }
 .pusula-teachpool { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-.pusula-teachpool-chip { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--zara-line-strong); padding: 5px 11px 5px 6px; font-family: var(--ff-sans); font-size: 11.5px; font-weight: 600; color: var(--zara-ink); }
+.pusula-teachpool-chip { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--zara-line-strong); padding: 5px 11px 5px 6px; font-family: var(--ff-sans); font-size: 11.5px; font-weight: 500; color: var(--zara-ink); }
 .pusula-teachpool-chip em { font-family: var(--ff-mono); font-style: normal; font-weight: 400; font-size: 7.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-match-method { display: block; margin-top: 5px; font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-50); }
 .pusula-match-method em { font-style: normal; color: var(--zara-ink); margin-left: 8px; }

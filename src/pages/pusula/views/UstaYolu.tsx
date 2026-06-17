@@ -89,17 +89,6 @@ export function UstaYolu() {
         </div>
       </div>
 
-      {/* bu ekranın hikâyesi: öğretebilir bayrağı → eşleşme → yöntem kurumda kalır */}
-      <div className="pusula-usta-story" aria-hidden>
-        <span>{pick({ tr: "Öğretebilir bayrağı", en: "Can-teach flag", es: "Insignia 'puede enseñar'" })}</span>
-        <i>→</i>
-        <span>{pick({ tr: "Müsait saatte eşleşme", en: "Match in a slack hour", es: "Emparejado en hora libre" })}</span>
-        <i>→</i>
-        <span>{pick({ tr: "Yöntem aktarılır", en: "Method is transferred", es: "El método se transfiere" })}</span>
-        <i>→</i>
-        <span className="last">{pick({ tr: "Usta ayrılsa da yöntem kurumda kalır", en: "Even if the master leaves, the method stays", es: "Aunque el maestro se vaya, el método queda" })}</span>
-      </div>
-
       {/* öğretebilir havuzu — bayrak nereden doğuyor */}
       <div className="pusula-teachpool">
         <span className="pusula-slack-eb">{pick({ tr: "Öğretebilir havuzu · mentor adayları", en: "Can-teach pool · mentor candidates", es: "Grupo 'puede enseñar' · candidatos a mentor" })}</span>
