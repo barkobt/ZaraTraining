@@ -15,13 +15,8 @@ import { PersonAvatar } from "./PersonAvatar";
 import { MasteryChip } from "./MasteryChip";
 import { ConfidenceDots } from "./ConfidenceDots";
 
-/** Yaşam evresi → soft gelişim dolgusu + ton (skor değil, gelişim hissi). */
-const ACCENT: Record<MasteryLevel, { w: string; c: string }> = {
-  [MasteryLevel.New]: { w: "34%", c: "var(--zara-sage)" },
-  [MasteryLevel.Competent]: { w: "60%", c: "var(--zara-gold-soft)" },
-  [MasteryLevel.Master]: { w: "86%", c: "var(--zara-gold)" },
-  [MasteryLevel.Coach]: { w: "96%", c: "var(--zara-ink)" },
-};
+/** Yaşam evresi SIRASI — accent "yardstick"i için: pozisyon, skor değil. */
+const STAGES: MasteryLevel[] = [MasteryLevel.New, MasteryLevel.Competent, MasteryLevel.Master, MasteryLevel.Coach];
 
 const PROVEN_IDX: Record<string, number> = { gelisiyor: 0, yapabiliyor: 1, guclu: 2, usta: 3 };
 
@@ -33,14 +28,14 @@ const PROVEN_IDX: Record<string, number> = { gelisiyor: 0, yapabiliyor: 1, guclu
 export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () => void }) {
   const t = useT();
   const dark = person.level === MasteryLevel.Coach;
-  const acc = ACCENT[person.level];
+  const stageIdx = STAGES.indexOf(person.level);
   const comps = personCompetencies(person.id);
   const persona = sellingPersona(person);
   const pendingApt = aptitudeSuggestions(person.id).length;
   const disc = discoveryFor(person.id);
   const teach = comps.filter((c) => c.state.kind === "proven" && c.state.teachable).length;
   return (
-    <button className="pusula-card" onClick={onOpen}>
+    <button className={`pusula-card${dark ? " pusula-card--coach" : ""}`} onClick={onOpen}>
       <div className="pusula-card-top">
         <PersonAvatar name={person.name} dark={dark} size={38} />
         <div className="pusula-card-id">
@@ -108,8 +103,12 @@ export function PersonCard({ person, onOpen }: { person: Employee; onOpen: () =>
         <span className="pusula-card-peek">{t("b.openProfile")}</span>
       </div>
 
-      <div className="pusula-card-accent">
-        <span style={{ width: acc.w, background: acc.c }} />
+      {/* yaşam-evresi YARDSTICK — KONUM, skor değil: geçmiş çentikler ink,
+          mevcut TEK altın, gelecek çizgi (creative-scout · "skor yok kanıt var"). */}
+      <div className="pusula-card-accent" aria-hidden>
+        {STAGES.map((s, i) => (
+          <span key={s} className={i === stageIdx ? "now" : i < stageIdx ? "past" : "future"} />
+        ))}
       </div>
     </button>
   );

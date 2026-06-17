@@ -1223,7 +1223,8 @@
 .pusula-card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .pusula-card-tags span { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 9px; border: 1px solid var(--zara-line-strong); color: var(--zara-ink-65); }
 .pusula-card-tags .t-disc { border-style: dashed; border-color: var(--zara-ink); color: var(--zara-ink); }
-.pusula-card-tags .t-teach { border-color: var(--zara-ink); color: var(--zara-ink); }
+/* öğretebilir = ustalık çıktısı → soy-hattı dili: TEK altın sol-kenar (design-council P2) */
+.pusula-card-tags .t-teach { border-color: var(--zara-line-strong); border-left: 2px solid var(--zara-gold); color: var(--zara-ink); }
 /* son koç notu */
 .pusula-card-note { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; line-height: 1.5; color: var(--zara-ink-50); }
 .pusula-card-note i { font-family: var(--ff-mono); font-style: normal; font-size: 8px; color: var(--zara-ink-40); }
@@ -2254,8 +2255,13 @@
 @media (max-width: 900px){ .pkroki-grid { grid-template-columns: 1fr; } .pkroki-panel { position: static; } }
 
 /* ── Ekip kartı accent (stitch cilası, fotoğraf yok) ───── */
-.pusula-card-accent { margin-top: 12px; height: 3px; background: var(--zara-bg-alt); border-radius: 0; overflow: hidden; }
-.pusula-card-accent span { display: block; height: 100%; border-radius: 0; transition: width 600ms var(--ease-atelier); }
+/* yaşam-evresi YARDSTICK — 4 çentik: geçmiş ink · mevcut TEK altın (uzun) ·
+   gelecek çizgi. "Dolu skor barı" değil KONUM (skor yok, kanıt var). */
+.pusula-card-accent { margin-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; align-items: end; }
+.pusula-card-accent span { display: block; height: 4px; background: var(--zara-line-strong); transition: height 400ms var(--ease-atelier), background 400ms; }
+.pusula-card-accent span.past { background: var(--zara-ink-40); }
+.pusula-card-accent span.now { height: 9px; background: var(--zara-gold); }
+.pusula-card-accent span.future { background: var(--zara-line); }
 /* profil ferahlık (stitch) */
 .pusula-profile-cols { gap: 36px 52px; }
 .pusula-profile-col { gap: 34px; }
@@ -2463,6 +2469,34 @@
 .pusula-card::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--zara-gold); transform: scaleX(0); transform-origin: left; transition: transform 460ms var(--ease-atelier); pointer-events: none; }
 .pusula-card:hover { border-color: var(--zara-ink); background: var(--zara-bg-white); transform: translateY(-5px); box-shadow: 0 14px 30px -20px rgba(0, 0, 0, 0.22); }
 .pusula-card:hover::after { transform: scaleX(1); }
+
+/* ── KOÇ KARTI = "USTALIK KOLTUĞU" ─────────────────────────────
+   Atölyenin koyu-bölüm idiom'u: mürekkep zemin + krem metin + TEK altın.
+   Nadir (yalnız koçlar) → ölçülü. Pusula flat: parlama yok. */
+.pusula-card--coach { background: var(--zara-ink); border-color: var(--zara-ink); }
+.pusula-card--coach .pusula-card-name,
+.pusula-card--coach .pusula-card-persona em { color: var(--zara-bg); }
+.pusula-card--coach .pusula-card-tenure,
+.pusula-card--coach .pusula-card-dna-head,
+.pusula-card--coach .pusula-card-dna-labels span,
+.pusula-card--coach .pusula-card-key.growing,
+.pusula-card--coach .pusula-card-peek,
+.pusula-card--coach .pusula-card-conf i { color: rgba(245, 241, 234, 0.45); }
+.pusula-card--coach .pusula-card-line { color: rgba(245, 241, 234, 0.78); }
+.pusula-card--coach .pusula-card-key.strong { color: var(--zara-gold); }
+.pusula-card--coach .pusula-card-dna i.em { background: rgba(245, 241, 234, 0.18); }
+.pusula-card--coach .pusula-card-dna i.p0 { background: rgba(245, 241, 234, 0.30); }
+.pusula-card--coach .pusula-card-dna i.p1 { background: rgba(245, 241, 234, 0.45); }
+.pusula-card--coach .pusula-card-dna i.p2 { background: rgba(245, 241, 234, 0.62); }
+.pusula-card--coach .pusula-card-dna i.p3 { box-shadow: none; }
+.pusula-card--coach .pusula-card-dna i.un { border-color: rgba(245, 241, 234, 0.25); }
+.pusula-card--coach .pusula-card-dna,
+.pusula-card--coach .pusula-card-foot { border-color: rgba(245, 241, 234, 0.14); }
+.pusula-card--coach .pusula-card-tags span { border-color: rgba(245, 241, 234, 0.3); color: rgba(245, 241, 234, 0.7); }
+.pusula-card--coach .pusula-card-tags .t-teach { border-left-color: var(--zara-gold); }
+.pusula-card--coach .pusula-card-accent span.past { background: rgba(245, 241, 234, 0.4); }
+.pusula-card--coach .pusula-card-accent span.future { background: rgba(245, 241, 234, 0.14); }
+.pusula-card--coach:hover { border-color: var(--zara-gold); background: var(--zara-ink); }
 .pcomp-card.usta { border: 1px solid var(--zara-line); border-left: 3px solid var(--zara-ink); background: var(--zara-bg-white); }
 .pfit-row.top { border: 1px solid var(--zara-line); border-left: 3px solid var(--zara-ink); background: var(--zara-bg-white); }
 .papt-row { border-left: 3px solid var(--zara-ink); }
