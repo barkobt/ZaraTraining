@@ -381,7 +381,7 @@ export default function Home() {
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           disablePictureInPicture
           className="hero-video absolute inset-0 w-full h-full object-cover pointer-events-none motion-reduce:hidden"
           style={{ filter: "grayscale(0.85) contrast(1.05) brightness(0.95)", zIndex: 0, opacity: 0, visibility: "hidden" }}
