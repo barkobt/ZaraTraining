@@ -193,7 +193,6 @@ export function ChartResult({
     return m;
   }, [shifts]);
 
-  const hasBreaks = breaksByHour.size > 0;
 
   /** Task kolonu: HR/TR/ISG gibi blocking task'lar. */
   const tasksByHour = useMemo(() => {
@@ -211,6 +210,57 @@ export function ChartResult({
   const hasTasks = tasksByHour.size > 0;
 
   /**
+   * BOŞTA (idle) kişiler — sahada olup HİÇBİR role atanmamış ve molada da olmayan.
+   * Bunlar eskiden chart'ta HİÇ görünmüyordu (KAYBOLUYORDU) → MOLA kolonunda
+   * "boşta" olarak gösterilir ki kimse eksik kalmasın. present = shift kapsamı
+   * (overlap) − TAM mola − task. (Backend boşta cezasıyla bunları azaltır; kalan
+   * = gerçekten yeri olmayan, örn. FR fazlası kabin doluyken.)
+   */
+  const idleByHour = useMemo(() => {
+    const m = new Map<number, string[]>();
+    if (!shifts) return m;
+    const assigned = new Map<number, Set<string>>();
+    for (const c of result.chart) {
+      const set = assigned.get(c.hour) ?? new Set<string>();
+      for (const p of c.persons) set.add(p.endsWith(" 1/2") ? p.slice(0, -4) : p);
+      assigned.set(c.hour, set);
+    }
+    for (const h of hours) {
+      const onBreak = new Set(
+        (breaksByHour.get(h) ?? []).map((x) => (x.endsWith(" 1/2") ? x.slice(0, -4) : x)),
+      );
+      const asg = assigned.get(h) ?? new Set<string>();
+      const idle: string[] = [];
+      for (const s of shifts) {
+        const covers = s.start_hour < h + 1 && s.end_hour > h;
+        if (!covers) continue;
+        const fullBreak = (s.breaks ?? []).some(([a, b]) => a <= h && b >= h + 1);
+        const onTask = (s.tasks ?? []).some(([t]) => t === h);
+        if (fullBreak || onTask) continue; // sahada değil
+        if (asg.has(s.short_name) || onBreak.has(s.short_name)) continue; // zaten görünüyor
+        idle.push(s.short_name);
+      }
+      if (idle.length) m.set(h, idle);
+    }
+    return m;
+  }, [shifts, result.chart, breaksByHour, hours]);
+
+  /** MOLA kolonu = moladakiler + boştalar (boşta "(boşta)" etiketiyle). */
+  const molaByHour = useMemo(() => {
+    const m = new Map<number, string[]>();
+    const allHours = new Set<number>([...breaksByHour.keys(), ...idleByHour.keys()]);
+    for (const h of allHours) {
+      const parts = [
+        ...(breaksByHour.get(h) ?? []),
+        ...(idleByHour.get(h) ?? []).map((n) => `${n} (boşta)`),
+      ];
+      if (parts.length) m.set(h, parts);
+    }
+    return m;
+  }, [breaksByHour, idleByHour]);
+  const hasMola = molaByHour.size > 0;
+
+  /**
    * Aktif İş Gücü = o saatte BİR ROLE ATANMIŞ kişi sayısı (chart'ta görünen).
    * Önceden "sahada bulunan" sayılıyordu; kapasite < kişi sayısı olduğunda
    * (ör. 36 kişi ama saatlik kapasite ~31) atanmayan kişiler de sayıldığı için
@@ -219,14 +269,27 @@ export function ChartResult({
    * birebir tutar.
    */
   const activeWorkforceByHour = useMemo(() => {
-    const byHour = new Map<number, Set<string>>();
+    // Kişiyi roller arası TEKİLLE (dual = 1 kişi) ve YARIM (1/2) kişiyi 0.5 say.
+    // Backend "İsim 1/2" suffix'i gönderir (yarım giriş/çıkış/mola); aynı kişi
+    // o saat tüm hücrelerinde aynı işaretle gelir. Önceden set.size her ismi 1
+    // sayıyordu → 1/2'liler şişiriyordu (örn. 21:00 10.5 yerine 11).
+    const byHour = new Map<number, Map<string, boolean>>(); // hour → (base → isHalf)
     for (const cell of result.chart) {
-      const set = byHour.get(cell.hour) ?? new Set<string>();
-      for (const p of cell.persons) set.add(p);
-      byHour.set(cell.hour, set);
+      const m = byHour.get(cell.hour) ?? new Map<string, boolean>();
+      for (const p of cell.persons) {
+        const isHalf = p.endsWith(" 1/2");
+        const base = isHalf ? p.slice(0, -4) : p;
+        // Herhangi bir hücrede TAM görünürse tam say (AND ile yarım kalır).
+        m.set(base, (m.get(base) ?? true) && isHalf);
+      }
+      byHour.set(cell.hour, m);
     }
     const counts = new Map<number, number>();
-    for (const [h, set] of byHour) counts.set(h, set.size);
+    for (const [h, m] of byHour) {
+      let total = 0;
+      for (const isHalf of m.values()) total += isHalf ? 0.5 : 1;
+      counts.set(h, total);
+    }
     return counts;
   }, [result.chart]);
   const showActiveRow = activeWorkforceByHour.size > 0;
@@ -341,7 +404,7 @@ export function ChartResult({
                     {roleLabel(r)}
                   </th>
                 ))}
-                {hasBreaks && (
+                {hasMola && (
                   <th className="sticky top-0 bg-white text-center p-2 text-[9px] tracking-[0.25em] uppercase text-amber-700 font-normal">
                     Mola
                   </th>
@@ -379,13 +442,13 @@ export function ChartResult({
                       </td>
                     );
                   })}
-                  {hasBreaks && (
+                  {hasMola && (
                     <td className="p-2 text-center bg-amber-50/50">
-                      {(breaksByHour.get(h) ?? []).length === 0 ? (
+                      {(molaByHour.get(h) ?? []).length === 0 ? (
                         <span className="text-stone-300">—</span>
                       ) : (
                         <span className="leading-tight text-amber-800">
-                          {(breaksByHour.get(h) ?? []).join(" · ")}
+                          {(molaByHour.get(h) ?? []).join(" · ")}
                         </span>
                       )}
                     </td>
