@@ -378,7 +378,17 @@ export default function Home() {
             ZT monogram film noktası üstünde "altın yaprak" gibi durur.
             poster YOK: yüklenene dek krem zemin kalır, flicker olmaz. */}
         <video
-          ref={videoRef}
+          // Callback ref: muted'ı COMMIT sırasında (paint'ten önce) senkron yaz.
+          // React `muted` prop'unu attribute'a güvenilir yansıtmaz; tarayıcı
+          // autoplay kararını verirken video "sesli" sanılıp engellenir + Safari
+          // başlat-oynat düğmesini bindirir. Ref callback en erken güvenli an.
+          ref={(el) => {
+            videoRef.current = el;
+            if (el) {
+              el.muted = true;
+              el.defaultMuted = true;
+            }
+          }}
           aria-hidden
           autoPlay
           muted
