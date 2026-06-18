@@ -9,6 +9,7 @@ export { Eyebrow } from "./Eyebrow";
 export { SectionMarker } from "./SectionMarker";
 export { LiveDot } from "./LiveDot";
 export { Marquee } from "./Marquee";
+export { AtelyeBar } from "./AtelyeBar";
 
 // editorial -3 primitive'leri (editorial.css ile eşleşir)
 export { Panel } from "./Panel";

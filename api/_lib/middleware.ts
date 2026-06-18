@@ -1,7 +1,8 @@
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import type { TrpcContext } from "./context.js";
+import { env } from "./lib/env.js";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -16,4 +17,49 @@ const t = initTRPC.context<TrpcContext>().create({
 });
 
 export const createRouter = t.router;
+/** Herkese açık procedure — landing/analytics/auth gibi kimlik gerektirmeyenler. */
 export const publicQuery = t.procedure;
+
+/**
+ * Korumalı procedure — sunucu tarafı erişim kontrolü. `x-app-password` header'ı
+ * (ctx.password) env şifrelerinden biriyle eşleşmeli. ÖNCE bu yoktu: şifre yalnız
+ * frontend'i koruyordu, API'yi doğrudan çağıran herkes veriyi okuyup yazabiliyordu.
+ *
+ * Hiç şifre TANIMLI DEĞİLSE (yerel/açık mod) geçişe izin verir — `auth.check`'in
+ * "şifre yoksa ok:true" davranışıyla aynı; böylece yerel geliştirme bozulmaz.
+ */
+const requireAuth = t.middleware(({ ctx, next }) => {
+  const configured = env.shiftOrganizerPassword || env.pusulaPassword;
+  if (!configured) return next(); // açık mod
+  const token = ctx.password;
+  const ok =
+    (!!env.shiftOrganizerPassword && token === env.shiftOrganizerPassword) ||
+    (!!env.pusulaPassword && token === env.pusulaPassword);
+  if (!ok) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Geçersiz veya eksik erişim anahtarı.",
+    });
+  }
+  return next();
+});
+
+export const protectedQuery = t.procedure.use(requireAuth);
+
+/**
+ * Admin procedure — admin/buenas-dias gibi yönetim alanları için. `x-app-password`
+ * header'ı env.adminPin ile eşleşmeli. ÖNCE bu yoktu: admin PIN client sabitiydi
+ * (ADMIN_PIN="000000", bundle'da okunabilir) ve API'de hiç doğrulanmıyordu.
+ * adminPin her zaman bir değere sahip (varsayılan "000000") → açık-mod yok, hep zorunlu.
+ */
+const requireAdmin = t.middleware(({ ctx, next }) => {
+  if (ctx.password !== env.adminPin) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Geçersiz veya eksik admin PIN'i.",
+    });
+  }
+  return next();
+});
+
+export const adminQuery = t.procedure.use(requireAdmin);

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileText, Sparkles, Check, RotateCcw, BrainCircuit } from "lucide-react";
+import { FileText, Tag, Check, RotateCcw } from "lucide-react";
 import { Eyebrow, Headline } from "../primitives";
 import { pick, useT } from "../i18n";
 import { byId, employees } from "../data";
@@ -56,6 +56,10 @@ export function OgrenenHafiza() {
   const [addedNotes, setAddedNotes] = usePersistentState<Record<string, ArchiveNote[]>>("hafiza.added", {});
   const notes = [...(addedNotes[empId] ?? []), ...notesFor(empId)].sort((a, b) => b.date.localeCompare(a.date));
   const [selected, setSelected] = useState<ArchiveNote | null>(notes[0] ?? null);
+  // Tahsis numarası — gözlem kuruma kayıtlı TEKİL kimlik alır (müze/arşiv dili).
+  // "Bireysel gözlem → kurumsal hafıza" dönüşümünü tek jetonla somutlaştırır.
+  const accNo = (n: ArchiveNote) =>
+    `ZA · ${n.date.slice(0, 4)} · ${n.date.slice(5, 7)} · ${(([...n.id].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 997, 7)) % 900) + 100}`;
 
   // örüntüler — eklenen notlar kümelere CANLI düşer; öneri onayı kalıcı
   const patterns = notePatterns(Object.values(addedNotes).flat());
@@ -128,7 +132,7 @@ export function OgrenenHafiza() {
       {/* günün koçluk aksiyonları — kaynaklı takip defteri (saat·kişi·kaynak·durum) */}
       <div className="pusula-dayq">
         <div className="pusula-dayq-head">
-          <span>{pick({ tr: "Bugünün koçluk aksiyonları · takip defteri", en: "Today's coaching actions · tracking ledger", es: "Acciones de coaching de hoy · registro" })}</span>
+          <span><span className="pusula-mem-folio">I</span>{pick({ tr: "Bugünün koçluk aksiyonları · takip defteri", en: "Today's coaching actions · tracking ledger", es: "Acciones de coaching de hoy · registro" })}</span>
           <span className="pusula-dayq-prog">
             <u><b style={{ width: `${(doneCount / DAY_ACTIONS.length) * 100}%` }} /></u>
             {doneCount}/{DAY_ACTIONS.length} {pick({ tr: "tamam", en: "done", es: "hecho" })}
@@ -167,7 +171,7 @@ export function OgrenenHafiza() {
       <div className="pusula-patterns">
         <div className="pusula-patterns-head">
           <span className="pusula-patterns-eb">
-            <BrainCircuit size={13} strokeWidth={1.6} />
+            <span className="pusula-mem-folio">II</span>
             {pick({ tr: "Örüntüler · hafıza ne öğreniyor", en: "Patterns · what the memory is learning", es: "Patrones · qué aprende la memoria" })}
           </span>
           <span className="pusula-patterns-sub">
@@ -239,6 +243,14 @@ export function OgrenenHafiza() {
             ? pick({ tr: "− daralt", en: "− collapse", es: "− contraer" })
             : `+${employees.filter((e) => noteCountOf(e.id) === 0 && e.id !== empId).length} ${pick({ tr: "kişi", en: "people", es: "personas" })}`}
         </button>
+      </div>
+
+      {/* ARŞİV — bireysel gözlemler kurumsal kayda işlenir (folyo III) */}
+      <div className="pusula-patterns-head pusula-mem-archead">
+        <span className="pusula-patterns-eb">
+          <span className="pusula-mem-folio">III</span>
+          {pick({ tr: "Arşiv · gözlem kayıtları", en: "Archive · observation records", es: "Archivo · registros de observación" })}
+        </span>
       </div>
 
       <div className="pusula-mem-grid">
@@ -323,6 +335,7 @@ export function OgrenenHafiza() {
                 <div className="pusula-paper-head">
                   <div>
                     <div className="pusula-paper-eb">{pick({ tr: "Gözlem Formu", en: "Observation Form", es: "Formulario de Observación" })} · {kindLabel(selected.kind)}</div>
+                    <div className="pusula-paper-acc" title={pick({ tr: "Kurum arşiv kayıt no", en: "Institutional archive no.", es: "N.º de archivo institucional" })}>{accNo(selected)}</div>
                     <h3>{selected.topic}</h3>
                   </div>
                   <div className="pusula-paper-date">{selected.date.split("-").reverse().join(".")}</div>
@@ -371,7 +384,7 @@ export function OgrenenHafiza() {
             rows={2}
           />
           <button className="pusula-coach-btn" onClick={extract} disabled={!draft.trim()}>
-            <Sparkles size={14} /> {pick({ tr: "Etiketle", en: "Tag it", es: "Etiquetar" })}
+            <Tag size={14} strokeWidth={1.7} /> {pick({ tr: "Etiketle", en: "Tag it", es: "Etiquetar" })}
           </button>
         </div>
 

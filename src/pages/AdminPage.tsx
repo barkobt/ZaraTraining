@@ -268,24 +268,27 @@ function AdminContent() {
             {/* Özet kartlar */}
             <div className="grid grid-cols-3 gap-px bg-zara border border-zara mb-px">
               {[
-                { label: "Toplam", value: analytics?.total ?? 0 },
-                { label: "Son 7 gün", value: analytics?.last7 ?? 0 },
-                { label: "Son 30 gün", value: analytics?.last30 ?? 0 },
+                { label: "Tekil ziyaretçi", value: analytics?.uniqueTotal ?? 0, hint: "kaç kişi" },
+                { label: "Görüntüleme", value: analytics?.total ?? 0, hint: "ham" },
+                { label: "Son 7g tekil", value: analytics?.unique7 ?? 0, hint: "kişi" },
               ].map((s) => (
                 <div key={s.label} className="bg-white p-5">
                   <div className="text-[9px] font-mono tracking-[0.3em] uppercase text-ink/40 mb-2">
                     {s.label}
                   </div>
                   <div className="font-serif text-3xl tabular-nums text-ink">{s.value}</div>
+                  <div className="text-[8px] font-mono tracking-[0.2em] uppercase text-ink/25 mt-1">
+                    {s.hint}
+                  </div>
                 </div>
               ))}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-px bg-zara border border-x-zara border-b-zara">
-              {/* Günlük bar grafik (son 14 gün) */}
+              {/* Günlük bar grafik (son 14 gün) — tekil ziyaretçi/gün */}
               <div className="bg-white p-5">
                 <div className="text-[9px] font-mono tracking-[0.3em] uppercase text-ink/40 mb-4">
-                  Son 14 gün
+                  Son 14 gün · tekil/gün
                 </div>
                 {analytics && analytics.daily.length > 0 ? (
                   <div className="flex items-end gap-1 h-32">
@@ -335,6 +338,29 @@ function AdminContent() {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* En çok tıklanan öğeler (30 gün) — tıklama ısı özeti */}
+            <div className="bg-white p-5 border border-x-zara border-b-zara -mt-px">
+              <div className="text-[9px] font-mono tracking-[0.3em] uppercase text-ink/40 mb-4">
+                En çok tıklanan öğeler (30 gün)
+              </div>
+              {analytics && analytics.topElements && analytics.topElements.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                  {analytics.topElements.map((el) => (
+                    <div key={el.element} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="font-mono text-xs text-ink/70 truncate">{el.element}</span>
+                      <span className="font-mono text-xs tabular-nums text-[var(--zara-gold)] shrink-0">
+                        {el.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="h-16 flex items-center justify-center text-[10px] font-mono tracking-[0.3em] uppercase text-ink/25">
+                  · Henüz tıklama verisi yok ·
+                </div>
+              )}
             </div>
           </section>
         </div>

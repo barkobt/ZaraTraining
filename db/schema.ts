@@ -138,6 +138,37 @@ export const auditLog = pgTable("audit_log", {
 });
 
 // ════════════════════════════════════════════════════════════════════════════
+//  ANALYTICS EVENTS — ürün analitiği (tekil ziyaretçi + tıklama/etkileşim)
+//  audit_log "kim neyi DEĞİŞTİRDİ" (denetim) içindir; bu tablo "ziyaretçi neyi
+//  GÖRDÜ/TIKLADI" (ürün analitiği) içindir — iki ayrı kaygı, ayrı tablo.
+//  Tekil ziyaretçi: anonim `session_id` (tarayıcıda localStorage uuid) →
+//  count(distinct session_id) ile "kaç kişi" (ham görüntülemeden ayrı).
+//  Kişisel veri TUTULMAZ; session_id rastgele anonim kimliktir.
+// ════════════════════════════════════════════════════════════════════════════
+export const analyticsEvents = pgTable(
+  "analytics_events",
+  {
+    id: serial("id").primaryKey(),
+    // Anonim ziyaretçi kimliği (localStorage uuid). Tekil sayım buradan.
+    sessionId: varchar("session_id", { length: 40 }).notNull(),
+    // 'page_view' | 'click' | 'dwell' | … (genişletilebilir, enum'a kilitlenmedi).
+    eventType: varchar("event_type", { length: 30 }).notNull(),
+    path: varchar("path", { length: 200 }).notNull(), // rota/sayfa
+    // click için tıklanan öğe etiketi/selektörü (örn "btn:generate", "nav:pusula").
+    element: varchar("element", { length: 120 }),
+    // serbest bağlam: {x, y, vw, dwellMs, …} — heatmap/koordinat için yer açar.
+    meta: jsonb("meta"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    sessionIdx: index("idx_analytics_events_session").on(t.sessionId),
+    typeCreatedIdx: index("idx_analytics_events_type_created").on(t.eventType, t.createdAt),
+    pathIdx: index("idx_analytics_events_path").on(t.path),
+  }),
+);
+
+// ════════════════════════════════════════════════════════════════════════════
 //  BUENAS DIAS — sabah toplantı otomasyonu (modül)
 //  Spec: ~/Desktop/buenas-dias-generator/buenas_dias_spec.md
 //  "buenas_" öneki, mevcut `stores`/`staff` tablolarıyla isim çakışmasını engeller.
@@ -332,3 +363,260 @@ export const buenasUsers = pgTable(
     storeRoleIdx: index("idx_buenas_users_store_role").on(t.storeId, t.role),
   }),
 );
+
+// ════════════════════════════════════════════════════════════════════════════
+//  PUSULA — insan-gelişim motoru (Tanı → Geliştir → Yerleştir)
+//  Kaynak modeli: src/pages/pusula/ (DEMO.md + data-*.ts). Bugün ekran TAMAMEN
+//  local mock; bu tablolar onu GERÇEK staff tablosuna bağlar. Hepsi `pusula_`
+//  önekli (mevcut `buenas_` deseni gibi) ve gerçek `staff.id`'ye FK'lar.
+//
+//  TASARIM KARARLARI (neden böyle):
+//  • Pusula'nın string roster'ı ("Ada", "Baran") bilinçli TERK edildi — tek
+//    doğruluk kaynağı `staff` tablosu olsun, iki roster senkron sorunu olmasın.
+//  • Sert skor saklanmaz ama UI'ın türettiği NİTEL durumlar (unexplored/emerging/
+//    proven + level) ve kanıt HACMİ (n) saklanır — "kanıt öneride durur" kuralı.
+//  • Katalog tabloları (yetkinlik tanımı, kitapçık konuları, sözlük) referans
+//    veridir, kişiye bağlı değildir; içerikleri seed ile ayrı doldurulur.
+//  Bu faz: ŞEMA (başlıklar). İçerik (kişi-bazlı satırlar) sonraki fazda.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── KATALOG: 6 operasyonel yetkinlik tanımı (data-competency.ts COMP_KEYS) ──
+// karsilama · kabin · dolum · sellthrough · urun · kayip. Çok dilli etiketler
+// kodda zaten var; tabloda tutmak ileride yönetici düzenlemesine kapı açar.
+export const pusulaCompetencies = pgTable("pusula_competencies", {
+  key: varchar("key", { length: 30 }).primaryKey(), // 'karsilama' | 'kabin' | …
+  labelTr: varchar("label_tr", { length: 120 }).notNull(),
+  labelEn: varchar("label_en", { length: 120 }).notNull(),
+  labelEs: varchar("label_es", { length: 120 }).notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+// ── Kişi × yetkinlik durumu (PersonCompetency) ──────────────────────────────
+// state: unexplored (hiç denenmedi) | emerging (sinyal birikiyor) | proven.
+// provenLevel sadece proven'da dolu: gelisiyor|yapabiliyor|guclu|usta.
+// evidenceN = kanıt HACMİ (vardiya/olay sayısı), kişi skoru DEĞİL.
+export const pusulaPersonCompetency = pgTable(
+  "pusula_person_competency",
+  {
+    staffId: integer("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    comp: varchar("comp", { length: 30 }).notNull(),
+    state: varchar("state", { length: 20 }).notNull().default("unexplored"),
+    provenLevel: varchar("proven_level", { length: 20 }), // null = proven değil
+    teachable: boolean("teachable").notNull().default(false),
+    evidenceN: integer("evidence_n").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.staffId, t.comp] }),
+  }),
+);
+
+// ── Kanıt kayıtları (Evidence) — yetkinliği besleyen ham sinyaller ──────────
+// channel: counter|attribution|booklet|eas|coach. Her kayıt bir kanıt olayı;
+// person_competency.evidence_n bunların türevidir (cache).
+export const pusulaEvidence = pgTable(
+  "pusula_evidence",
+  {
+    id: serial("id").primaryKey(),
+    staffId: integer("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    comp: varchar("comp", { length: 30 }).notNull(),
+    channel: varchar("channel", { length: 20 }).notNull(),
+    n: integer("n").notNull().default(1), // bu kayıttaki vardiya/olay hacmi
+    line: text("line"), // serbest açıklama (UI'daki kanıt satırı)
+    observedAt: date("observed_at"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    staffCompIdx: index("idx_pusula_evidence_staff_comp").on(t.staffId, t.comp),
+  }),
+);
+
+// ── Aptitude döngüsü: kanıt → öneri → koç onayı (AptitudeSuggestion) ─────────
+// Orquest aptitude'unu bugün yönetici kanaatle girer; Pusula kanıt birikince
+// güncelleme ÖNERİR, koç onaylar. status: pending → approved.
+export const pusulaAptitudeSuggestions = pgTable(
+  "pusula_aptitude_suggestions",
+  {
+    id: serial("id").primaryKey(),
+    staffId: integer("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    comp: varchar("comp", { length: 30 }).notNull(),
+    fromLevel: varchar("from_level", { length: 20 }).notNull(),
+    toLevel: varchar("to_level", { length: 20 }).notNull(),
+    evidenceChannel: varchar("evidence_channel", { length: 20 }),
+    evidenceN: integer("evidence_n"),
+    status: varchar("status", { length: 20 }).notNull().default("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    approvedBy: text("approved_by"),
+  },
+  (t) => ({
+    staffStatusIdx: index("idx_pusula_aptitude_staff_status").on(t.staffId, t.status),
+  }),
+);
+
+// ── KATALOG: Gelişim Defteri konuları (GuidebookTopic) ──────────────────────
+// Gerçek kitapçık topic'leri. role × level × category. Kişiye bağlı DEĞİL.
+export const pusulaGuidebookTopics = pgTable(
+  "pusula_guidebook_topics",
+  {
+    id: serial("id").primaryKey(),
+    role: varchar("role", { length: 30 }).notNull(), // Satış Danışmanı | Kasa | Operasyon
+    level: varchar("level", { length: 20 }).notNull(), // Başlangıç | Orta | İleri
+    category: varchar("category", { length: 30 }).notNull(),
+    no: integer("no").notNull(),
+    title: text("title").notNull(),
+  },
+  (t) => ({
+    roleLevelIdx: index("idx_pusula_guidebook_topics_role_level").on(t.role, t.level),
+  }),
+);
+
+// ── Kişi × konu ilerlemesi (GuidebookTopic.status) ──────────────────────────
+// status: Boş | Teorik | Yapabiliyor | Geliştirilmeli | Öğretebilir.
+export const pusulaGuidebookProgress = pgTable(
+  "pusula_guidebook_progress",
+  {
+    staffId: integer("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    topicId: integer("topic_id")
+      .notNull()
+      .references(() => pusulaGuidebookTopics.id, { onDelete: "cascade" }),
+    status: varchar("status", { length: 20 }).notNull().default("Boş"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.staffId, t.topicId] }),
+  }),
+);
+
+// ── Davranışsal yetkinlik değerlendirmesi (CompetencyRow) ───────────────────
+// 5 davranışsal yetkinlik × 4 dönem (Hafta 2/4/6/8). score 0–5 (ekranda etiket).
+// priority = "Eğitim Önceliği" işareti.
+export const pusulaCompetencyEvals = pgTable(
+  "pusula_competency_evals",
+  {
+    id: serial("id").primaryKey(),
+    staffId: integer("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    competency: varchar("competency", { length: 80 }).notNull(),
+    week: varchar("week", { length: 12 }).notNull(), // 'Hafta 2' | 'Hafta 4' | …
+    score: integer("score").notNull().default(0), // 0–5
+    priority: boolean("priority").notNull().default(false),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    staffCompWeekUnique: uniqueIndex("pusula_comp_eval_staff_comp_week_unique").on(
+      t.staffId,
+      t.competency,
+      t.week,
+    ),
+  }),
+);
+
+// ── Dönem aksiyon planı (PeriodAction) ──────────────────────────────────────
+// Hafta 2/4/6/8 öncelik → hedef → aksiyon + provenance (kanıt zinciri jsonb).
+export const pusulaPeriodActions = pgTable(
+  "pusula_period_actions",
+  {
+    id: serial("id").primaryKey(),
+    staffId: integer("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    week: varchar("week", { length: 12 }).notNull(),
+    priorities: jsonb("priorities"), // string[]
+    goal: text("goal"),
+    action: text("action"),
+    provenance: jsonb("provenance"), // ActionProvenance (signal/channel/inference/…)
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    staffWeekIdx: index("idx_pusula_period_actions_staff_week").on(t.staffId, t.week),
+  }),
+);
+
+// ── Öğrenen Hafıza: koçluk gözlem arşivi (ArchiveNote) ──────────────────────
+// kind: Gözlem | Koçluk | Değerlendirme. tone: developing|steady|strong (SOFT).
+// signed = koç imzaladı mı (çıkar-sonra-onayla akışı).
+export const pusulaArchiveNotes = pgTable(
+  "pusula_archive_notes",
+  {
+    id: serial("id").primaryKey(),
+    staffId: integer("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    date: date("date").notNull(),
+    kind: varchar("kind", { length: 20 }).notNull(),
+    topic: varchar("topic", { length: 120 }),
+    note: text("note").notNull(),
+    author: varchar("author", { length: 100 }),
+    signed: boolean("signed").notNull().default(false),
+    tone: varchar("tone", { length: 20 }), // developing | steady | strong
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    staffDateIdx: index("idx_pusula_archive_notes_staff_date").on(t.staffId, t.date),
+  }),
+);
+
+// ── Usta Yolu: mentor eşleşmesi (MentorMatch) ───────────────────────────────
+// mentor & mentee ikisi de staff. Koç da mentee olabilir (eğitimcinin eğitimi).
+// confidence SOFT (emerging|medium|high), match-score yüzdesi YOK.
+export const pusulaMentorMatches = pgTable(
+  "pusula_mentor_matches",
+  {
+    id: serial("id").primaryKey(),
+    mentorId: integer("mentor_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    menteeId: integer("mentee_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    focus: text("focus"),
+    reason: text("reason"),
+    shift: varchar("shift", { length: 60 }),
+    slot: varchar("slot", { length: 60 }), // müsait (slack) saat
+    confidence: varchar("confidence", { length: 20 }),
+    aiSuggested: boolean("ai_suggested").notNull().default(true),
+    status: varchar("status", { length: 20 }).notNull().default("suggested"), // suggested|approved|edited
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    mentorIdx: index("idx_pusula_mentor_matches_mentor").on(t.mentorId),
+    menteeIdx: index("idx_pusula_mentor_matches_mentee").on(t.menteeId),
+  }),
+);
+
+// ── Dönem / final raporu (FinalReport) ──────────────────────────────────────
+export const pusulaReports = pgTable(
+  "pusula_reports",
+  {
+    id: serial("id").primaryKey(),
+    staffId: integer("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    period: varchar("period", { length: 30 }).notNull(), // 'Hafta 8' | '2026-Q2' …
+    strengths: jsonb("strengths"), // string[]
+    growth: jsonb("growth"), // string[]
+    result: text("result"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    staffPeriodIdx: index("idx_pusula_reports_staff_period").on(t.staffId, t.period),
+  }),
+);
+
+// ── KATALOG: Sözlük (GlossaryTerm) ──────────────────────────────────────────
+export const pusulaGlossary = pgTable("pusula_glossary", {
+  id: serial("id").primaryKey(),
+  term: varchar("term", { length: 120 }).notNull(),
+  type: varchar("type", { length: 40 }),
+  definition: text("definition").notNull(),
+});

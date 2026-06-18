@@ -39,7 +39,6 @@ export function Etki() {
   const HH = 150;
   const hx = (i: number) => 34 + (i * (HW - 60)) / (HIT_RATE.length - 1);
   const hy = (v: number) => 18 + (1 - (v - 50) / 45) * (HH - 52);
-  const hitPath = HIT_RATE.map((v, i) => `${i === 0 ? "M" : "L"}${hx(i)},${hy(v)}`).join(" ");
 
   // eğri geometrisi
   const W = 640;
@@ -82,7 +81,7 @@ export function Etki() {
         </div>
         {/* canlı: bu oturumda kapanan döngüler */}
         <div className="petki-live">
-          <em>{closed}</em>
+          <em className={closed === 0 ? "zero" : ""}>{closed === 0 ? "—" : closed}</em>
           <span>{pick({ tr: "kapanan döngü · bu oturum", en: "closed loops · this session", es: "ciclos cerrados · esta sesión" })}</span>
           <small>{pick({ tr: "onay + plan + işlenen örüntü — gerçek tıklamalardan", en: "approvals + plans + patterns — from real clicks", es: "vistos + planes + patrones — de clics reales" })}</small>
         </div>
@@ -104,16 +103,31 @@ export function Etki() {
             {[60, 70, 80, 90].map((v) => (
               <line key={v} x1={34} x2={HW - 26} y1={hy(v)} y2={hy(v)} stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
             ))}
-            <motion.path d={hitPath} fill="none" stroke="#0a0a0a" strokeWidth={2}
-              strokeLinecap="round" strokeLinejoin="round"
-              initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.9, ease: EASE }} />
-            {HIT_RATE.map((v, i) => (
-              <g key={i}>
-                <circle cx={hx(i)} cy={hy(v)} r={i === HIT_RATE.length - 1 ? 3.6 : 2.6} fill="#0a0a0a" />
-                <text x={hx(i)} y={hy(v) - 9} textAnchor="middle" className="petki-val">%{v}</text>
-                <text x={hx(i)} y={HH - 10} textAnchor="middle" className="petki-stage">D{i + 1}</text>
-              </g>
-            ))}
+            {/* soğuk→keskin: segmentler ilerledikçe KALINLAŞIR + KOYULAŞIR —
+                sistem bulanık başlar, her döngüde keskinleşir (data-as-texture). */}
+            {HIT_RATE.slice(0, -1).map((v, i) => {
+              const tt = i / (HIT_RATE.length - 2);
+              return (
+                <line key={`seg${i}`} x1={hx(i)} y1={hy(v)} x2={hx(i + 1)} y2={hy(HIT_RATE[i + 1])}
+                  stroke="#0a0a0a" strokeOpacity={0.4 + tt * 0.6} strokeWidth={1.1 + tt * 2.3} strokeLinecap="round" />
+              );
+            })}
+            {HIT_RATE.map((v, i) => {
+              const first = i === 0;
+              const last = i === HIT_RATE.length - 1;
+              const tt = i / (HIT_RATE.length - 1);
+              return (
+                <g key={i}>
+                  {/* D1 = soğuk: içi boş outline · D-son = keskin: dolu + altın halka (ustalık) */}
+                  {last && <circle cx={hx(i)} cy={hy(v)} r={7} fill="none" stroke="var(--zara-gold)" strokeWidth={1.3} />}
+                  <circle cx={hx(i)} cy={hy(v)} r={first ? 2.6 : last ? 4 : 3}
+                    fill={first ? "#fff" : "#0a0a0a"} fillOpacity={first ? 1 : 0.4 + tt * 0.6}
+                    stroke="#0a0a0a" strokeWidth={first ? 1.3 : 0} strokeOpacity={0.7} />
+                  <text x={hx(i)} y={hy(v) - 9} textAnchor="middle" className="petki-val">%{v}</text>
+                  <text x={hx(i)} y={HH - 10} textAnchor="middle" className="petki-stage">D{i + 1}</text>
+                </g>
+              );
+            })}
           </svg>
           <p className="petki-hit-p">
             {pick({

@@ -61,7 +61,14 @@ export async function createStaff(data: {
   shortName: string;
   tenureLevel: string;
   isManager?: boolean;
+  isBlacklisted?: boolean;
   note?: string | null;
+  // Alan-bazlı v2 alanları create yolunda da kabul edilir (eskiden yalnız
+  // update'te vardı → yeni kişi NULL doğup ikinci bir yazma gerektiriyordu).
+  // Verilmezse Drizzle undefined alanları insert'ten dışlar; DB default'ları korunur.
+  homeArea?: string | null;
+  duty?: string | null;
+  employment?: string | null;
 }) {
   const db = getDb();
   const [row] = await db.insert(staff).values(data).returning();

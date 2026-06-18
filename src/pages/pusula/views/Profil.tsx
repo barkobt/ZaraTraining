@@ -135,6 +135,11 @@ export function Profil({
           <GrowthTrajectory traj={traj} />
         </section>
 
+        {/* dikiş ayracı — buradan ötesi kanıt değil, tahmin (eşik) */}
+        <div className="pusula-seam" aria-hidden>
+          <span>{pick({ tr: "buradan ötesi tahmin · kanıt değil", en: "beyond here: prediction · not evidence", es: "más allá: predicción · no evidencia" })}</span>
+        </div>
+
             {/* ── AI'IN KATKILARI · tahmin + güven + kanıt + onay hakkı ──
                  Her satır 4 parçalı sunulur (mimari rapor): TAHMİN, GÜVEN(SOFT),
                  KANIT KANALI, ONAY KOÇTA. Keşfedilmemiş ≠ zayıf. */}

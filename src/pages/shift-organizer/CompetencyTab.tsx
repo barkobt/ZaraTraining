@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Crown, Plus, Search, Loader2, ArrowUpDown, Filter, Pencil, X as XIcon,
+  Crown, Plus, Search, Loader2, ArrowUpDown, Filter, Pencil, X as XIcon, Compass,
 } from "lucide-react";
 import {
   AREAS, AREA_BY_ID, DUTIES, ROLES, STAR_LEVELS, TENURE_LEVELS,
@@ -322,6 +322,11 @@ export function CompetencyTab(props: {
                             <span className="pn">{person.fullName}</span>
                             <span className="ps">{person.shortName}</span>
                           </div>
+                          {/* Pusula bağı — SEMBOLİK: kişinin Pusula profilini
+                              çağrıştırır ama tıklanamaz (Pusula verisi temsilî). */}
+                          <span className="pr-pusula" aria-hidden title="Pusula profili · yakında">
+                            <Compass size={13} strokeWidth={1.6} />
+                          </span>
                         </div>
                       </td>
                       <td>

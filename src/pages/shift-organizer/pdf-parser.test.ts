@@ -104,4 +104,15 @@ describe("Orquest PDF (yeni çok-section format)", () => {
     const shifts = parseShiftsFromText("BASIC\nSelman Deneme 10:00-19:00 13:00-14:00\nSemanur Test 09:00-17:00 12:00-13:00");
     expect(shifts.map((s) => s.name)).toEqual(["Selman Deneme", "Semanur Test"]);
   });
+
+  it("B/MOLA keyword shift'in ARDINDAN gelince tüm vardiyayı mola yapmaz", async () => {
+    // Regresyon: "10:00-19:00 B 13:00" satırında B, shift aralığının hemen
+    // ardından → Parser 2 shift'i (10-19) mola sanıp tüm vardiyayı yutuyordu.
+    const { parseShiftsFromText } = await import("./pdf-parser");
+    const breaksOf = (t: string) => parseShiftsFromText("BASIC\n" + t)[0]?.breaks;
+    expect(breaksOf("Ada Ozasci 10:00-19:00 B 13:00")).toEqual([[13, 14]]);
+    expect(breaksOf("Ada Ozasci 10:00-19:00 MOLA 13:00")).toEqual([[13, 14]]);
+    expect(breaksOf("Ada Ozasci 10:00-19:00 13:00 B")).toEqual([[13, 14]]);
+    expect(breaksOf("Ada Ozasci 10:00-19:00")).toEqual([]);
+  });
 });

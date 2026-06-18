@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, FileDown, LayoutGrid } from "lucide-react";
+import { Download, FileDown, LayoutGrid, Sparkles } from "lucide-react";
 import { ResponsibilitiesPanel, type Responsibilities } from "./ResponsibilitiesPanel";
 import type { StaffRow } from "./constants";
 
@@ -282,6 +282,40 @@ export function ChartResult({
           </div>
         )}
       </div>
+
+      {/* Pusula önerisi · AI bandı — SEMBOLİK/DEVRE DIŞI. Pusula verisi
+          temsilî olduğundan öneri motoru bağlanmadı; tasarım bütünlüğü
+          için görünür, buton disabled. Gerçek profillere bağlanınca aktif. */}
+      {result.chart.length > 0 && (
+        <div
+          style={{
+            display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+            padding: "10px 16px", borderBottom: "1px solid var(--zara-line-strong)",
+            background: "var(--zara-gold-tint)",
+          }}
+        >
+          <Sparkles size={14} strokeWidth={1.6} style={{ color: "var(--zara-gold-deep)", flex: "0 0 auto" }} />
+          <span style={{ fontFamily: "var(--ff-mono)", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--zara-gold-deep)" }}>
+            Pusula önerisi
+          </span>
+          <span style={{ fontFamily: "var(--ff-sans)", fontSize: 12.5, fontStyle: "italic", color: "var(--zara-ink-65)" }}>
+            Tepe saatlerde yetkinlik dengesini artıracak bir kaydırma önerilebilir.
+          </span>
+          <button
+            type="button"
+            disabled
+            title="Yakında — Pusula verisi gerçek profillere bağlanınca aktif olacak"
+            style={{
+              marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", border: "1px solid var(--zara-gold)", background: "transparent",
+              fontFamily: "var(--ff-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase",
+              color: "var(--zara-gold-deep)", cursor: "not-allowed", opacity: 0.55, whiteSpace: "nowrap",
+            }}
+          >
+            Öneriyi uygula
+          </button>
+        </div>
+      )}
 
       {result.chart.length === 0 ? (
         <div className="p-8 text-center text-stone-400 text-sm">

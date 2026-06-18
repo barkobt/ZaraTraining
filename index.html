@@ -4,18 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1A1614" />
-    <!-- iOS Safari önce apple-touch-icon (PNG) okur -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/zara-icon-180.png" />
-    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/zara-icon-180.png" />
-    <!-- Klasik favicon — PNG varyantları (yeni ZT monogram, raster) -->
+    <!-- Kök fallback: botlar <head>'i okumadan /favicon.ico ister; Google SERP
+         ikonu da ana sayfanın favicon'undan alınır. sizes="any" → .ico tüm boyutları kapsar. -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <!-- PNG favicon varyantları — Google 48px'in katını tercih eder (192 = 48×4) -->
     <link rel="icon" type="image/png" sizes="32x32" href="/zara-icon-32.png" />
-    <link rel="icon" type="image/png" sizes="64x64" href="/zara-icon-64.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/zara-icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/zara-icon-512.png" />
+    <!-- iOS Safari ana ekran ikonu (PNG) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/zara-icon-180.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/zara-icon-180.png" />
     <!-- PWA -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    <title>ZARA · Atelye — Mağaza Eğitim & Operasyon Araçları</title>
-    <meta name="description" content="ZARA Atelye — mağaza eğitim ve operasyon araçlarının atelyesi. Vardiya planlama, yetkinlik takibi, eğitim modülleri." />
+    <title>ZARA Atelye — Vardiya Planlama & Mağaza Eğitim Aracı</title>
+    <meta name="description" content="Mağaza ekipleri için vardiya planlama, yetkinlik takibi ve eğitim modülleri tek atelyede. ZARA Atelye · zaratraining ile çizelgeni dakikalar içinde oluştur." />
     <meta name="keywords" content="zara, zaratraining, zara training, zara atelye, mağaza eğitim, vardiya planlama, shift organizer, store training, zara españa, zara türkiye" />
     <meta name="author" content="ZARA Atelye" />
     <link rel="canonical" href="https://zaratraining.online/" />
@@ -64,10 +66,32 @@
         }
       }
     </script>
+    <!-- WebSite: site adı + marka varyantları (Google SERP'te "ZARA Atelye" site adı) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ZARA Atelye",
+        "alternateName": ["zaratraining", "ZARA Training", "ZARA Atelier"],
+        "url": "https://zaratraining.online/",
+        "inLanguage": ["tr-TR", "es-ES"]
+      }
+    </script>
+    <!-- Organization: logo + marka kimliği (knowledge graph eşleştirmesi) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "ZARA Atelye",
+        "alternateName": "zaratraining",
+        "url": "https://zaratraining.online/",
+        "logo": "https://zaratraining.online/zara-icon-512.png"
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,300;1,6..72,400;1,6..72,500&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
       rel="stylesheet"
     />
   </head>

@@ -10,7 +10,6 @@ import { useGSAP } from "@gsap/react";
 import { ProjectCard, type Project } from "@/components/ProjectCard";
 import { ZMark } from "@/components/ZMark";
 import { CornerVignette } from "@/components/CornerVignette";
-import { PusulaCompass } from "@/components/PusulaCompass";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 // iOS adres çubuğu gizlenirken tetiklenen resize fırtınası scrub trigger'ları
@@ -33,7 +32,7 @@ const TOOLS: Project[] = [
     href: "/shift-organizer",
     accent: "#1A1614",
     image:
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&h=1200&fit=crop&q=85&auto=format",
     available: true,
     status: "AÇIK",
     index: 0,
@@ -47,7 +46,7 @@ const TOOLS: Project[] = [
     href: "/buenas-dias",
     accent: "#8B6F47",
     image:
-      "https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?w=900&h=1200&fit=crop&q=85&auto=format",
     available: true,
     status: "AÇIK",
     index: 1,
@@ -60,7 +59,9 @@ const TOOLS: Project[] = [
       "Yaşayan uzman — kişinin gerçek yetkinlik ve sonucundan profil çıkarır; gelişim planı ve vardiya yerleşimine çevirir. Akşam cebini rahatlatan, insan-onaylı motor.",
     href: "/pusula",
     accent: "#B8935A",
-    visual: <PusulaCompass className="w-[72%] max-w-[300px]" heading={26} />,
+    // Gerçek pirinç pusula natürmortu (editöryel atölye foto) — "Pusula" =
+    // compass. ProjectCard grayscale uygular, hover'da amber/altına döner.
+    image: "/pusula-compass.jpg",
     available: true,
     status: "YENİ",
     index: 2,
@@ -77,7 +78,7 @@ const EDUCATION: Project[] = [
     href: "/fitting-room",
     accent: "#B8935A",
     image:
-      "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=900&h=1200&fit=crop&q=85&auto=format",
     available: true,
     status: "AÇIK",
     index: 0,
@@ -91,7 +92,7 @@ const EDUCATION: Project[] = [
     href: "#",
     accent: "#8B6F47",
     image:
-      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&h=1200&fit=crop&q=85&auto=format",
     available: false,
     status: "YAKINDA",
     index: 1,
@@ -105,7 +106,7 @@ const EDUCATION: Project[] = [
     href: "#",
     accent: "#9B8F80",
     image:
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&h=1200&fit=crop&q=85&auto=format&sat=-100",
+      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&h=1200&fit=crop&q=85&auto=format",
     available: false,
     status: "YAKINDA",
     index: 2,
@@ -118,7 +119,7 @@ const STEPS = [
   { icon: Sparkles, t: "Dağıt & Ölç", d: "PDF/Excel çıktısını paylaş, KPI'lar geri akar, döngü kapanır." },
 ];
 
-const PF_IMG = (id: string) => `https://images.unsplash.com/photo-${id}?w=800&h=1000&fit=crop&q=80&auto=format&sat=-100`;
+const PF_IMG = (id: string) => `https://images.unsplash.com/photo-${id}?w=800&h=1000&fit=crop&q=80&auto=format`;
 const PUSULA_FEATURES = [
   { n: "01", icon: Sunrise, t: "Günün Kuyruğu", d: "Koç güne tek ekranda başlar: onaylar, keşifler, eşleşmeler — karar her zaman insanda.", img: PF_IMG("1441986300917-64674bd600d8") },
   { n: "02", icon: Activity, t: "Kanıt Motoru", d: "Skor yok, sıralama yok. Her öneri sinyal, kanal, çıkarım ve güven zinciriyle hesap verir.", img: PF_IMG("1454165804606-c3d57bc86b40") },
@@ -380,7 +381,7 @@ export default function Home() {
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           disablePictureInPicture
           className="hero-video absolute inset-0 w-full h-full object-cover pointer-events-none motion-reduce:hidden"
           style={{ filter: "grayscale(0.85) contrast(1.05) brightness(0.95)", zIndex: 0, opacity: 0, visibility: "hidden" }}
@@ -442,7 +443,7 @@ export default function Home() {
           </div>
 
           {/* Başlık — İTALİK YOK, sade serif, kelime-maske reveal */}
-          <h1 className="font-serif text-[15vw] sm:text-[11vw] md:text-[9vw] lg:text-[8vw] leading-[0.92] tracking-[-0.035em] text-ink" style={{ fontWeight: 600 }}>
+          <h1 className="font-serif text-[15vw] sm:text-[11vw] md:text-[9vw] lg:text-[8vw] leading-[0.92] tracking-[-0.035em] text-ink" style={{ fontWeight: 500 }}>
             <span className="block overflow-hidden">
               <span className="hero-word inline-block">Atelye,</span>
             </span>
@@ -490,7 +491,7 @@ export default function Home() {
               <div className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
               <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">OPERASYON</div>
             </div>
-            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Araçlar.</h2>
+            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 500 }}>Araçlar.</h2>
             <p className="mt-5 max-w-xl text-sm sm:text-base text-ink/60 font-sans leading-relaxed">Günlük operasyonu çeviren üç araç. Tıkla, çalışmaya git.</p>
           </div>
           <div data-stagger className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -535,13 +536,15 @@ export default function Home() {
           <div className="bf-track">
             {/* intro paneli — marka compass'ı watermark */}
             <div className="bf-panel relative px-6 sm:px-10 md:px-16" style={{ width: "min(92vw, 640px)" }}>
-              <PusulaCompass dark heading={26} className="absolute right-[-70px] top-1/2 -translate-y-1/2 w-[360px] opacity-[0.22] pointer-events-none hidden lg:block" />
+              {/* komedi compass yerine ters-çevrilmiş kroki blueprint'i — koyu
+                  zeminde açık mimari çizgiler ("Pusula sahayı tanır"). */}
+              <img src="/pusula-plan.png" alt="" aria-hidden loading="lazy" decoding="async" width={420} height={420} className="absolute right-[-90px] top-1/2 -translate-y-1/2 w-[420px] opacity-[0.12] pointer-events-none hidden lg:block" style={{ filter: "invert(1) grayscale(1)" }} />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-4 text-[10px] font-mono tracking-[0.28em] uppercase" style={{ color: "rgba(245,241,234,0.45)" }}>
                   <span>38.45° N · 27.21° E</span>
                   <span style={{ color: "var(--zara-gold-soft)" }}>BORNOVA</span>
                 </div>
-                <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em]" style={{ fontWeight: 600 }}>Pusula,<br />içeriden.</h2>
+                <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em]" style={{ fontWeight: 500 }}>Pusula,<br />içeriden.</h2>
                 <p className="mt-5 max-w-md text-sm sm:text-base font-sans leading-relaxed" style={{ color: "rgba(245,241,234,0.72)" }}>
                   İnsan ana sahnedir; performans onun sonucudur. Altı yetenek, tek öğrenen döngüde.
                 </p>
@@ -598,7 +601,7 @@ export default function Home() {
               <div className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
               <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">EĞİTİM</div>
             </div>
-            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Atelye Eğitim.</h2>
+            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 500 }}>Atelye Eğitim.</h2>
             <p className="mt-5 max-w-xl text-sm sm:text-base text-ink/60 font-sans leading-relaxed">Sahaya çıkmadan önce — senaryolarla öğren, kabinini bul.</p>
           </div>
           <div data-stagger className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -618,7 +621,7 @@ export default function Home() {
               <div className="flex-1 h-px" style={{ background: "var(--zara-line)" }} />
               <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-ink/45">AKIŞ</div>
             </div>
-            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Nasıl çalışır?</h2>
+            <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[0.98] tracking-[-0.02em] text-ink" style={{ fontWeight: 500 }}>Nasıl çalışır?</h2>
           </div>
           <div data-stagger data-flat className="grid grid-cols-1 md:grid-cols-3 gap-px" style={{ background: "var(--zara-line-strong)" }}>
             {STEPS.map((s, i) => (
@@ -640,7 +643,7 @@ export default function Home() {
       <section className="cta-section relative z-10 px-4 sm:px-6 md:px-12 py-24 md:py-32 text-center overflow-hidden">
         <div aria-hidden className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[60vw] max-w-[900px] pointer-events-none rounded-full" style={{ background: "radial-gradient(circle, var(--zara-glow) 0%, transparent 65%)" }} />
         <div data-reveal className="relative max-w-2xl mx-auto">
-          <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.0] tracking-[-0.02em] text-ink" style={{ fontWeight: 600 }}>Hazır olduğunda, başla.</h2>
+          <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.0] tracking-[-0.02em] text-ink" style={{ fontWeight: 500 }}>Hazır olduğunda, başla.</h2>
           <p className="mt-5 text-sm sm:text-base text-ink/60 font-sans">Operasyonun ev sahibi seni bekliyor.</p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Link

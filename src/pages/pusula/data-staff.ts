@@ -32,37 +32,55 @@ type Row = {
 };
 
 // Kaynak: db/seed.ts STAFF (2026-05-18 yetkinlik tablosu).
+// 2026-06-18: `c` yetkinlik tohumları canlı DB competencies ile MAX-MERGE edildi
+// (her hücre = max(mock, gerçek)). Demo ustaları korunur (mock taban), gerçek veri
+// daha yüksek olduğu yerde yansır. İsimler/anlatı bilinçli MOCK kaldı (çapraz-link
+// bütünlüğü). DB'de karşılığı olmayanlar (Asya·Ceren·Emrah·Nimet) saf mock.
 const ROWS: Row[] = [
-  { id: "Ada", name: "Ada Özaşçı", tenure: "NEW_3_6", mgr: false, note: "", c: [2, 2, 3, 1, 2, 2, 2, 2] },
-  { id: "Baran", name: "Baran Bozkurt", tenure: "EXPERT", mgr: false, note: "", c: [1, 1, 2, 2, 1, 3, 3, 2] },
+  { id: "Ada", name: "Ada Özaşçı", tenure: "NEW_3_6", mgr: false, note: "", c: [4, 2, 3, 3, 4, 3, 3, 2] },
+  { id: "Baran", name: "Baran Bozkurt", tenure: "EXPERT", mgr: false, note: "", c: [1, 1, 2, 3, 2, 4, 4, 2] },
   { id: "Asya", name: "Asya Güner", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 2, 2, 1, 0, 0, 0, 0] },
-  { id: "Aysu", name: "Aysu Öztürk", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 2, 2, 1, 3, 3, 3, 1] },
-  { id: "Begüm", name: "Begüm Akar", tenure: "EXPERT", mgr: false, note: "", c: [3, 3, 2, 1, 3, 3, 3, 2] },
-  { id: "Ceren", name: "Ceren Bölük", tenure: "NEW_3_6", mgr: false, note: "", c: [0, 2, 2, 1, 0, 3, 3, 2] },
-  { id: "Ecem", name: "Ecem Urcan", tenure: "EXPERT", mgr: false, note: "", c: [1, 3, 3, 1, 1, 3, 3, 2] },
-  { id: "Emirhan", name: "Emirhan Yeşilçiçek", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 2, 2, 1, 3, 2, 2, 1] },
-  { id: "Emrah", name: "Emrah Buzlu", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 1, 2, 1, 3, 2, 2, 1] },
-  { id: "Eylül", name: "Eylül Özbek", tenure: "EXPERT", mgr: false, note: "", c: [2, 3, 3, 1, 2, 3, 3, 2] },
-  { id: "Fadime", name: "Fadime Kıvrak", tenure: "NEW_1_3", mgr: false, note: "", c: [0, 1, 2, 1, 0, 2, 2, 1] },
-  { id: "Fatma", name: "Fatma Yavuz", tenure: "EXPERT", mgr: false, note: "", c: [2, 4, 3, 1, 2, 2, 2, 2] },
+  { id: "Aysu", name: "Aysu Öztürk", tenure: "NEW_3_6", mgr: false, note: "", c: [4, 2, 2, 2, 4, 3, 3, 1] },
+  { id: "Begüm", name: "Begüm Akar", tenure: "EXPERT", mgr: false, note: "", c: [4, 3, 2, 2, 4, 3, 3, 3] },
+  { id: "Ecem", name: "Ecem Urcan", tenure: "EXPERT", mgr: false, note: "", c: [1, 4, 4, 1, 1, 3, 3, 2] },
+  { id: "Emirhan", name: "Emirhan Yeşilçiçek", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 2, 2, 2, 3, 2, 2, 4] },
+  { id: "Eylül", name: "Eylül Özbek", tenure: "EXPERT", mgr: false, note: "", c: [3, 3, 3, 3, 2, 3, 3, 4] },
+  { id: "Fadime", name: "Fadime Kıvrak", tenure: "NEW_1_3", mgr: false, note: "", c: [0, 1, 2, 3, 2, 4, 4, 2] },
+  { id: "Fatma", name: "Fatma Yavuz", tenure: "EXPERT", mgr: false, note: "", c: [2, 4, 4, 1, 2, 2, 2, 2] },
   { id: "Gamze", name: "Gamze Kafadar", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 0, 0, 1, 0, 1, 1, 1] },
-  { id: "Güney", name: "Güney Kanıcıoğlu", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 2, 2, 1, 3, 2, 2, 1] },
-  { id: "Kaan", name: "Kaan Gündüz", tenure: "NEW_3_6", mgr: false, note: "", c: [1, 3, 2, 1, 1, 2, 2, 2] },
-  { id: "Kayra", name: "Kayra Uzun", tenure: "NEW_3_6", mgr: false, note: "", c: [2, 3, 2, 1, 2, 2, 2, 2] },
-  { id: "Kıymet", name: "Kıymet Bakır", tenure: "EXPERT", mgr: false, note: "", c: [1, 4, 3, 1, 1, 2, 2, 2] },
-  { id: "Meral", name: "Meral Çolak", tenure: "NEW_1_3", mgr: false, note: "", c: [2, 4, 2, 1, 2, 2, 2, 1] },
-  { id: "Merih", name: "Merih Baltacı", tenure: "NEW_3_6", mgr: false, note: "", c: [1, 2, 2, 1, 1, 2, 2, 2] },
-  { id: "Emir", name: "Emir Güneş", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 2, 1, 1, 3, 2, 2, 1] },
-  { id: "Nehir", name: "Nehir Budak", tenure: "EXPERT", mgr: false, note: "", c: [2, 3, 4, 1, 2, 2, 2, 2] },
-  { id: "Nimet", name: "Nimet Bozkurt", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 3, 1, 1, 3, 2, 2, 1] },
-  { id: "Pelin", name: "Pelin Aydın", tenure: "EXPERT", mgr: false, note: "", c: [1, 3, 3, 1, 1, 3, 3, 2] },
-  { id: "Ramazan", name: "Ramazan Hordun", tenure: "EXPERT", mgr: false, note: "", c: [1, 3, 3, 1, 1, 3, 3, 3] },
-  { id: "Saliha", name: "Saliha Kılıç", tenure: "NEW_1_3", mgr: false, note: "", c: [1, 1, 1, 1, 1, 2, 2, 3] },
-  { id: "Selin", name: "Selin Varlıoğlu", tenure: "NEW_3_6", mgr: false, note: "Güvenli yeni", c: [2, 2, 4, 1, 2, 2, 2, 1] },
-  { id: "Sevilay", name: "Sevilay Çelik", tenure: "NEW_3_6", mgr: false, note: "", c: [1, 2, 4, 1, 1, 2, 2, 1] },
-  { id: "Sevim", name: "Sevim Yalçın", tenure: "EXPERT", mgr: true, note: "Saha yöneticisi", c: [2, 4, 3, 1, 2, 2, 2, 3] },
+  { id: "Güney", name: "Güney Kanıcıoğlu", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 2, 2, 2, 3, 4, 4, 1] },
+  { id: "Kaan", name: "Kaan Gündüz", tenure: "NEW_3_6", mgr: false, note: "", c: [2, 3, 2, 3, 2, 4, 4, 2] },
+  { id: "Kayra", name: "Kayra Uzun", tenure: "NEW_3_6", mgr: false, note: "", c: [2, 4, 4, 1, 2, 2, 2, 2] },
+  { id: "Kıymet", name: "Kıymet Bakır", tenure: "EXPERT", mgr: false, note: "", c: [2, 4, 3, 3, 2, 4, 4, 2] },
+  { id: "Meral", name: "Meral Çolak", tenure: "NEW_1_3", mgr: false, note: "", c: [2, 4, 2, 4, 2, 3, 3, 3] },
+  { id: "Merih", name: "Merih Baltacı", tenure: "NEW_3_6", mgr: false, note: "", c: [1, 2, 2, 4, 2, 2, 2, 2] },
+  { id: "Emir", name: "Emir Güneş", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 2, 1, 1, 3, 4, 4, 1] },
+  { id: "Nehir", name: "Nehir Budak", tenure: "EXPERT", mgr: false, note: "", c: [2, 4, 4, 1, 2, 2, 2, 2] },
+  { id: "Pelin", name: "Pelin Aydın", tenure: "EXPERT", mgr: false, note: "", c: [1, 4, 4, 1, 1, 3, 3, 2] },
+  { id: "Ramazan", name: "Ramazan Hordun", tenure: "EXPERT", mgr: false, note: "", c: [2, 3, 3, 3, 2, 3, 3, 4] },
+  { id: "Saliha", name: "Saliha Kılıç", tenure: "NEW_1_3", mgr: false, note: "", c: [1, 1, 1, 2, 2, 2, 2, 4] },
+  { id: "Selin", name: "Selin Varlıoğlu", tenure: "NEW_3_6", mgr: false, note: "Güvenli yeni", c: [4, 2, 4, 4, 4, 3, 3, 3] },
+  { id: "Sevilay", name: "Sevilay Çelik", tenure: "NEW_3_6", mgr: false, note: "", c: [1, 2, 4, 4, 3, 3, 3, 3] },
+  { id: "Sevim", name: "Sevim Yalçın", tenure: "EXPERT", mgr: true, note: "Saha yöneticisi", c: [2, 4, 4, 1, 2, 2, 2, 3] },
   { id: "Şeyma", name: "Şeyma Şemşit", tenure: "EXPERT", mgr: false, note: "", c: [3, 4, 4, 1, 3, 2, 2, 2] },
-  { id: "Sude", name: "Sude Yeni", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 4, 2, 1, 3, 2, 2, 1] },
+  { id: "Sude", name: "Sude Yeni", tenure: "NEW_3_6", mgr: false, note: "", c: [3, 4, 3, 3, 3, 3, 3, 4] },
+  // 2026-06-18: Gerçek ekip yeni üyeleri (canlı DB'den, Option A). İsimler+kıdem
+  // gerçek; competency gerçek (seyrek → profil türetimi emerging/keşif gösterir).
+  // Anlatı (notlar/mentor) bunlara dokunmaz; profilleri otomatik türetilir.
+  { id: "Taha", name: "Taha İşler", tenure: "EXPERT", mgr: true, note: "Müdür", c: [1, 1, 1, 1, 1, 1, 1, 1] },
+  { id: "İrem", name: "İrem Bulut", tenure: "EXPERT", mgr: true, note: "Müdür", c: [0, 0, 0, 0, 0, 0, 0, 0] },
+  { id: "Bora", name: "Bora Çakaloğlu", tenure: "EXPERT", mgr: false, note: "", c: [0, 0, 0, 3, 2, 4, 4, 2] },
+  { id: "Kaan O.", name: "Kaan Ovezoğlu", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 4, 4, 0, 0, 0, 0, 0] },
+  { id: "Mete", name: "Mete Alp Karvan", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 0, 0, 0, 0, 4, 4, 0] },
+  { id: "Azra", name: "Azra Nur Yazıcı", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 4, 4, 0, 0, 0, 0, 0] },
+  { id: "Feride", name: "Feride Savucu", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 4, 4, 0, 0, 0, 0, 0] },
+  { id: "Yağmur", name: "Yağmur Haşhaş", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 0, 0, 0, 0, 4, 4, 0] },
+  { id: "Cansın", name: "Cansın Hıdırbozan", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 4, 4, 0, 0, 0, 0, 0] },
+  { id: "Beyza", name: "Beyza Ağır", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 4, 4, 0, 0, 0, 0, 0] },
+  { id: "İlkim", name: "İlkim Hura", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 0, 0, 2, 0, 0, 0, 4] },
+  { id: "Yiğit", name: "Yiğit Alp Şanlıer", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [0, 0, 0, 0, 0, 4, 4, 0] },
+  { id: "Tuana", name: "Tuana Çetin", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [4, 0, 0, 0, 4, 0, 0, 0] },
+  { id: "Yağmur D.", name: "Yağmur Dara", tenure: "NEW_0_1", mgr: false, note: "Çok yeni — tek bırakma", c: [4, 0, 0, 0, 4, 0, 0, 0] },
 ];
 
 const TENURE_LABEL: Record<TenureKey, () => string> = {
@@ -129,7 +147,8 @@ export const byId = (id: string): Employee | undefined => employees.find((e) => 
 export type JobType = "Müdür" | "Commercial" | "Satış Danışmanı";
 const COMMERCIAL = new Set(["Şeyma", "Begüm", "Ecem", "Eylül"]);
 export function jobTypeOf(id: string): JobType {
-  if (id === "Sevim") return "Müdür";
+  // Müdür artık gerçek `mgr` bayrağından (Sevim + gerçek yeni müdürler Taha·İrem).
+  if (ROW_BY_ID[id]?.mgr) return "Müdür";
   if (COMMERCIAL.has(id)) return "Commercial";
   return "Satış Danışmanı";
 }

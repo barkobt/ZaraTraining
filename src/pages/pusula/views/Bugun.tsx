@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, CalendarPlus, Check, Compass, Sparkles } from "lucide-react";
+import { ArrowRight, CalendarPlus, Check, Compass } from "lucide-react";
 import { Headline } from "../primitives";
 import { byId, employees, pocket } from "../data";
 import {
@@ -84,6 +84,16 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
     pick({ tr: "tr-TR", en: "en-GB", es: "es-ES" }),
     { weekday: "long", day: "numeric", month: "long" },
   );
+
+  // Gazete "baskı künyesi" — sabahları ERKEN, sonra GEÇ baskı; No. = yılın günü
+  // (gerçek bir yayın sayısı gibi günlük artar). Altın yok, saf mürekkep.
+  const _now = new Date();
+  const edition = pick({
+    tr: _now.getHours() < 12 ? "ERKEN BASKI" : "GEÇ BASKI",
+    en: _now.getHours() < 12 ? "MORNING EDITION" : "LATE EDITION",
+    es: _now.getHours() < 12 ? "EDICIÓN MAÑANA" : "EDICIÓN TARDE",
+  });
+  const editionNo = Math.ceil((Date.now() - Date.UTC(_now.getFullYear(), 0, 0)) / 86400000);
 
   const ticker = [
     pick({ tr: `${pocket.window} cep · trafik ${pocket.trafficPeak} · conversion %${pocket.convBefore[0]}`, en: `${pocket.window} pocket · traffic ${pocket.trafficPeak} · conversion ${pocket.convBefore[0]}%`, es: `hueco ${pocket.window} · tráfico ${pocket.trafficPeak} · conversión ${pocket.convBefore[0]}%` }),
@@ -222,7 +232,10 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
     <div className="pv3-cockpit">
       {/* manşet satırı */}
       <div className="pv3-masthead">
-        <span className="pv3-date">{today}</span>
+        <span className="pv3-mast-left">
+          <span className="pv3-date">{today}</span>
+          <span className="pv3-edition">{edition} · No. {editionNo}</span>
+        </span>
         <span className="pv4-how">{t("how.bugun")}</span>
         <span className="pv3-store">ZARA · BORNOVA 3643</span>
       </div>
@@ -348,7 +361,7 @@ export function Bugun({ onGo, onPeek }: { onGo: (v: GoView) => void; onPeek: (p:
 
       <div className="pusula-assure pusula-assure-row">
         <span>
-          <Sparkles size={11} strokeWidth={1.8} /> {pick({ tr: "Her aksiyon önerdir — karar koçundur", en: "Every action is a suggestion — the coach decides", es: "Cada acción es una sugerencia — decide el coach" })}
+          {pick({ tr: "Her aksiyon önerdir — karar koçundur", en: "Every action is a suggestion — the coach decides", es: "Cada acción es una sugerencia — decide el coach" })}
         </span>
         <span>{pick({ tr: "Skor yok · sıralama yok", en: "No scores · no rankings", es: "Sin puntajes · sin rankings" })}</span>
       </div>

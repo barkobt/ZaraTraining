@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, Sparkles, Layers, CheckCircle2, Circle } from "lucide-react";
+import { BookOpen, BookText, ClipboardList, Gauge, Search, Target, FileText, Award, Layers, CheckCircle2, Circle } from "lucide-react";
 import { Headline } from "../primitives";
 import { employees } from "../data";
 import {
@@ -254,7 +254,7 @@ export function GelisimDefteri() {
           {/* ── TAKİP ── */}
           {mode === "takip" && (
             <>
-              <div className="pusula-pills" style={{ marginBottom: 16 }}>
+              <div className="pusula-pills" style={{ marginBottom: 8 }}>
                 {GUIDEBOOK_ROLES.map((r) => (
                   <button key={r} className={`pusula-pill ${role === r ? "on" : ""}`} onClick={() => setRole(r)}>
                     {roleLabel(r)}
@@ -280,8 +280,17 @@ export function GelisimDefteri() {
                   </button>
                 ))}
               </div>
-              {/* NABIZ BANDI — defterin tek bakışta durumu (cockpit dili) */}
-              <div className="pusula-pulse">
+              {/* Künye satırı — navigasyon zincirini (rol→ASA→seviye) kapatır */}
+              <div className="pusula-book-legend">
+                <span>{section?.topics.length} {plang({ tr: "konu", en: "topics", es: "temas" })} · {roleLabel(role)} · {section?.weeks}</span>
+                <span className="pusula-book-legend-stats">
+                  {plang({ tr: "Plan ", en: "Plan adapted to the ", es: "Plan adaptado al nivel " })}<em>{masteryShort(emp.level)}</em>{plang({ tr: " seviyesine göre uyarlanır · her tik tarih + nota düşülür", en: " level · each tick logs a date + note", es: " · cada marca registra fecha + nota" })}
+                </span>
+              </div>
+
+              {/* NABIZ BANDI — listenin hemen üstünde "durum özeti" (artık navigasyon
+                  zincirinden ayrı; seviye tablarıyla tipografik ikiz bitişikliği yok). */}
+              <div className="pusula-pulse pusula-pulse--summary">
                 <div className="pusula-pulse-cell">
                   <em>
                     {marked}
@@ -304,13 +313,6 @@ export function GelisimDefteri() {
                   <em>{Object.values(history).filter((m) => m.status !== "Boş" && m.log[m.status as MarkStatus]?.date === TODAY).length}</em>
                   <span>{plang({ tr: "bugün işlenen", en: "logged today", es: "registrado hoy" })}</span>
                 </div>
-              </div>
-
-              <div className="pusula-book-legend">
-                <span>{section?.topics.length} {plang({ tr: "konu", en: "topics", es: "temas" })} · {roleLabel(role)} · {section?.weeks}</span>
-                <span className="pusula-book-legend-stats">
-                  {plang({ tr: "Plan ", en: "Plan adapted to the ", es: "Plan adaptado al nivel " })}<em>{masteryShort(emp.level)}</em>{plang({ tr: " seviyesine göre uyarlanır · her tik tarih + nota düşülür", en: " level · each tick logs a date + note", es: " · cada marca registra fecha + nota" })}
-                </span>
               </div>
 
               {/* hızlı filtre — uzun kitapçıkta kolay gezinme */}
@@ -355,9 +357,9 @@ export function GelisimDefteri() {
 
                           {isTeach && (
                             <div className="pusula-teach-moment">
-                              <Sparkles size={13} strokeWidth={1.7} />
+                              <Award size={13} strokeWidth={1.7} />
                               <span>
-                                <strong>{plang({ tr: "Öğretebilir!", en: "Can teach!", es: "¡Puede enseñar!" })}</strong> {emp.name.split(" ")[0]} {plang({
+                                <strong>{plang({ tr: "Öğretebilir", en: "Can teach", es: "Puede enseñar" })}</strong> {emp.name.split(" ")[0]} {plang({
                                   tr: " bu konuda artık mentor adayı — Usta Aktarımına aday, Usta Yolu'na eklenebilir.",
                                   en: " is now a mentor candidate on this topic — a Mastery-Transfer candidate, can be added to the Mentor Path.",
                                   es: " ya es candidato a mentor en este tema — candidato a Transferencia de Maestría, se puede añadir a la Ruta de Mentor.",

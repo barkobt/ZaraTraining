@@ -102,7 +102,9 @@
 .canvas { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .topbar {
   position: sticky; top: 0; z-index: 30;
-  background: rgba(245,241,234,0.86); backdrop-filter: blur(10px);
+  /* blur 10→5 + zemin opaklığı 0.86→0.92: sticky header arkada içerik kayarken
+     blur'u her frame yeniden hesaplar — yarıya indirildi (frosted his korunur). */
+  background: rgba(245,241,234,0.92); backdrop-filter: blur(5px);
   border-bottom: 1px solid var(--zara-line-strong);
   padding: 16px 40px; display: flex; align-items: center; gap: 20px;
 }
@@ -590,6 +592,8 @@
 .pr-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .pr-name .pn { font-family: var(--ff-display); font-size: 15px; font-weight: 500; line-height: 1.15; }
 .pr-name .ps { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.2em; color: var(--zara-ink-40); }
+/* pr-pusula — SEMBOLİK pusula bağı: soluk altın, etkileşimsiz (pointer-events yok) */
+.pr-pusula { margin-left: auto; display: inline-grid; place-items: center; color: var(--zara-gold-deep); opacity: 0.45; pointer-events: none; flex: 0 0 auto; }
 .pr-del { position: absolute; right: 0; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--zara-ink-30); cursor: pointer; opacity: 0; padding: 4px; transition: opacity 140ms; }
 .person-row:hover .pr-del { opacity: 1; }
 .pr-del:hover { color: var(--zara-destructive); }
@@ -877,8 +881,10 @@
    ============================================================ */
 .so-shell { min-height: 100vh; background: var(--zara-bg); }
 .so-head {
-  position: sticky; top: 0; z-index: 30;
-  background: rgba(242,239,233,0.86); backdrop-filter: blur(10px);
+  /* top: 46 — paylaşılan AtelyeBar (46px) altına yapışır */
+  position: sticky; top: 46px; z-index: 30;
+  /* perf: blur 10→5 + opaklık 0.92 (geniş matris arkada kayarken pahalı blur) */
+  background: rgba(242,239,233,0.92); backdrop-filter: blur(5px);
   border-bottom: 1px solid var(--zara-line-strong);
   padding: 16px 40px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
 }
@@ -899,6 +905,14 @@
 .so-tab .tc { font-size: 9px; opacity: 0.6; }
 .so-logout { border: none; background: transparent; cursor: pointer; color: var(--zara-ink-30); padding: 6px; display: inline-grid; place-items: center; }
 .so-logout:hover { color: var(--zara-ink); }
+/* Shift mobil (shift-responsive-auditor P1/P2): sticky blur'u kaldır (perf —
+   geniş matris arkada kayarken pahalı), opak zemin; sekmeler tek satır scroll. */
+@media (max-width: 760px) {
+  .so-head { backdrop-filter: none; background: var(--zara-bg-warm); padding: 12px 18px; gap: 14px; }
+  .so-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; margin-left: 0; scrollbar-width: none; }
+  .so-tabs::-webkit-scrollbar { display: none; }
+  .so-tab { min-height: 40px; }
+}
 
 /* ── matrix (yetkinlik) inline kontrol yardımcıları ─────── */
 .mx-sel { border: 1px solid var(--zara-line); background: var(--zara-bg-white); border-radius: 3px; padding: 5px 8px; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--zara-ink); cursor: pointer; outline: none; max-width: 100%; }
@@ -1179,11 +1193,11 @@
 .pusula-card-line > span:last-child {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.pusula-card:hover { transform: translateY(-3px); box-shadow: var(--panel-shadow-soft); }
+/* (ölü :hover kuralı kaldırıldı — gerçek hover satır ~2422'de: -5px + altın kenar) */
 /* üst satır GRID: uzun isim sarar, evre çipi ASLA taşmaz */
 .pusula-card-top { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: start; gap: 12px; }
 .pusula-card-id { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-.pusula-card-name { font-family: var(--ff-display); font-weight: 500; font-size: 20px; line-height: 1.1; letter-spacing: -0.01em; overflow-wrap: break-word; }
+.pusula-card-name { font-family: var(--ff-display); font-weight: 500; font-size: 23px; line-height: 1.05; letter-spacing: -0.015em; overflow-wrap: break-word; }
 .pusula-card-tenure { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-card-tenure .nb { font-style: normal; white-space: nowrap; }
 .pusula-card-lines { display: flex; flex-direction: column; gap: 9px; }
@@ -1195,19 +1209,33 @@
 .pusula-card-persona { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
 .pusula-card-persona em { font-family: var(--ff-display); font-style: italic; font-weight: 400; font-size: 15.5px; color: var(--zara-ink); }
 /* yetkinlik DNA şeridi — 6 kanal kanıt parmak izi */
-.pusula-card-dna { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; }
-.pusula-card-dna i { display: block; height: 4px; }
-.pusula-card-dna i.un { border: 1px dashed var(--zara-line-strong); height: 2px; }
-.pusula-card-dna i.em { background: rgba(0, 0, 0, 0.18); }
-.pusula-card-dna i.p0 { background: rgba(0, 0, 0, 0.32); }
-.pusula-card-dna i.p1 { background: rgba(0, 0, 0, 0.52); }
-.pusula-card-dna i.p2 { background: rgba(0, 0, 0, 0.74); }
-.pusula-card-dna i.p3 { background: var(--zara-ink); }
+/* DNA bloğu — head + strip + etiketler tek ritim (kartın 16px flex gap'i
+   bloğun ETRAFINA; içeride sıkı 6px). */
+.pusula-card-dna-block { display: flex; flex-direction: column; gap: 6px; }
+/* DNA başlığı — geniş mono eyebrow; kanal sayısı altınla yarışmasın
+   (altın rasyonu yalnız bar tepesinde). */
+.pusula-card-dna-head { display: flex; align-items: baseline; justify-content: space-between; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--zara-ink-40); }
+/* DNA strip — DOKUNSAL "parmak izi" bar grafiği. Yükseklik = ustalık; grayscale
+   rampası söndürülmüş ki en üst ALTIN tepe TEK baskın doku olsun. */
+.pusula-card-dna { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; align-items: end; height: 44px; padding-top: 4px; padding-bottom: 5px; border-bottom: 1px solid var(--zara-line); }
+.pusula-card-dna i { display: block; width: 100%; border-radius: 1.5px 1.5px 0 0; transition: height 420ms var(--ease-atelier), background 420ms var(--ease-atelier); }
+.pusula-card-dna i.un { height: 5px; background: transparent; border: 1px dashed var(--zara-line); border-bottom: none; }
+.pusula-card-dna i.em { height: 12px; background: rgba(0, 0, 0, 0.14); }
+.pusula-card-dna i.p0 { height: 18px; background: rgba(0, 0, 0, 0.26); }
+.pusula-card-dna i.p1 { height: 26px; background: rgba(0, 0, 0, 0.42); }
+.pusula-card-dna i.p2 { height: 34px; background: rgba(0, 0, 0, 0.55); }
+.pusula-card-dna i.p3 { height: 44px; background: var(--zara-gold); box-shadow: inset 0 0 0 1px var(--zara-gold-deep); }
+.pusula-card:hover .pusula-card-dna i.p3 { background: var(--zara-gold-deep); box-shadow: none; }
+/* bar altı kanal etiketleri — TEK satır mono (ritim bozulmasın); sığmayan
+   uzun ad … ile kırpılır (tam ad title'da). */
+.pusula-card-dna-labels { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.pusula-card-dna-labels span { font-family: var(--ff-mono); font-size: 6.5px; line-height: 1; letter-spacing: 0; text-transform: uppercase; color: var(--zara-ink-40); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* durum etiketleri */
 .pusula-card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .pusula-card-tags span { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 9px; border: 1px solid var(--zara-line-strong); color: var(--zara-ink-65); }
 .pusula-card-tags .t-disc { border-style: dashed; border-color: var(--zara-ink); color: var(--zara-ink); }
-.pusula-card-tags .t-teach { border-color: var(--zara-ink); color: var(--zara-ink); }
+/* öğretebilir = ustalık çıktısı → soy-hattı dili: TEK altın sol-kenar (design-council P2) */
+.pusula-card-tags .t-teach { border-color: var(--zara-line); border-left: 3px solid var(--zara-gold); color: var(--zara-ink); }
 /* son koç notu */
 .pusula-card-note { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; line-height: 1.5; color: var(--zara-ink-50); }
 .pusula-card-note i { font-family: var(--ff-mono); font-style: normal; font-size: 8px; color: var(--zara-ink-40); }
@@ -1237,6 +1265,11 @@
 .pusula-drawer-foot { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid var(--zara-line); margin-top: auto; }
 .pusula-fulllink { align-self: flex-start; border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 10px 18px; border-radius: 0; font-family: var(--ff-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink); transition: all 320ms var(--ease-atelier); }
 .pusula-fulllink:hover { background: var(--zara-ink); color: var(--zara-bg); }
+/* çapraz-link: kişiyi Shift Organizer'da aç — altın aksanlı "öteki uygulama" affordance'ı */
+.pusula-drawer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pusula-crosslink { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--zara-gold); background: var(--zara-gold-tint); cursor: pointer; padding: 10px 16px; border-radius: 0; font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-gold-deep); transition: all 320ms var(--ease-atelier); }
+.pusula-crosslink:hover { background: var(--zara-gold); color: #fff; }
+.pusula-crosslink svg { flex: 0 0 auto; }
 .pusula-drawer-note { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-40); }
 
 /* ── ASA çubuğu ────────────────────────────────────────── */
@@ -1267,6 +1300,22 @@
 .pusula-profile-role { margin-top: 7px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--zara-gold-deep); }
 /* bölüm başlıkları "bölüm" hissi versin: eyebrow altına hairline kural */
 .pusula-profile-block > .pusula-eyebrow { padding-bottom: 11px; margin-bottom: 2px; border-bottom: 1px solid var(--zara-line); }
+/* bölüm folyo numaraları — gazete "section" hissi + wayfinding; sessiz ink,
+   altın rasyonuna dokunmaz (numara nötr, başlık kendi tonunu korur). */
+.pusula-profile-main { counter-reset: pblock; }
+.pusula-profile-block { counter-increment: pblock; }
+.pusula-profile-block > .pusula-eyebrow::before {
+  content: counter(pblock, decimal-leading-zero);
+  margin-right: 9px;
+  color: var(--zara-ink-30);
+  font-variant-numeric: tabular-nums;
+}
+/* dikiş ayracı — geçmiş KANIT ↔ gelecek TAHMİN eşiği ("kanıt ≠ tahmin").
+   Kesik çizgi + üstüne oturan mono damga (atölye dikiş-payı dili). */
+.pusula-seam { position: relative; margin: 48px 0 32px; height: 0; border-top: 1px dashed var(--zara-line-strong); }
+/* damga: absolute ile çizgi merkezine kilitle (height:0 + line-box top hilesi
+   çalışmıyordu — damga alta kayıyordu). bg, çizgiyi delip maskeler. */
+.pusula-seam span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--zara-bg); padding: 0 14px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink-50); white-space: nowrap; }
 .pusula-profile-asa { display: flex; flex-direction: column; gap: 16px; }
 .pusula-profile-curveword { font-family: var(--ff-sans); font-size: 12.5px; font-style: italic; color: var(--zara-ink-50); }
 
@@ -1394,16 +1443,35 @@
 .pusula-chip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.55; }
 
 /* akşam cebi göstergesi */
-.pusula-pocket { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 18px 20px; }
-.pusula-pocket-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+/* cep metresi = DEMO'NUN SKORU — bağlam grafiğinden öne çıkar (design-council P2) */
+.pusula-pocket { border: 1px solid var(--zara-line-strong); border-left: 2px solid var(--zara-gold-soft); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 22px 22px 22px 24px; }
+.pusula-pocket-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .pusula-pocket-eb { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-ink-40); }
-.pusula-pocket-state { font-family: var(--ff-display); font-size: 16px; font-style: italic; }
+.pusula-pocket-state { font-family: var(--ff-display); font-size: 20px; font-style: italic; }
 .pusula-pocket-state.tense { color: var(--zara-gold-deep); }
 .pusula-pocket-state.eased { color: var(--zara-sage-ink); }
-.pusula-pocket-track { height: 8px; border-radius: 0; overflow: hidden; }
+/* gergin→rahat kutup ölçeği (track üstü) — mutlak konumlu, rakamsız */
+.pusula-pocket-scale { position: relative; height: 11px; margin-bottom: 4px; }
+.pusula-pocket-scale span { position: absolute; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink-40); white-space: nowrap; }
+/* kutupları anlamlı uçlara ANKRAJLA: gergin başlangıç çentiğinden (30%) sağa,
+   rahat hedeften (76%) sola — track aralığını temsil etsin (design-council P1). */
+.pusula-pocket-scale .s-start { transform: translateX(0); }
+.pusula-pocket-scale .s-end { transform: translateX(-100%); color: var(--zara-sage-ink); }
+.pusula-pocket-track { position: relative; height: 12px; border-radius: 0; }
 .pusula-pocket-fill { display: block; height: 100%; border-radius: 0; }
+/* başlangıç çentiği — track'ten taşan, koyu, dolum üstünde "buradan başladık"
+   tiki (overflow kaldırıldı ki tik görünsün). */
+.pusula-pocket-notch { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--zara-ink); z-index: 2; pointer-events: none; }
 .pusula-pocket-foot { font-family: var(--ff-sans); font-size: 12.5px; color: var(--zara-ink-50); margin-top: 12px; }
 .pusula-pocket-foot em { font-style: italic; color: var(--zara-ink-2); }
+/* Yerleştirme mobil (responsive-auditor P1/P2): shift chart kendi içinde
+   kaysın — sayfayı yatay taşırmasın; pocket kutup etiketleri okunur olsun. */
+@media (max-width: 600px) {
+  .pusula-place-chart { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .pusula-chart { overflow-x: visible; }
+  .pusula-chart-grid { min-width: 640px; }
+  .pusula-pocket-scale span { font-size: 10px; }
+}
 
 /* öneri kenarı */
 .pusula-place-side { display: flex; flex-direction: column; gap: 16px; }
@@ -1469,7 +1537,9 @@
   background-repeat: no-repeat; background-position: right 4px center;
 }
 .pusula-book-emp select:focus { outline: none; border-bottom-color: var(--zara-ink); }
-.pusula-asa-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 22px 0 0; border-top: 1px solid var(--zara-line); background: transparent; margin-bottom: 18px; }
+/* ASA strip rol pill'leriyle TEK grup — ayıran üst-border/padding kaldırıldı
+   (design-council [P1]: 6 kontrol bandı → daha az; rol+sorumluluk aynı seviye). */
+.pusula-asa-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 0; background: transparent; margin-bottom: 22px; }
 .pusula-asa-strip-eb { flex-basis: 100%; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zara-gold-deep); margin-bottom: 4px; }
 .pusula-asa-chip { font-family: var(--ff-sans); font-size: 13px; line-height: 1.4; color: var(--zara-ink-2); padding: 8px 14px; border: 1px solid var(--zara-line-strong); border-radius: 0; }
 .pusula-asa-chip em { font-style: normal; font-family: var(--ff-mono); font-size: 9px; color: var(--zara-ink-40); margin-left: 9px; }
@@ -1488,7 +1558,11 @@
 .pusula-level-tab.on .pusula-level-week { color: rgba(255,255,255,0.55); }
 .pusula-book-legend { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 4px 12px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); border-bottom: 1px solid var(--zara-line); margin-bottom: 8px; }
 .pusula-book-legend-stats { display: none; }
-.pusula-topics { display: flex; flex-direction: column; gap: 8px; }
+.pusula-topics { display: flex; flex-direction: column; gap: 8px; counter-reset: pcat; }
+/* kategori folyo numarası — gazete "section" hissi; nötr ink-30, altın
+   kategori başlığıyla kontrast (altın rasyonu korunur). */
+.pusula-catgroup { counter-increment: pcat; }
+.pusula-cathead > span:first-child::before { content: counter(pcat, decimal-leading-zero) " ·"; margin-right: 9px; color: var(--zara-ink-30); font-variant-numeric: tabular-nums; letter-spacing: 0.08em; }
 .pusula-topic { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border: 1px solid var(--zara-line); border-radius: var(--panel-radius); background: var(--zara-bg-white); transition: border-color 200ms; }
 .pusula-topic:hover { border-color: var(--zara-line-strong); }
 .pusula-topic.marked { border-color: var(--zara-line-strong); }
@@ -1581,7 +1655,7 @@
 /* KOÇLUK AKSİYONLARI — kaynaklı takip defteri: saat·kişi·iş·kaynak·durum (boş sağ yarı yok) */
 .pusula-dayq { border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); background: var(--zara-bg-white); padding: 16px 20px 14px; margin-bottom: 22px; }
 .pusula-dayq-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--zara-ink); }
-.pusula-dayq-head > span:first-child { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink); }
+.pusula-dayq-head > span:first-child { display: inline-flex; align-items: center; gap: 10px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--zara-ink); }
 .pusula-dayq-prog { display: inline-flex; align-items: center; gap: 10px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-gold-deep); }
 .pusula-dayq-prog u { width: 72px; height: 2px; background: var(--zara-line); text-decoration: none; display: inline-block; }
 .pusula-dayq-prog b { display: block; height: 100%; background: var(--zara-ink); transition: width 350ms var(--ease-atelier); }
@@ -1652,6 +1726,8 @@
 .pusula-paper { position: relative; overflow: hidden; background: #fff; border: 1px solid var(--zara-line-strong); border-radius: var(--panel-radius); padding: 30px 32px; box-shadow: var(--panel-shadow-soft); }
 .pusula-paper-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--zara-ink); padding-bottom: 16px; margin-bottom: 22px; }
 .pusula-paper-eb { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-40); margin-bottom: 6px; }
+/* tahsis numarası jetonu — kuruma kayıt; bordered tabular mono, arşiv dili */
+.pusula-paper-acc { display: inline-block; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; color: var(--zara-ink-50); font-variant-numeric: tabular-nums; border: 1px solid var(--zara-line-strong); padding: 2px 8px; border-radius: 0; margin-bottom: 9px; }
 .pusula-paper-head h3 { margin: 0; font-family: var(--ff-display); font-size: 24px; font-weight: 500; line-height: 1.1; }
 .pusula-paper-date { font-family: var(--ff-mono); font-size: 11px; color: var(--zara-ink-2); white-space: nowrap; }
 .pusula-paper-row { margin-bottom: 18px; }
@@ -1731,6 +1807,10 @@
 .pusula-spark-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 0; }
 .pusula-spark-legend i.t { background: var(--zara-line-strong); }
 .pusula-spark-legend i.c { background: var(--zara-gold); border-radius: 50%; }
+/* "ŞİMDİ" satırı — gerçek saate kilitli imlecin metin karşılığı (rastgele veri değil) */
+.pusula-spark-now { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 0 6px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; }
+.pusula-spark-now .n { color: var(--zara-ink); }
+.pusula-spark-now .p { color: var(--zara-gold-deep); }
 .pusula-spark-svg { display: block; }
 .pusula-spark-x { font-family: var(--ff-mono); font-size: 7px; fill: var(--zara-ink-40); }
 .pusula-spark-foot { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-50); margin-top: 8px; }
@@ -1938,18 +2018,21 @@
 /* ── Evre Planları — her evre için ayrı, hover ile açılan tablo ── */
 /* USTA YOLU — aktarım kartları + kurumsal hafıza bandı */
 .pusula-transfers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; }
-.pusula-transfer { border: 1px solid var(--zara-line); background: var(--zara-bg-white, #fff); padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 12px; transition: border-color 240ms; }
+/* soy hattı (lineage rail): default soluk altın = "aktarım önerildi";
+   onaylanınca ink'e koyulaşır = "yöntem kuruma yazıldı" (iki agent convergent). */
+.pusula-transfer { border: 1px solid var(--zara-line); border-left: 3px solid var(--zara-gold); background: var(--zara-bg-white, #fff); padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 12px; transition: border-color 300ms var(--ease-atelier); }
 .pusula-transfer.ok { border-left: 3px solid var(--zara-ink); }
 .pusula-transfer-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .pusula-transfer-pair { display: inline-flex; align-items: center; gap: 8px; color: var(--zara-ink-40); }
 .pusula-transfer-conf { display: inline-flex; align-items: center; gap: 8px; }
-.pusula-transfer-conf i { font-family: var(--ff-mono); font-style: normal; font-size: 7px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); }
+.pusula-transfer-conf i { font-family: var(--ff-mono); font-style: normal; font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-transfer-names { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .pusula-transfer-names em { font-family: var(--ff-display); font-style: italic; font-size: 21px; line-height: 1.1; color: var(--zara-ink); }
-.pusula-transfer-names span { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-40); }
-.pusula-transfer-focus { font-family: var(--ff-sans); font-size: 13px; line-height: 1.5; color: var(--zara-ink-2); }
+.pusula-transfer-names span { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-40); }
+/* fokus = aktarılan ŞEY → kartın kahramanı (design-council P1) */
+.pusula-transfer-focus { font-family: var(--ff-sans); font-size: 15px; line-height: 1.5; color: var(--zara-ink); }
 .pusula-transfer-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.pusula-transfer-meta .tag { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink); border: 1px solid var(--zara-line-strong); padding: 4px 9px; }
+.pusula-transfer-meta .tag { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink); border: 1px solid var(--zara-line-strong); padding: 4px 9px; }
 .pusula-transfer-meta .slot { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.06em; color: var(--zara-ink-50); }
 .pusula-transfer-acts { display: flex; gap: 10px; margin-top: 4px; }
 .pusula-transfer-slotbtn { border: 1px solid var(--zara-line-strong); background: transparent; cursor: pointer; padding: 7px 13px; font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-65); transition: all 200ms; }
@@ -1964,13 +2047,9 @@
 .pusula-codified-chip i { font-style: normal; color: var(--zara-ink-40); }
 @media (max-width: 860px) { .pusula-transfers { grid-template-columns: 1fr; } }
 
-/* USTA YOLU — hikâye şeridi + öğretebilir havuzu + yöntem etiketi */
-.pusula-usta-story { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border: 1px solid var(--zara-line); padding: 13px 18px; margin-bottom: 14px; }
-.pusula-usta-story span { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--zara-ink-50); }
-.pusula-usta-story span.last { color: var(--zara-ink); box-shadow: inset 0 -1px 0 var(--zara-ink); padding-bottom: 3px; }
-.pusula-usta-story i { font-style: normal; color: var(--zara-ink-30); }
+/* USTA YOLU — öğretebilir havuzu + yöntem etiketi (usta-story kaldırıldı) */
 .pusula-teachpool { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-.pusula-teachpool-chip { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--zara-line-strong); padding: 5px 11px 5px 6px; font-family: var(--ff-sans); font-size: 11.5px; font-weight: 600; color: var(--zara-ink); }
+.pusula-teachpool-chip { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--zara-line-strong); padding: 5px 11px 5px 6px; font-family: var(--ff-sans); font-size: 11.5px; font-weight: 500; color: var(--zara-ink); }
 .pusula-teachpool-chip em { font-family: var(--ff-mono); font-style: normal; font-weight: 400; font-size: 7.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-match-method { display: block; margin-top: 5px; font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zara-ink-50); }
 .pusula-match-method em { font-style: normal; color: var(--zara-ink); margin-left: 8px; }
@@ -2191,8 +2270,13 @@
 @media (max-width: 900px){ .pkroki-grid { grid-template-columns: 1fr; } .pkroki-panel { position: static; } }
 
 /* ── Ekip kartı accent (stitch cilası, fotoğraf yok) ───── */
-.pusula-card-accent { margin-top: 12px; height: 3px; background: var(--zara-bg-alt); border-radius: 0; overflow: hidden; }
-.pusula-card-accent span { display: block; height: 100%; border-radius: 0; transition: width 600ms var(--ease-atelier); }
+/* yaşam-evresi YARDSTICK — 4 çentik: geçmiş ink · mevcut TEK altın (uzun) ·
+   gelecek çizgi. "Dolu skor barı" değil KONUM (skor yok, kanıt var). */
+.pusula-card-accent { margin-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-items: end; }
+.pusula-card-accent span { display: block; height: 4px; background: var(--zara-line-strong); transition: height 400ms var(--ease-atelier), background 400ms; }
+.pusula-card-accent span.past { background: var(--zara-ink-40); }
+.pusula-card-accent span.now { height: 9px; background: var(--zara-gold); }
+.pusula-card-accent span.future { background: var(--zara-line); }
 /* profil ferahlık (stitch) */
 .pusula-profile-cols { gap: 36px 52px; }
 .pusula-profile-col { gap: 34px; }
@@ -2395,8 +2479,39 @@
 
 /* — KARTLAR: form kutusu değil editoryal yüzey — */
 .pusula-card, .pcomp-card, .pfit-row, .papt-row, .pusula-rec, .pkroki-panel, .pusula-chart, .pusula-demand, .pusula-surplus { border-color: var(--zara-line); }
-.pusula-card { transition: border-color 240ms var(--ease-atelier), transform 240ms var(--ease-atelier), background 240ms; }
-.pusula-card:hover { border-color: var(--zara-line-strong); background: #fcfcfc; transform: translateY(-2px); }
+.pusula-card { position: relative; transition: border-color 240ms var(--ease-atelier), transform 300ms var(--ease-atelier), box-shadow 300ms var(--ease-atelier), background 240ms; }
+/* hover'da soldan sağa süzülen altın üst-kenar — editöryel "seçildi" jesti */
+.pusula-card::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--zara-gold); transform: scaleX(0); transform-origin: left; transition: transform 460ms var(--ease-atelier); pointer-events: none; }
+.pusula-card:hover { border-color: var(--zara-ink); background: var(--zara-bg-white); transform: translateY(-5px); box-shadow: 0 14px 30px -20px rgba(0, 0, 0, 0.22); }
+.pusula-card:hover::after { transform: scaleX(1); }
+
+/* ── KOÇ KARTI = "USTALIK KOLTUĞU" ─────────────────────────────
+   Atölyenin koyu-bölüm idiom'u: mürekkep zemin + krem metin + TEK altın.
+   Nadir (yalnız koçlar) → ölçülü. Pusula flat: parlama yok. */
+.pusula-card--coach { background: var(--zara-ink); border-color: var(--zara-ink); }
+.pusula-card--coach .pusula-card-name,
+.pusula-card--coach .pusula-card-persona em { color: var(--zara-bg); }
+.pusula-card--coach .pusula-card-tenure,
+.pusula-card--coach .pusula-card-dna-head,
+.pusula-card--coach .pusula-card-dna-labels span,
+.pusula-card--coach .pusula-card-key.growing,
+.pusula-card--coach .pusula-card-peek,
+.pusula-card--coach .pusula-card-conf i { color: rgba(245, 241, 234, 0.45); }
+.pusula-card--coach .pusula-card-line { color: rgba(245, 241, 234, 0.78); }
+.pusula-card--coach .pusula-card-key.strong { color: var(--zara-gold); }
+.pusula-card--coach .pusula-card-dna i.em { background: rgba(245, 241, 234, 0.18); }
+.pusula-card--coach .pusula-card-dna i.p0 { background: rgba(245, 241, 234, 0.30); }
+.pusula-card--coach .pusula-card-dna i.p1 { background: rgba(245, 241, 234, 0.45); }
+.pusula-card--coach .pusula-card-dna i.p2 { background: rgba(245, 241, 234, 0.62); }
+.pusula-card--coach .pusula-card-dna i.p3 { box-shadow: none; }
+.pusula-card--coach .pusula-card-dna i.un { border-color: rgba(245, 241, 234, 0.25); }
+.pusula-card--coach .pusula-card-dna,
+.pusula-card--coach .pusula-card-foot { border-color: rgba(245, 241, 234, 0.14); }
+.pusula-card--coach .pusula-card-tags span { border-color: rgba(245, 241, 234, 0.3); color: rgba(245, 241, 234, 0.7); }
+.pusula-card--coach .pusula-card-tags .t-teach { border-left-color: var(--zara-gold); }
+.pusula-card--coach .pusula-card-accent span.past { background: rgba(245, 241, 234, 0.4); }
+.pusula-card--coach .pusula-card-accent span.future { background: rgba(245, 241, 234, 0.14); }
+.pusula-card--coach:hover { border-color: var(--zara-gold); background: var(--zara-ink); }
 .pcomp-card.usta { border: 1px solid var(--zara-line); border-left: 3px solid var(--zara-ink); background: var(--zara-bg-white); }
 .pfit-row.top { border: 1px solid var(--zara-line); border-left: 3px solid var(--zara-ink); background: var(--zara-bg-white); }
 .papt-row { border-left: 3px solid var(--zara-ink); }
@@ -2475,6 +2590,10 @@
 /* ── BUGÜN — ön sayfa ── */
 .pv3-cockpit { display: flex; flex-direction: column; gap: 0; }
 .pv3-masthead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 10px; }
+/* sol künye grubu: tarih başlığı + altında gazete "baskı künyesi" kicker'ı */
+.pv3-mast-left { display: flex; flex-direction: column; gap: 4px; }
+/* text-indent 2px: italik serif tarihin optik sol-kaçışını telafi eder (hizalı kicker) */
+.pv3-edition { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink-50); text-indent: 2px; }
 .pv3-date { font-family: var(--ff-display); font-style: italic; font-size: 17px; color: var(--zara-ink); text-transform: capitalize; }
 .pv3-store { font-family: var(--ff-mono); font-size: 8.5px; letter-spacing: 0.22em; color: var(--zara-ink-40); }
 .pv3-ticker { overflow: hidden; border-top: 1px solid var(--zara-ink); border-bottom: 1px solid var(--zara-line); padding: 7px 0; margin-bottom: 26px; }
@@ -2578,7 +2697,8 @@
 /* Tek navigasyon: desktop'ta hep-açık etiketli sidebar; rakip sticky künye
    kalktı. Marka üstte (eve döner), bölümler gruplu, altta Atölye/Shift/Çıkış. */
 .pv4-rail {
-  position: fixed; left: 0; top: 0; bottom: 0; z-index: 70; width: 234px;
+  /* top: 46 — paylaşılan AtelyeBar (46px) altına iner */
+  position: fixed; left: 0; top: 46px; bottom: 0; z-index: 70; width: 234px;
   background: var(--zara-bg); border-right: 1px solid var(--zara-line);
   display: flex; flex-direction: column; padding: 22px 0 14px; overflow-y: auto;
 }
@@ -2684,6 +2804,15 @@
 
 /* ── Defter derin geliştirme: nabız bandı · trend · sticky · dönem barı ── */
 .pusula-pulse { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--zara-line); margin-bottom: 20px; }
+/* liste üstü "durum özeti" varyantı — hafif recessed zemin: tıklanabilir
+   seviye tablarından ayrışıp "okunan metrik" hissi verir (design-council). */
+.pusula-pulse--summary { background: var(--zara-bg-alt); margin-top: 4px; }
+.pusula-pulse--summary .pusula-pulse-cell u { background: var(--zara-bg-white); }
+/* "ikinci navigasyon" sinyallerini söndür (design-council son rötuş):
+   eşit-segment dikey ayraçları kaldır + davranışsal KELİME italik-serif
+   ikizini roman+küçük yap (italik-serif tek sahibi seviye tabları kalsın). */
+.pusula-pulse--summary .pusula-pulse-cell { border-right: none; }
+.pusula-pulse--summary .pusula-pulse-cell em.word { font-style: normal; font-size: 15px; }
 .pusula-pulse-cell { position: relative; padding: 16px 18px 18px; border-right: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 4px; }
 .pusula-pulse-cell:last-child { border-right: none; }
 .pusula-pulse-cell em { font-family: var(--ff-display); font-style: italic; font-size: 26px; line-height: 1; color: var(--zara-ink); }
@@ -2709,6 +2838,10 @@
 .pusula-patterns { border: 1px solid var(--zara-line); margin-bottom: 22px; }
 .pusula-patterns-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 18px; border-bottom: 1px solid var(--zara-line); flex-wrap: wrap; }
 .pusula-patterns-eb { display: inline-flex; align-items: center; gap: 8px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--zara-ink); }
+/* folyo numarası — bölümleri "numaralı arşiv klasörü" gibi omurgaya bağlar
+   (design-council). Display italik, nötr ink-30; altın rasyonuna dokunmaz. */
+.pusula-mem-folio { font-family: var(--ff-display); font-style: italic; font-size: 17px; line-height: 1; color: var(--zara-ink-40); }
+.pusula-mem-archead { margin-top: 10px; }
 .pusula-patterns-sub { font-family: var(--ff-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zara-ink-40); }
 .pusula-patterns-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
 .pusula-pattern { padding: 18px; border-right: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 10px; }
@@ -2731,7 +2864,8 @@
 /* ── ETKİ — gelişim → performans paneli ─────────────────── */
 /* 2×2 editorial grid: ① isabet (başköşe) ② olgunlaşma ③ conversion (band) ④ pilot */
 .petki-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 0; border: 1px solid var(--zara-line); }
-.petki-hitcard { padding: 24px 28px; border-right: 1px solid var(--zara-line); border-bottom: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 14px; }
+/* ① isabet kartı = savunulabilirliğin tepesi → tek altın üst-kenar (design-council P2) */
+.petki-hitcard { padding: 24px 28px; border-top: 3px solid var(--zara-gold); border-right: 1px solid var(--zara-line); border-bottom: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 14px; }
 .petki-hitsvg { display: block; }
 .petki-mat { padding: 24px 26px; border-bottom: 1px solid var(--zara-line); display: flex; flex-direction: column; gap: 14px; }
 .petki-mat-track { display: grid; grid-template-columns: repeat(4, 1fr); }
@@ -2742,6 +2876,8 @@
 .petki-mat-step small { font-family: var(--ff-sans); font-size: 9.5px; font-style: italic; color: var(--zara-ink-50); line-height: 1.4; }
 .petki-live { display: flex; flex-direction: column; gap: 4px; text-align: right; }
 .petki-live em { font-family: var(--ff-display); font-style: italic; font-size: 38px; line-height: 1; }
+/* boş oturum: kapanan döngü 0 iken dev "0" yerine sönük tire (design-council P1) */
+.petki-live em.zero { font-size: 22px; color: var(--zara-ink-40); }
 .petki-live span { font-family: var(--ff-mono); font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zara-ink); }
 .petki-live small { font-family: var(--ff-sans); font-size: 10px; font-style: italic; color: var(--zara-ink-40); }
 .petki-eb-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }

@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { X, CalendarRange } from "lucide-react";
+import { useAtelyeNav } from "@/lib/atelye-nav";
 import { MasteryLevel, type Employee } from "../types";
 import { PersonAvatar } from "./PersonAvatar";
 import { MasteryChip } from "./MasteryChip";
@@ -26,6 +27,7 @@ export function ProfileDrawer({
   onFull: () => void;
 }) {
   const t = useT();
+  const { openInShift } = useAtelyeNav();
   const pa = person ? sellingPersona(person) : null;
   const trainings = person ? upcomingTrainings(person) : [];
   return (
@@ -87,9 +89,20 @@ export function ProfileDrawer({
             </div>
 
             <div className="pusula-drawer-foot">
-              <button className="pusula-fulllink" onClick={onFull}>
-                {t("b.fullProfile")}
-              </button>
+              <div className="pusula-drawer-actions">
+                <button className="pusula-fulllink" onClick={onFull}>
+                  {t("b.fullProfile")}
+                </button>
+                {/* Çapraz-link: kişiyi Shift Organizer matrisinde aç (?focus=İlkAd) */}
+                <button
+                  className="pusula-crosslink"
+                  onClick={() => openInShift(person.name.split(" ")[0])}
+                  title="Bu kişiyi Shift Organizer matrisinde aç"
+                >
+                  <CalendarRange size={13} strokeWidth={1.6} />
+                  Shift'te göster
+                </button>
+              </div>
               <span className="pusula-drawer-note">{t("a.worker")}</span>
             </div>
           </motion.aside>

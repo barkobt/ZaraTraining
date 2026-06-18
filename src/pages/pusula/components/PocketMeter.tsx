@@ -25,13 +25,19 @@ export function PocketMeter({ pocket, fraction }: { pocket: PocketState; fractio
         ? pick({ tr: "rahat", en: "calm", es: "tranquilo" })
         : pick({ tr: "rahatlıyor", en: "easing", es: "relajándose" });
   const fill = 0.3 + 0.46 * f;
-  const color = eased ? "var(--zara-sage)" : "rgba(191, 149, 80, 0.45)";
+  const color = eased ? "var(--zara-sage)" : "rgba(191, 149, 80, 0.6)";
 
   return (
     <div className="pusula-pocket">
       <div className="pusula-pocket-head">
         <span className="pusula-pocket-eb">{pick({ tr: "Akşam Cebi", en: "Evening Pocket", es: "Hueco Vespertino" })} · {pocket.window}</span>
         <span className={`pusula-pocket-state ${eased ? "eased" : "tense"}`}>{label}</span>
+      </div>
+      {/* gergin → rahat ölçeği — öncesi/sonrası MEKÂNSAL okunur (rakam yok):
+          başlangıç kutbu (cep bazı, 30%) ve hedef kutbu (rahat, 76%). */}
+      <div className="pusula-pocket-scale" aria-hidden>
+        <span className="s-start" style={{ left: "30%" }}>{pick({ tr: "gergin", en: "tense", es: "tenso" })}</span>
+        <span className="s-end" style={{ left: "76%" }}>{pick({ tr: "rahat", en: "calm", es: "tranquilo" })}</span>
       </div>
       <div className="pusula-pocket-track" style={{ background: "var(--zara-bg-alt)" }}>
         <motion.div
@@ -40,6 +46,8 @@ export function PocketMeter({ pocket, fraction }: { pocket: PocketState; fractio
           animate={{ width: `${Math.round(fill * 100)}%` }}
           transition={{ duration: 0.7, ease: EASE }}
         />
+        {/* başlangıç çentiği — "buradan başladık"; dolum bunu geçtikçe kazanılan rahatlama okunur */}
+        <span className="pusula-pocket-notch" style={{ left: "30%" }} aria-hidden />
       </div>
       <div className="pusula-pocket-foot">
         {pick({

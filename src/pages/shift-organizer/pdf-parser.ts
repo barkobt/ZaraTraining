@@ -180,6 +180,11 @@ function extractBreaksAndTasks(
       // Yarım saat başlangıç (13.5) → 0.5 saat mola; tam saat (13) → 1 saat
       e = Math.min(h1 + (h1 % 1 === 0.5 ? 0.5 : 1.0), endHour);
     }
+    // Tüm vardiyayı kaplayan "mola" gerçek değildir. "Ada 10:00-19:00 B 13:00"
+    // gibi satırlarda B/MOLA keyword'ü shift aralığının HEMEN ardından gelince
+    // Parser 2 shift'in kendisini (10-19) mola sanıyor → mergeBreaks gerçek
+    // molayı (13-14) yutup [10,19] yapıyordu. Tüm shift'i kaplayan aralığı atla.
+    if (h1 <= startHour + 1e-6 && e >= endHour - 1e-6) return;
     // dedupe (float karşılaştırma)
     if (!breaks.some(([s]) => Math.abs(s - h1) < 0.01)) breaks.push([h1, e]);
   };
@@ -625,6 +630,15 @@ export async function parseShiftsFromPdfDataWithReport(buf: ArrayBuffer | Uint8A
   let inBasic = false;
   let sawBasic = false;
 
+  // Sütun başlıkları sayfalar arası AYNI x-koordinatlarda gelir (Name@3.9,
+  // Shift@107.3, Break@147.6, Hours@189.3). 2026-06-17: Bir sayfada header
+  // satırı bulunamazsa eskiden TÜM sayfa atlanıyordu (`continue`) → TRF/WOMAN
+  // gibi son sayfalardaki okunabilir bölümler komple düşüyordu ("sadece BASIC
+  // ve FR okunuyor" şikâyeti). Artık son bilinen header sütunları yeniden
+  // kullanılır; sayfa atlanmaz.
+  type ColName = "name" | "shift" | "break" | "hours";
+  let lastHeaderCols: Array<{ item: Item; name: ColName }> | null = null;
+
   // Orquest PDF'i çok sayfalı (BASIC/CABALLERO/KASA/MÜDÜR/NIÑO/OPERASYON/WOMAN).
   // Sadece BASIC bölümünü tarayacağız. Tüm sayfaları gez ama BASIC dışındaysa atla.
   for (let i = 1; i <= pdf.numPages; i++) {
@@ -681,56 +695,58 @@ export async function parseShiftsFromPdfDataWithReport(buf: ArrayBuffer | Uint8A
         findHeaderCol(r, HEADER_KEYWORDS.shift)
       );
     });
-    if (!headerRow) {
-      console.warn(`[PDF Parser] Page ${i}: no header row found, ${rows.length} rows total`);
+
+    // 3) Sütun atama — VORONOI yaklaşımı (her data item en yakın header sütununa).
+    //
+    // KÖKEN BUG (2026-05-23): aralık-tabanlı kontrol başarısızdı (sol-hizalı
+    // header vs sağ/orta-hizalı data). Çözüm: en yakın header item'ın sütunu.
+    //
+    // 2026-06-17: Header bu sayfada bulunduysa sütunları ondan çıkar ve "son
+    // header" olarak sakla; bulunamadıysa önceki sayfanın sütunlarını yeniden
+    // kullan (sayfa ATLAMA yok → TRF/WOMAN düşmesin). Hiç header görülmediyse
+    // (ör. ilk sayfa) sayfayı atla.
+    let headerCols = lastHeaderCols;
+    if (headerRow) {
+      const nameH = findHeaderCol(headerRow, HEADER_KEYWORDS.name)!;
+      const shiftH = findHeaderCol(headerRow, HEADER_KEYWORDS.shift)!;
+      const breakH = findHeaderCol(headerRow, HEADER_KEYWORDS.break);
+      const hoursH = findHeaderCol(headerRow, HEADER_KEYWORDS.hours);
+      // break/hours opsiyonel — yoksa o sütun voronoi'ye dahil edilmez (FR gibi
+      // basit layout).
+      const cols: Array<{ item: Item; name: ColName }> = [
+        { item: nameH, name: "name" },
+        { item: shiftH, name: "shift" },
+      ];
+      if (breakH) cols.push({ item: breakH, name: "break" });
+      if (hoursH) cols.push({ item: hoursH, name: "hours" });
+      cols.sort((a, b) => a.item.x - b.item.x);
+      headerCols = cols;
+      lastHeaderCols = cols;
+      console.warn(
+        `[PDF Parser] Page ${i}: header found (rows=${rows.length}) cols:`,
+        cols.map((c) => `${c.item.str.trim()}@${c.item.x.toFixed(1)}`).join(", "),
+      );
+    } else if (headerCols) {
+      console.warn(
+        `[PDF Parser] Page ${i}: header YOK → önceki sayfanın sütunları yeniden kullanılıyor (${rows.length} satır)`,
+      );
+    } else {
+      console.warn(`[PDF Parser] Page ${i}: header YOK ve önceki header da yok → sayfa atlandı`);
       continue;
     }
-    const headerIdx = rows.indexOf(headerRow);
-    console.warn(
-      `[PDF Parser] Page ${i}: header row found (rows=${rows.length}, headerRow at index ${headerIdx})`,
-    );
 
-    // 3) Sütun atama — VORONOI yaklaşımı
-    //
-    // KÖKEN BUG (2026-05-23): Eski "cols=[header[i].x-5, header[i+1].x-5)"
-    // aralık tabanlı kontrol Orquest PDF'inde başarısız. Çünkü header item'lar
-    // SOL-hizalı (örn "Shift" x=200), data değerleri SAĞ-hizalı veya ORTA-hizalı
-    // (örn "07:00-13:00" x=130) → data Shift sütununa DEĞİL Name sütununa düştü.
-    //
-    // Çözüm: Her data item kendi x'ine EN YAKIN header item'ın sütununa
-    // düşsün (Voronoi-style). Hizalama farkından bağımsız doğru atama.
-    const nameH = findHeaderCol(headerRow, HEADER_KEYWORDS.name)!;
-    const shiftH = findHeaderCol(headerRow, HEADER_KEYWORDS.shift)!;
-    const breakH = findHeaderCol(headerRow, HEADER_KEYWORDS.break);
-    const hoursH = findHeaderCol(headerRow, HEADER_KEYWORDS.hours);
-    // break/hours opsiyonel — yoksa o sütun voronoi'ye dahil edilmez (FR gibi
-    // basit layout). Sıralı (x'e göre) header listesi + paralel isim listesi.
-    const headerCols: Array<{ item: Item; name: "name" | "shift" | "break" | "hours" }> = [
-      { item: nameH, name: "name" },
-      { item: shiftH, name: "shift" },
-    ];
-    if (breakH) headerCols.push({ item: breakH, name: "break" });
-    if (hoursH) headerCols.push({ item: hoursH, name: "hours" });
-    headerCols.sort((a, b) => a.item.x - b.item.x);
-    const headerByX = headerCols.map((c) => c.item);
-    type ColName = "name" | "shift" | "break" | "hours";
     const whichCol = (itemX: number): ColName => {
       let bestIdx = 0;
       let bestDist = Infinity;
-      for (let i = 0; i < headerCols.length; i++) {
-        const d = Math.abs(itemX - headerCols[i].item.x);
+      for (let k = 0; k < headerCols!.length; k++) {
+        const d = Math.abs(itemX - headerCols![k].item.x);
         if (d < bestDist) {
           bestDist = d;
-          bestIdx = i;
+          bestIdx = k;
         }
       }
-      return headerCols[bestIdx].name;
+      return headerCols![bestIdx].name;
     };
-
-    console.warn(
-      `[PDF Parser] Page ${i} headerX:`,
-      headerByX.map((h) => `${h.str.trim()}@${h.x.toFixed(1)}`).join(", "),
-    );
 
     // 4) Her data satırını sütunlara göre işle
     //
@@ -770,7 +786,7 @@ export async function parseShiftsFromPdfDataWithReport(buf: ArrayBuffer | Uint8A
     let lastPerson: ParsedShift | null = null;
 
     for (const row of rows) {
-      if (row === headerRow) continue;
+      if (headerRow && row === headerRow) continue;
       // Section header check
       const rowStr = row.map((it) => it.str.trim()).join(" ").trim().toUpperCase();
       const tokens = rowStr.split(/\s+/).filter(Boolean);

@@ -10,6 +10,7 @@ import { ArchiveTab } from "./shift-organizer/ArchiveTab";
 import { AddPersonModal } from "./shift-organizer/AddPersonModal";
 import type { StaffRow } from "./shift-organizer/constants";
 import { useAuthGate } from "./shift-organizer/auth-gate";
+import { AtelyeBar } from "@/components/atelier";
 
 type TabId = "competency" | "areas" | "generate" | "archive" | "report" | "settings";
 
@@ -105,6 +106,7 @@ function ShiftOrganizerInner({
 
   return (
     <div className="zt-editorial so-shell">
+      <AtelyeBar active="shift" />
       <header className="so-head">
         <div className="so-brand">
           <div className="bn">Shift <em>Organizer</em></div>
@@ -183,6 +185,9 @@ function ShiftOrganizerInner({
             tenureLevel: editPerson.tenureLevel,
             isManager: editPerson.isManager,
             note: editPerson.note,
+            homeArea: editPerson.homeArea,
+            duty: editPerson.duty,
+            employment: editPerson.employment,
           }}
           onClose={() => setEditPerson(null)}
           onSubmit={(data) => {

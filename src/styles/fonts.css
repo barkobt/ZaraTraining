@@ -1,0 +1,12 @@
+/* ============================================================
+   ZARA ATELYE · WEBFONTS
+   ------------------------------------------------------------
+   The atelier voice is three typefaces, no more:
+     · Newsreader      — editorial serif. Display + headings.
+     · Inter           — neutral sans. Body + UI.
+     · JetBrains Mono  — eyebrows, meta, tabular figures.
+   All three are open-source Google Fonts (no substitution).
+   Newsreader italic is reserved for the "Atelye" wordmark idiom.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400;1,6..72,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap");

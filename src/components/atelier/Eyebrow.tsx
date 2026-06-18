@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, HTMLAttributes, ElementType } from "react";
 
 /**
  * Eyebrow — the most-used motif in the system.
@@ -7,34 +7,40 @@ import type { ReactNode } from "react";
  * hairlines, on top of cards. Default tone is ink/50; `gold` lights it up
  * for selected / featured / "in residence" markers.
  *
- * Sizes:
- *   sm → 9px / 0.25em tracking (chips, tiny meta)
- *   md → 10px / 0.30em tracking (the default — section headers)
- *   lg → 11px / 0.32em tracking (carousel chapter labels)
+ * Sizes (DS-kanonik · --fs-eyebrow = 11px, ağırlık medium 500):
+ *   sm → 9px  / 0.24em (chips, tiny meta)
+ *   md → 11px / 0.30em (default — section headers)
+ *   lg → 12px / 0.32em (carousel chapter labels)
  */
 export function Eyebrow({
   children,
   gold = false,
   size = "md",
+  as: Tag = "span",
   className = "",
+  style,
+  ...rest
 }: {
   children: ReactNode;
   gold?: boolean;
   size?: "sm" | "md" | "lg";
+  /** Render edilecek element. @default "span" */
+  as?: ElementType;
   className?: string;
-}) {
+} & HTMLAttributes<HTMLElement>) {
   const sizing =
     size === "sm"
-      ? "text-[9px] tracking-[0.25em]"
+      ? "text-[9px] tracking-[0.24em]"
       : size === "lg"
-        ? "text-[11px] tracking-[0.32em]"
-        : "text-[10px] tracking-[0.30em]";
+        ? "text-[12px] tracking-[0.32em]"
+        : "text-[11px] tracking-[0.30em]";
   return (
-    <span
+    <Tag
       className={`font-mono uppercase ${sizing} ${className}`}
-      style={{ color: gold ? "var(--zara-gold)" : "var(--zara-ink-50)" }}
+      style={{ fontWeight: 500, color: gold ? "var(--zara-gold)" : "var(--zara-ink-50)", ...style }}
+      {...rest}
     >
       {children}
-    </span>
+    </Tag>
   );
 }

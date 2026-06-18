@@ -20,6 +20,7 @@ import {
 import { Link } from "react-router";
 import { LiveDot } from "./primitives";
 import { PusulaMark } from "./components/PusulaMark";
+import { AtelyeBar } from "@/components/atelier";
 import { trpc } from "@/providers/trpc";
 import type { Employee } from "./types";
 import { employees, pocket } from "./data";
@@ -207,6 +208,12 @@ function PusulaInner() {
     };
   }, [lang]);
 
+  // Görünüm (tab) değişince sayfayı en üste al — kullanıcı önceki view'de
+  // aşağıdayken yeni view'e geçince ortada/altta kalmasın.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [view]);
+
   // menü açıkken: Escape kapatır, arka plan kaymaz
   useEffect(() => {
     if (!menuOpen) return;
@@ -265,6 +272,7 @@ function PusulaInner() {
   return (
     <LangCtx.Provider value={{ lang, setLang }}>
     <div className="zt-editorial pusula-shell pv4-withrail">
+      <AtelyeBar active="pusula" />
       {/* ── KALICI ETİKETLİ SOL SİDEBAR — tek nav · gruplu · çıkışlı ── */}
       <nav className="pv4-rail" aria-label="Pusula">
         <button className="pv4-rail-mark" onClick={() => go("bugun")} aria-label={tr("a11y.home", lang)}>

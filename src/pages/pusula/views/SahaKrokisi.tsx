@@ -155,7 +155,7 @@ export function SahaKrokisi() {
                     {layer === "baski"
                       ? `· ${trafficLabel(z.traffic).toLowerCase()}`
                       : gap
-                        ? `· ${pick({ tr: "açık!", en: "gap!", es: "¡brecha!" })}`
+                        ? `· ${pick({ tr: "açık", en: "gap", es: "brecha" })}`
                         : z.needs.length
                           ? `· ${density} ${pick({ tr: "kanıtlı el", en: "proven hands", es: "manos probadas" })}`
                           : ""}
