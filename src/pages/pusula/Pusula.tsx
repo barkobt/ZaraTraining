@@ -176,21 +176,6 @@ function PusulaInner() {
   const [lang, setLang] = useState<Lang>("tr");
   const [q, setQ] = useState("");
 
-  // Çapraz-link ALICI uç: Shift'ten ?person=İlkAd ile gelince o kişinin
-  // profilini aç (Shift → Pusula). İlk ad ortak anahtar (TR-locale fold).
-  useEffect(() => {
-    const name = new URLSearchParams(window.location.search).get("person");
-    if (!name) return;
-    const key = name.trim().toLocaleLowerCase("tr");
-    const match = employees.find(
-      (e) => e.name.split(" ")[0].toLocaleLowerCase("tr") === key
-    );
-    if (match) {
-      setSelected(match);
-      setView("profil");
-    }
-  }, []);
-
   const go = (id: ViewId) => {
     setView(id);
     setMenuOpen(false);
