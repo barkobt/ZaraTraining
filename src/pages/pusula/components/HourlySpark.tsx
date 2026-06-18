@@ -1,4 +1,4 @@
-import { hourly } from "../data";
+import { hourly, pocket } from "../data";
 import { pick } from "../i18n";
 
 /**
@@ -26,6 +26,25 @@ export function HourlySpark() {
   const pStart = pocketIdx.length ? padX + bw * Math.min(...pocketIdx) : 0;
   const pWidth = pocketIdx.length ? bw * pocketIdx.length : 0;
 
+  // "ŞİMDİ" imleci — gerçek saat (rastgele veri değil). Aralık dışındaysa gizli.
+  const now = new Date();
+  const nowH = now.getHours();
+  const nowMin = now.getMinutes();
+  const firstH = parseInt(hourly[0].hour, 10);
+  const lastH = parseInt(hourly[n - 1].hour, 10);
+  const inRange = nowH >= firstH && nowH <= lastH;
+  const nowX = inRange ? padX + bw * (nowH - firstH) + bw * (nowMin / 60) : null;
+  // cep geri-sayımı — pocket.window "17:00–19:00"
+  const pStartH = parseInt(pocket.window, 10);
+  const pEndH = parseInt(pocket.window.split(/[–-]/)[1] ?? "", 10) || pStartH + 2;
+  const nowT = nowH * 60 + nowMin;
+  const pocketMsg =
+    nowT < pStartH * 60
+      ? (() => { const d = pStartH * 60 - nowT; return d >= 60 ? `cebe ${Math.floor(d / 60)} sa ${d % 60} dk` : `cebe ${d} dk`; })()
+      : nowT <= pEndH * 60
+        ? "cep şu an"
+        : "cep geçti";
+
   return (
     <div className="pusula-spark">
       <div className="pusula-spark-head">
@@ -34,6 +53,12 @@ export function HourlySpark() {
           <i className="t" /> {pick({ tr: "trafik", en: "traffic", es: "tráfico" })} <i className="c" /> conversion
         </span>
       </div>
+      {inRange && (
+        <div className="pusula-spark-now">
+          <span className="n">ŞİMDİ {String(nowH).padStart(2, "0")}:{String(nowMin).padStart(2, "0")}</span>
+          <span className="p">{pocketMsg}</span>
+        </div>
+      )}
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" className="pusula-spark-svg">
         {pWidth > 0 && <rect x={pStart} y={padTop - 4} width={pWidth} height={H - padTop - padBot + 8} rx={5} fill="var(--zara-gold)" opacity={0.07} />}
         {/* taban çizgisi */}
@@ -57,6 +82,13 @@ export function HourlySpark() {
         {hourly.map((h, i) => (
           <circle key={h.hour} cx={cx(i)} cy={cy(h.conv)} r={2.2} fill="var(--zara-gold-deep)" />
         ))}
+        {/* "ŞİMDİ" dikey imleci — gerçek saate kilitli (SVG çizgi gerilmeye dayanıklı) */}
+        {nowX != null && (
+          <>
+            <line x1={nowX} y1={padTop - 4} x2={nowX} y2={H - padBot} stroke="var(--zara-ink)" strokeWidth={0.9} strokeDasharray="2.5 2.5" opacity={0.7} />
+            <circle cx={nowX} cy={padTop - 4} r={2} fill="var(--zara-ink)" />
+          </>
+        )}
         {hourly.map((h, i) => (
           <text key={h.hour} x={cx(i)} y={H - 6} textAnchor="middle" className="pusula-spark-x">
             {h.hour.slice(0, 2)}

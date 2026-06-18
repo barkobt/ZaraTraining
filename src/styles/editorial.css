@@ -1807,6 +1807,10 @@
 .pusula-spark-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 0; }
 .pusula-spark-legend i.t { background: var(--zara-line-strong); }
 .pusula-spark-legend i.c { background: var(--zara-gold); border-radius: 50%; }
+/* "ŞİMDİ" satırı — gerçek saate kilitli imlecin metin karşılığı (rastgele veri değil) */
+.pusula-spark-now { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 0 6px; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; }
+.pusula-spark-now .n { color: var(--zara-ink); }
+.pusula-spark-now .p { color: var(--zara-gold-deep); }
 .pusula-spark-svg { display: block; }
 .pusula-spark-x { font-family: var(--ff-mono); font-size: 7px; fill: var(--zara-ink-40); }
 .pusula-spark-foot { font-family: var(--ff-sans); font-size: 11.5px; font-style: italic; color: var(--zara-ink-50); margin-top: 8px; }
