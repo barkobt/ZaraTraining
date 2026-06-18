@@ -76,6 +76,21 @@
     mix-blend-mode: multiply;
   }
 
+  /* Hero atelier filmi dekoratif/sessiz katman — tarayıcının (özellikle Safari)
+     autoplay engellenince bindirdiği native "başlat-oynat" düğmesini ve tüm
+     medya kontrollerini gizle. Film tıklanamaz; ilk etkileşimde JS zaten
+     oynatmayı yeniden dener, böylece o çirkin ▶ hero'nun üstüne hiç çıkmaz. */
+  .hero-video::-webkit-media-controls,
+  .hero-video::-webkit-media-controls-enclosure,
+  .hero-video::-webkit-media-controls-panel,
+  .hero-video::-webkit-media-controls-start-playback-button,
+  .hero-video::-webkit-media-controls-overlay-play-button,
+  .hero-video::-webkit-media-controls-play-button {
+    display: none !important;
+    -webkit-appearance: none !important;
+    opacity: 0 !important;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Newsreader', 'Spectral', Georgia, serif;
     /* DS-4: başlıklar serif + MEDIUM (500), tarayıcı default'u olan
