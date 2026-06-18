@@ -190,11 +190,14 @@ export default function Home() {
       // gerçekten oynamadan element görünmez kalır (iOS'un play tuşu overlay'i
       // dahil hiçbir kare ekrana çıkamaz). Oynayınca yavaşça belirir;
       // kaydırınca hafifçe büyümeye devam eder (sinema derinliği).
-      gsap.set(".hero-video", { autoAlpha: 0, scale: 1.08 });
+      // autoAlpha DEĞİL opacity: autoAlpha alpha=0'da visibility:hidden yazar ve
+      // bu muted-autoplay'i engeller (Safari play()'i reddeder → video tıklamadan
+      // çalışmaz). Sadece opacity ile gizle: element "görünür" kalır, kare şeffaf.
+      gsap.set(".hero-video", { opacity: 0, scale: 1.08 });
       const heroVideo = root.current?.querySelector<HTMLVideoElement>(".hero-video");
       if (heroVideo) {
         const revealFilm = () => {
-          gsap.to(".hero-video", { autoAlpha: 0.42, scale: 1, duration: 2.4, ease: "power2.out" });
+          gsap.to(".hero-video", { opacity: 0.42, scale: 1, duration: 2.4, ease: "power2.out" });
         };
         if (!heroVideo.paused && heroVideo.readyState >= 2) revealFilm();
         else heroVideo.addEventListener("playing", revealFilm, { once: true });
@@ -384,7 +387,7 @@ export default function Home() {
           preload="auto"
           disablePictureInPicture
           className="hero-video absolute inset-0 w-full h-full object-cover pointer-events-none motion-reduce:hidden"
-          style={{ filter: "grayscale(0.85) contrast(1.05) brightness(0.95)", zIndex: 0, opacity: 0, visibility: "hidden" }}
+          style={{ filter: "grayscale(0.85) contrast(1.05) brightness(0.95)", zIndex: 0, opacity: 0 }}
         >
           <source src="/hero-atelier.mp4" type="video/mp4" />
         </video>
