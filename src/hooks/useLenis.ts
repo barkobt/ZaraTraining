@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -16,11 +17,16 @@ let lenisRef: Lenis | null = null;
  * - gsap.ticker'a bağlanır: tek RAF döngüsü → jank yok, lagSmoothing(0)
  *   ile sekme arkaplandıktan sonra ani sıçrama olmaz.
  * - prefers-reduced-motion'da HİÇ başlatılmaz → tamamen native scroll.
+ * - YALNIZ landing'de ("/") aktif: GSAP pinned yatay bölüm Lenis gerektirir.
+ *   Veri-yoğun uygulama ekranlarında (Pusula/Shift) global smooth-scroll'un
+ *   lerp ataleti girdiyi 1:1 izlemediğinden "kasma" gibi algılanıyordu; oralarda
+ *   native scroll daha doğrudan/akıcı. Route değişince Lenis kurulur/yıkılır.
  */
 export function useLenis() {
+  const { pathname } = useLocation();
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
+    if (reduce || pathname !== "/") return;
 
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
     lenisRef = lenis;
@@ -41,7 +47,7 @@ export function useLenis() {
       lenis.destroy();
       lenisRef = null;
     };
-  }, []);
+  }, [pathname]);
 }
 
 /** Route değişiminde başa dön — Lenis aktifse onun üzerinden (anlık), değilse native. */
