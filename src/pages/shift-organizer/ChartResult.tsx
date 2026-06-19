@@ -296,7 +296,7 @@ export function ChartResult({
 
   return (
     <div className="border border-stone-300">
-      <div className="px-4 py-3 border-b border-stone-300 flex items-center gap-4 text-[11px]">
+      <div className="px-4 py-3 border-b border-stone-300 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px]">
         <span className="tracking-[0.25em] uppercase text-stone-500">Sonuç</span>
         <span
           className={`px-2 py-0.5 ${
@@ -315,7 +315,7 @@ export function ChartResult({
         <span className="text-stone-400">{result.elapsedSeconds.toFixed(2)}s</span>
         {result.chartId && <span className="text-stone-400">#{result.chartId}</span>}
         {result.chart.length > 0 && (
-          <div className="ml-auto flex gap-2">
+          <div className="ml-auto flex flex-wrap gap-2">
             {onExportPdf && (
               <button
                 onClick={() => onExportPdf(liveResp)}

@@ -164,6 +164,29 @@ export function CompetencyTab(props: {
     setFilterManagers(false);
   }
 
+  // ── Paylaşılan star-menu (tablo + kart aynı dropdown'ı kullanır) ──
+  function renderStarMenu(person: StaffRow, role: Role) {
+    if (editingCell?.id !== person.id || editingCell?.role !== role) return null;
+    const level = person.competencies[role] ?? 0;
+    return (
+      <div ref={dropdownRef} className={`star-menu ${editingCell.direction}`}>
+        {STAR_LEVELS.map((s) => (
+          <button
+            key={s.value}
+            onClick={() => {
+              onUpdateCompetency(person.id, role, s.value);
+              setEditingCell(null);
+            }}
+            className={`star-opt ${level === s.value ? "on" : ""}`}
+          >
+            <span className="so-star">{s.label}</span>
+            <span className="so-name">{s.name}</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* KPI */}
@@ -251,7 +274,8 @@ export function CompetencyTab(props: {
         </div>
       )}
 
-      {/* Matris — yatay scroll (mobil uyumlu), sticky personel kolonu + sticky thead */}
+      {/* Matris — her genişlikte tablo; isim kolonu sola sabit, thead üste sabit
+          (max-height ile iç scroll). Mobilde dar isim kolonu + kompakt hücreler. */}
       <div className="panel matrix-panel" style={{ marginTop: 18 }}>
         <div className="matrix-scroll">
           <table className="matrix">
@@ -403,26 +427,9 @@ export function CompetencyTab(props: {
                       </td>
                       {ROLES.map((role) => {
                         const level = person.competencies[role] ?? 0;
-                        const isEditing = editingCell?.id === person.id && editingCell?.role === role;
                         return (
                           <td key={role} style={{ position: "relative" }}>
-                            {isEditing && (
-                              <div ref={dropdownRef} className={`star-menu ${editingCell.direction}`}>
-                                {STAR_LEVELS.map((s) => (
-                                  <button
-                                    key={s.value}
-                                    onClick={() => {
-                                      onUpdateCompetency(person.id, role, s.value);
-                                      setEditingCell(null);
-                                    }}
-                                    className={`star-opt ${level === s.value ? "on" : ""}`}
-                                  >
-                                    <span className="so-star">{s.label}</span>
-                                    <span className="so-name">{s.name}</span>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
+                            {renderStarMenu(person, role)}
                             <button
                               onClick={(e) => openCell(person, role, e.currentTarget)}
                               className={`stars ${level ? "t" + level : "empty"}`}

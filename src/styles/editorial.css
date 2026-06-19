@@ -557,7 +557,12 @@
 
 /* ── matrix ────────────────────────────────────────────── */
 .matrix-panel { padding: 0; overflow: hidden; }
-.matrix-scroll { overflow-x: auto; }
+/* İç scroll konteyneri: max-height ile DİKEY scroll'u kendi içine alır.
+   Neden: overflow-x:auto tek başına kapsayıcıyı iki eksende scroll-context
+   yapıp `thead{position:sticky;top:0}`'ı bozuyordu (dikey referans sayfa
+   oluyor, başlık kayıp gidiyordu). Sınırlı yükseklik → thead box içinde
+   donar, sola sabit isim kolonu (sticky-l) ile birlikte hep görünür kalır. */
+.matrix-scroll { overflow: auto; max-height: calc(100vh - 168px); overscroll-behavior: contain; }
 .matrix { border-collapse: separate; border-spacing: 0; width: 100%; }
 .matrix thead th {
   position: sticky; top: 0; z-index: 5; background: var(--zara-bg-warm);
@@ -908,10 +913,49 @@
 /* Shift mobil (shift-responsive-auditor P1/P2): sticky blur'u kaldır (perf —
    geniş matris arkada kayarken pahalı), opak zemin; sekmeler tek satır scroll. */
 @media (max-width: 760px) {
-  .so-head { backdrop-filter: none; background: var(--zara-bg-warm); padding: 12px 18px; gap: 14px; }
-  .so-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; margin-left: 0; scrollbar-width: none; }
+  /* Üst başlık KOMPAKT: marka küçülür, dikey ayak izi azalır → sticky yığını
+     (AtelyeBar 46px + so-head) ekranın ortasına inmiş gibi durmasın. */
+  .so-head { backdrop-filter: none; background: var(--zara-bg-warm); padding: 10px 16px; gap: 8px; }
+  .so-brand .bn { font-size: 18px; }
+  .so-brand .bs { font-size: 8.5px; letter-spacing: 0.2em; }
+  /* sekmeler tek satır yatay scroll; daralt ki "Shift & Mola" kesilmeden kaysın */
+  .so-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; margin-left: 0; scrollbar-width: none; padding-bottom: 2px; }
   .so-tabs::-webkit-scrollbar { display: none; }
-  .so-tab { min-height: 40px; }
+  .so-tab { min-height: 38px; padding: 8px 12px; letter-spacing: 0.12em; flex: 0 0 auto; }
+
+  /* APP-SHELL (mobil): başlıklar sabit, asıl kaydırıcı .content. Neden: sayfa
+     scroll'unda matris kutusu navbar'ın ALTINA girip thead'i navbar'a bindiriyordu.
+     .so-shell'i tam ekran flex kolon yapıp .content'i tek kaydırıcı (başlıkların
+     altında kırpılan) yapınca, içerideki thead en fazla .content tepesine (=navbar
+     altı) kadar çıkar — navbar'a BİNEMEZ. */
+  .so-shell { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+  .so-head { flex: none; }
+  .content { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 0; }
+
+  /* ── Matris (Yetkinlik) mobil: isim kolonu DAR + sola sabit, hücreler kompakt.
+     Dondurulmuş tablo. Panel .content tepesine PİNLENİR (sticky top:0): KPI/araç
+     çubuğu yukarı kayar, panel başlık altına yapışır; içeride satırlar kayar →
+     thead .content tepesinin üstüne çıkıp kırpılmaz. ── */
+  .matrix-panel { position: sticky; top: 0; z-index: 1; }
+  .matrix-scroll { max-height: calc(100dvh - 154px); overscroll-behavior: contain; }
+  .matrix .col-id { min-width: 132px; width: 132px; }
+  .matrix thead th { padding: 11px 7px; }
+  .matrix .person-row td { padding: 9px 6px; }
+  .matrix .person-row td.col-id { padding-left: 12px; }
+  .matrix .pr-id { gap: 8px; }
+  .matrix .pr-name .pn { font-size: 13px; white-space: normal; line-height: 1.14; }
+  .matrix .pr-name .ps { display: none; }   /* kısa ad gizle — yer kazan */
+  .matrix .pr-pusula { display: none; }      /* sembolik pusula gizle — yer kazan */
+  .matrix .col-sm { min-width: 80px; }
+  .matrix .col-md { min-width: 96px; }
+  .matrix .col-skill { min-width: 60px; }
+  .matrix .mx-note { max-width: 100px; }
+  .matrix .stars { font-size: 13px; padding: 6px 5px; min-height: 38px; }
+  /* Dokunma hedefleri — dar tabloda parmak için büyüt (ikon boyutu sabit, tıklama
+     alanı genişler). Taç isim kolonunda, edit/sil aksiyon hücresinde. */
+  .matrix .mx-crown { min-width: 34px; min-height: 34px; }
+  .matrix .mx-acts { gap: 4px; }
+  .matrix .mx-acts button { min-width: 34px; min-height: 34px; }
 }
 
 /* ── matrix (yetkinlik) inline kontrol yardımcıları ─────── */
