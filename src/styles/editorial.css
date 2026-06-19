@@ -2765,7 +2765,16 @@
 .pv4-rail-exit svg { opacity: 0.65; }
 .pv4-rail-langrow { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px 2px; }
 .pv4-withrail .pv4-body { margin-left: 234px; }
-@media (max-width: 900px) { .pv4-rail { display: none; } .pv4-withrail .pv4-body { margin-left: 0; padding-bottom: 66px; } }
+@media (max-width: 900px) {
+  .pv4-rail { display: none; }
+  /* APP-SHELL (mobil): shift-organizer ile aynı desen. .pusula-shell tam ekran
+     flex kolon (taban zaten flex); AtelyeBar (46px) sabit flex öğesi, asıl
+     kaydırıcı .pv4-body başlığın ALTINDA kırpılır → AtelyeBar içeriğe BİNMEZ
+     (sayfa scroll'unda altından geçme sorunu giderildi). Alt tabbar fixed kalır;
+     padding-bottom onu temizler. */
+  .pusula-shell { height: 100dvh; overflow: hidden; }
+  .pv4-withrail .pv4-body { margin-left: 0; padding-bottom: 66px; flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+}
 
 /* ── mobil alt tab bar (sidebar gizliyken birincil nav) ── */
 .pv4-tabbar { display: none; }
