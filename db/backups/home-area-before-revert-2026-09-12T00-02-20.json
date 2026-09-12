@@ -1,0 +1,201 @@
+{
+  "_meta": {
+    "kind": "home-area-before-revert",
+    "takenAt": "2026-09-12T00:02:20.794Z",
+    "note": "Soft-revert öncesi home_area değerleri — geri almak için bu dosyayı kullan."
+  },
+  "data": [
+    {
+      "id": 102,
+      "shortName": "Sude",
+      "fullName": "Sude Yeni",
+      "homeArea": "FITTING_ROOM"
+    },
+    {
+      "id": 90,
+      "shortName": "Meral",
+      "fullName": "Meral Colak",
+      "homeArea": "SPRINTER"
+    },
+    {
+      "id": 77,
+      "shortName": "Begum",
+      "fullName": "Begum Akar",
+      "homeArea": "WOMAN"
+    },
+    {
+      "id": 101,
+      "shortName": "Seyma",
+      "fullName": "Seyma Semsit",
+      "homeArea": "RUNNER_360"
+    },
+    {
+      "id": 100,
+      "shortName": "Sevim",
+      "fullName": "Sevimnur Yalcin",
+      "homeArea": "BASIC"
+    },
+    {
+      "id": 79,
+      "shortName": "Ecem",
+      "fullName": "Ecem Urcan",
+      "homeArea": "BASIC"
+    },
+    {
+      "id": 103,
+      "shortName": "Taha",
+      "fullName": "Taha İşler",
+      "homeArea": "WOMAN"
+    },
+    {
+      "id": 76,
+      "shortName": "Aysu",
+      "fullName": "Aysu Berna Ozturk",
+      "homeArea": "FITTING_ROOM"
+    },
+    {
+      "id": 108,
+      "shortName": "Azra",
+      "fullName": "Azra Nur Yazıcı",
+      "homeArea": "FITTING_ROOM"
+    },
+    {
+      "id": 112,
+      "shortName": "Beyza",
+      "fullName": "Beyza Ağır",
+      "homeArea": "FITTING_ROOM"
+    },
+    {
+      "id": 106,
+      "shortName": "Kaan O.",
+      "fullName": "Kaan Ovezoglu",
+      "homeArea": "FITTING_ROOM"
+    },
+    {
+      "id": 85,
+      "shortName": "Gamze",
+      "fullName": "Gamze Kafadar",
+      "homeArea": "BASIC"
+    },
+    {
+      "id": 105,
+      "shortName": "İrem",
+      "fullName": "İrem Bulut",
+      "homeArea": "BASIC"
+    },
+    {
+      "id": 74,
+      "shortName": "Baran",
+      "fullName": "Ahmet Baran Bozkurt",
+      "homeArea": "BASIC"
+    },
+    {
+      "id": 113,
+      "shortName": "İlkim",
+      "fullName": "İlkim Hura",
+      "homeArea": "TRF"
+    },
+    {
+      "id": 104,
+      "shortName": "Bora",
+      "fullName": "Bora Çakaloğlu",
+      "homeArea": "BASIC"
+    },
+    {
+      "id": 80,
+      "shortName": "Emirhan",
+      "fullName": "Emirhan Yesilcicek",
+      "homeArea": "TRF"
+    },
+    {
+      "id": 107,
+      "shortName": "Mete",
+      "fullName": "Mete Alp Karvan",
+      "homeArea": "BASIC"
+    },
+    {
+      "id": 98,
+      "shortName": "Selin",
+      "fullName": "Selin Varlioglu",
+      "homeArea": "WOMAN"
+    },
+    {
+      "id": 87,
+      "shortName": "Kaan",
+      "fullName": "Kaan Gunduz",
+      "homeArea": "BASIC"
+    },
+    {
+      "id": 89,
+      "shortName": "Kiymet",
+      "fullName": "Kiymet Bakir",
+      "homeArea": "BASIC"
+    },
+    {
+      "id": 116,
+      "shortName": "Yağmur D.",
+      "fullName": "Yağmur Dara",
+      "homeArea": "WOMAN"
+    },
+    {
+      "id": 88,
+      "shortName": "Kayra",
+      "fullName": "Kayra Uzun",
+      "homeArea": "WOMAN"
+    },
+    {
+      "id": 83,
+      "shortName": "Fadime",
+      "fullName": "Fadime Kivrak",
+      "homeArea": "BASIC"
+    },
+    {
+      "id": 82,
+      "shortName": "Eylul",
+      "fullName": "Eylul Ozbek",
+      "homeArea": "TRF"
+    },
+    {
+      "id": 73,
+      "shortName": "Ada",
+      "fullName": "Ada Ozasci",
+      "homeArea": "WOMAN"
+    },
+    {
+      "id": 93,
+      "shortName": "Nehir",
+      "fullName": "Nehir Budak",
+      "homeArea": "FITTING_ROOM"
+    },
+    {
+      "id": 84,
+      "shortName": "Fatma",
+      "fullName": "Fatma Yavuz",
+      "homeArea": "FITTING_ROOM"
+    },
+    {
+      "id": 91,
+      "shortName": "Merih",
+      "fullName": "Merih Mustafa Baltaci",
+      "homeArea": "SPRINTER"
+    },
+    {
+      "id": 96,
+      "shortName": "Ramazan",
+      "fullName": "Ramazan Hordun",
+      "homeArea": "TRF"
+    },
+    {
+      "id": 97,
+      "shortName": "Saliha",
+      "fullName": "Saliha Kilic",
+      "homeArea": "TRF"
+    },
+    {
+      "id": 95,
+      "shortName": "Pelin",
+      "fullName": "Pelin Aydin",
+      "homeArea": "FITTING_ROOM"
+    }
+  ]
+}
