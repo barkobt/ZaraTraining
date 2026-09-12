@@ -1,0 +1,1868 @@
+{
+  "_meta": {
+    "kind": "roster-cleanup-before",
+    "takenAt": "2026-09-12T00:27:11.519Z"
+  },
+  "staff": [
+    {
+      "id": 113,
+      "storeId": 1,
+      "fullName": "İlkim Hura",
+      "shortName": "İlkim",
+      "tenureLevel": "NEW_1_3",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-07-26T08:10:06.211Z"
+    },
+    {
+      "id": 104,
+      "storeId": 1,
+      "fullName": "Bora Çakaloğlu",
+      "shortName": "Bora",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": "COACH",
+      "employment": "FT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:55:46.229Z"
+    },
+    {
+      "id": 80,
+      "storeId": 1,
+      "fullName": "Emirhan Yesilcicek",
+      "shortName": "Emirhan",
+      "tenureLevel": "NEW_1_3",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-07-26T08:10:09.885Z"
+    },
+    {
+      "id": 107,
+      "storeId": 1,
+      "fullName": "Mete Alp Karvan",
+      "shortName": "Mete",
+      "tenureLevel": "NEW_1_3",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-07-26T08:10:14.405Z"
+    },
+    {
+      "id": 98,
+      "storeId": 1,
+      "fullName": "Selin Varlioglu",
+      "shortName": "Selin",
+      "tenureLevel": "NEW_6_PLUS",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": "Güvenli yeni",
+      "hireDate": null,
+      "updatedAt": "2026-07-26T08:10:24.340Z"
+    },
+    {
+      "id": 87,
+      "storeId": 1,
+      "fullName": "Kaan Gunduz",
+      "shortName": "Kaan",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:55:50.697Z"
+    },
+    {
+      "id": 89,
+      "storeId": 1,
+      "fullName": "Kiymet Bakir",
+      "shortName": "Kiymet",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:55:52.651Z"
+    },
+    {
+      "id": 116,
+      "storeId": 1,
+      "fullName": "Yağmur Dara",
+      "shortName": "Yağmur D.",
+      "tenureLevel": "NEW_0_1",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-14T06:09:14.981Z"
+    },
+    {
+      "id": 88,
+      "storeId": 1,
+      "fullName": "Kayra Uzun",
+      "shortName": "Kayra",
+      "tenureLevel": "NEW_6_PLUS",
+      "homeArea": null,
+      "duty": "CX",
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-07-26T08:10:27.081Z"
+    },
+    {
+      "id": 82,
+      "storeId": 1,
+      "fullName": "Eylul Ozbek",
+      "shortName": "Eylul",
+      "tenureLevel": "NEW_6_PLUS",
+      "homeArea": null,
+      "duty": "CX",
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:56:14.703Z"
+    },
+    {
+      "id": 73,
+      "storeId": 1,
+      "fullName": "Ada Ozasci",
+      "shortName": "Ada",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": "COACH",
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-17T21:35:14.817Z"
+    },
+    {
+      "id": 93,
+      "storeId": 1,
+      "fullName": "Nehir Budak",
+      "shortName": "Nehir",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": "COACH",
+      "employment": "FT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-17T21:35:36.542Z"
+    },
+    {
+      "id": 84,
+      "storeId": 1,
+      "fullName": "Fatma Yavuz",
+      "shortName": "Fatma",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": "CX",
+      "employment": "FT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-17T21:35:39.455Z"
+    },
+    {
+      "id": 91,
+      "storeId": 1,
+      "fullName": "Merih Mustafa Baltaci",
+      "shortName": "Merih",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-17T21:35:52.941Z"
+    },
+    {
+      "id": 96,
+      "storeId": 1,
+      "fullName": "Ramazan Hordun",
+      "shortName": "Ramazan",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": "COACH",
+      "employment": "FT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:56:21.759Z"
+    },
+    {
+      "id": 97,
+      "storeId": 1,
+      "fullName": "Saliha Kilic",
+      "shortName": "Saliha",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": null,
+      "employment": "FT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:56:23.339Z"
+    },
+    {
+      "id": 95,
+      "storeId": 1,
+      "fullName": "Pelin Aydin",
+      "shortName": "Pelin",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": null,
+      "employment": "FT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:57:13.675Z"
+    },
+    {
+      "id": 83,
+      "storeId": 1,
+      "fullName": "Fadime Kivrak",
+      "shortName": "Fadime",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": null,
+      "employment": "FT",
+      "isManager": true,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-09-12T00:19:53.176Z"
+    },
+    {
+      "id": 102,
+      "storeId": 1,
+      "fullName": "Sude Yeni",
+      "shortName": "Sude",
+      "tenureLevel": "NEW_6_PLUS",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-07-19T18:39:34.769Z"
+    },
+    {
+      "id": 90,
+      "storeId": 1,
+      "fullName": "Meral Colak",
+      "shortName": "Meral",
+      "tenureLevel": "NEW_6_PLUS",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:57:34.157Z"
+    },
+    {
+      "id": 77,
+      "storeId": 1,
+      "fullName": "Begum Akar",
+      "shortName": "Begum",
+      "tenureLevel": "NEW_6_PLUS",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:55:22.707Z"
+    },
+    {
+      "id": 101,
+      "storeId": 1,
+      "fullName": "Seyma Semsit",
+      "shortName": "Seyma",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:57:37.666Z"
+    },
+    {
+      "id": 100,
+      "storeId": 1,
+      "fullName": "Sevimnur Yalcin",
+      "shortName": "Sevim",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-07-19T18:41:15.567Z"
+    },
+    {
+      "id": 79,
+      "storeId": 1,
+      "fullName": "Ecem Urcan",
+      "shortName": "Ecem",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-07-19T18:41:23.416Z"
+    },
+    {
+      "id": 103,
+      "storeId": 1,
+      "fullName": "Taha İşler",
+      "shortName": "Taha",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": "COM",
+      "employment": "FT",
+      "isManager": true,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-02T04:19:11.849Z"
+    },
+    {
+      "id": 76,
+      "storeId": 1,
+      "fullName": "Aysu Berna Ozturk",
+      "shortName": "Aysu",
+      "tenureLevel": "NEW_1_3",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-07-26T08:09:49.811Z"
+    },
+    {
+      "id": 106,
+      "storeId": 1,
+      "fullName": "Kaan Ovezoglu",
+      "shortName": "Kaan O.",
+      "tenureLevel": "NEW_1_3",
+      "homeArea": null,
+      "duty": null,
+      "employment": "PT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-07-26T08:09:59.051Z"
+    },
+    {
+      "id": 85,
+      "storeId": 1,
+      "fullName": "Gamze Kafadar",
+      "shortName": "Gamze",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": "COM",
+      "employment": "FT",
+      "isManager": true,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:55:37.065Z"
+    },
+    {
+      "id": 105,
+      "storeId": 1,
+      "fullName": "İrem Bulut",
+      "shortName": "İrem",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": "COM",
+      "employment": "FT",
+      "isManager": true,
+      "isBlacklisted": false,
+      "note": null,
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:55:38.566Z"
+    },
+    {
+      "id": 74,
+      "storeId": 1,
+      "fullName": "Ahmet Baran Bozkurt",
+      "shortName": "Baran",
+      "tenureLevel": "EXPERT",
+      "homeArea": null,
+      "duty": "COACH",
+      "employment": "FT",
+      "isManager": false,
+      "isBlacklisted": false,
+      "note": "Organizasyon",
+      "hireDate": null,
+      "updatedAt": "2026-06-01T06:55:41.109Z"
+    }
+  ],
+  "competencies": [
+    {
+      "staffId": 88,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:04:43.190Z"
+    },
+    {
+      "staffId": 79,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:06:49.507Z"
+    },
+    {
+      "staffId": 79,
+      "role": "Zone 3",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:06:52.106Z"
+    },
+    {
+      "staffId": 116,
+      "role": "Zone 4",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:13:27.916Z"
+    },
+    {
+      "staffId": 107,
+      "role": "Zone 3",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:54:30.855Z"
+    },
+    {
+      "staffId": 79,
+      "role": "Zone 4",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:06:53.153Z"
+    },
+    {
+      "staffId": 79,
+      "role": "Zone 5",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:06:55.646Z"
+    },
+    {
+      "staffId": 116,
+      "role": "Welcome",
+      "level": 4,
+      "updatedAt": "2026-06-14T06:09:20.661Z"
+    },
+    {
+      "staffId": 116,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:05:34.310Z"
+    },
+    {
+      "staffId": 74,
+      "role": "Zone 5",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:26:31.822Z"
+    },
+    {
+      "staffId": 104,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-06-01T06:01:59.986Z"
+    },
+    {
+      "staffId": 104,
+      "role": "Kabin",
+      "level": 0,
+      "updatedAt": "2026-06-01T06:02:01.286Z"
+    },
+    {
+      "staffId": 104,
+      "role": "Kabin Welcomer",
+      "level": 0,
+      "updatedAt": "2026-06-01T06:02:02.743Z"
+    },
+    {
+      "staffId": 77,
+      "role": "Welcome",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:52:21.156Z"
+    },
+    {
+      "staffId": 103,
+      "role": "Welcome",
+      "level": 1,
+      "updatedAt": "2026-06-10T03:52:29.181Z"
+    },
+    {
+      "staffId": 103,
+      "role": "Zone 2",
+      "level": 1,
+      "updatedAt": "2026-06-10T03:52:33.139Z"
+    },
+    {
+      "staffId": 83,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:26:52.164Z"
+    },
+    {
+      "staffId": 77,
+      "role": "Zone 3",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:25:49.807Z"
+    },
+    {
+      "staffId": 73,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:25:44.571Z"
+    },
+    {
+      "staffId": 77,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:25:41.315Z"
+    },
+    {
+      "staffId": 76,
+      "role": "Zone 4",
+      "level": 0,
+      "updatedAt": "2026-06-17T23:43:52.603Z"
+    },
+    {
+      "staffId": 82,
+      "role": "Sprinter",
+      "level": 3,
+      "updatedAt": "2026-06-15T06:09:45.697Z"
+    },
+    {
+      "staffId": 77,
+      "role": "Zone 2",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:52:35.943Z"
+    },
+    {
+      "staffId": 103,
+      "role": "Kabin Welcomer",
+      "level": 1,
+      "updatedAt": "2026-06-10T03:52:41.050Z"
+    },
+    {
+      "staffId": 83,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-05-21T10:12:28.874Z"
+    },
+    {
+      "staffId": 84,
+      "role": "Kabin Welcomer",
+      "level": 4,
+      "updatedAt": "2026-05-21T10:12:54.131Z"
+    },
+    {
+      "staffId": 107,
+      "role": "Zone 5",
+      "level": 1,
+      "updatedAt": "2026-07-26T08:07:33.256Z"
+    },
+    {
+      "staffId": 116,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:05:37.678Z"
+    },
+    {
+      "staffId": 116,
+      "role": "Sprinter",
+      "level": 1,
+      "updatedAt": "2026-07-26T08:05:41.266Z"
+    },
+    {
+      "staffId": 116,
+      "role": "Zone 5",
+      "level": 1,
+      "updatedAt": "2026-07-26T08:05:54.010Z"
+    },
+    {
+      "staffId": 74,
+      "role": "Zone 4",
+      "level": 3,
+      "updatedAt": "2026-07-26T08:06:03.125Z"
+    },
+    {
+      "staffId": 79,
+      "role": "Welcome",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:06:31.992Z"
+    },
+    {
+      "staffId": 79,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:06:34.481Z"
+    },
+    {
+      "staffId": 79,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:06:36.836Z"
+    },
+    {
+      "staffId": 79,
+      "role": "Sprinter",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:06:45.852Z"
+    },
+    {
+      "staffId": 107,
+      "role": "Kabin",
+      "level": 1,
+      "updatedAt": "2026-07-26T08:07:18.362Z"
+    },
+    {
+      "staffId": 107,
+      "role": "Kabin Welcomer",
+      "level": 1,
+      "updatedAt": "2026-07-26T08:07:21.645Z"
+    },
+    {
+      "staffId": 76,
+      "role": "Zone 5",
+      "level": 1,
+      "updatedAt": "2026-05-21T00:01:20.809Z"
+    },
+    {
+      "staffId": 107,
+      "role": "Sprinter",
+      "level": 1,
+      "updatedAt": "2026-07-26T08:07:25.065Z"
+    },
+    {
+      "staffId": 107,
+      "role": "Zone 2",
+      "level": 1,
+      "updatedAt": "2026-07-26T08:07:28.432Z"
+    },
+    {
+      "staffId": 80,
+      "role": "Sprinter",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:08:31.786Z"
+    },
+    {
+      "staffId": 80,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:08:39.414Z"
+    },
+    {
+      "staffId": 80,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:08:42.787Z"
+    },
+    {
+      "staffId": 76,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-07-26T08:08:58.944Z"
+    },
+    {
+      "staffId": 76,
+      "role": "Kabin",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:09:03.582Z"
+    },
+    {
+      "staffId": 76,
+      "role": "Kabin Welcomer",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:09:04.549Z"
+    },
+    {
+      "staffId": 116,
+      "role": "Zone 3",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:13:26.868Z"
+    },
+    {
+      "staffId": 73,
+      "role": "Zone 2",
+      "level": 3,
+      "updatedAt": "2026-09-12T00:18:45.955Z"
+    },
+    {
+      "staffId": 73,
+      "role": "Zone 3",
+      "level": 2,
+      "updatedAt": "2026-09-12T00:18:52.673Z"
+    },
+    {
+      "staffId": 73,
+      "role": "Zone 4",
+      "level": 2,
+      "updatedAt": "2026-09-12T00:18:54.803Z"
+    },
+    {
+      "staffId": 73,
+      "role": "Zone 5",
+      "level": 3,
+      "updatedAt": "2026-09-12T00:18:56.657Z"
+    },
+    {
+      "staffId": 113,
+      "role": "Zone 4",
+      "level": 3,
+      "updatedAt": "2026-09-12T00:19:16.267Z"
+    },
+    {
+      "staffId": 113,
+      "role": "Zone 3",
+      "level": 3,
+      "updatedAt": "2026-09-12T00:19:20.452Z"
+    },
+    {
+      "staffId": 80,
+      "role": "Zone 3",
+      "level": 3,
+      "updatedAt": "2026-09-12T00:19:22.392Z"
+    },
+    {
+      "staffId": 74,
+      "role": "Kabin",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:29:28.019Z"
+    },
+    {
+      "staffId": 74,
+      "role": "Kabin Welcomer",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:29:29.553Z"
+    },
+    {
+      "staffId": 83,
+      "role": "Kabin",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:29:38.582Z"
+    },
+    {
+      "staffId": 83,
+      "role": "Kabin Welcomer",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:29:39.947Z"
+    },
+    {
+      "staffId": 80,
+      "role": "Zone 4",
+      "level": 3,
+      "updatedAt": "2026-09-12T00:19:24.486Z"
+    },
+    {
+      "staffId": 74,
+      "role": "Sprinter",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:26:21.115Z"
+    },
+    {
+      "staffId": 74,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-05-29T23:26:12.287Z"
+    },
+    {
+      "staffId": 73,
+      "role": "Welcome",
+      "level": 2,
+      "updatedAt": "2026-09-12T00:19:42.468Z"
+    },
+    {
+      "staffId": 80,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-06-17T21:30:43.775Z"
+    },
+    {
+      "staffId": 82,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:30:50.978Z"
+    },
+    {
+      "staffId": 82,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:30:53.274Z"
+    },
+    {
+      "staffId": 73,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:25:45.872Z"
+    },
+    {
+      "staffId": 113,
+      "role": "Zone 5",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:51:03.266Z"
+    },
+    {
+      "staffId": 82,
+      "role": "Zone 5",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:51:20.665Z"
+    },
+    {
+      "staffId": 80,
+      "role": "Zone 5",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:51:24.337Z"
+    },
+    {
+      "staffId": 82,
+      "role": "Zone 4",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:30:55.982Z"
+    },
+    {
+      "staffId": 80,
+      "role": "Zone 2",
+      "level": 0,
+      "updatedAt": "2026-06-17T21:30:40.201Z"
+    },
+    {
+      "staffId": 82,
+      "role": "Zone 3",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:30:54.586Z"
+    },
+    {
+      "staffId": 82,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:30:49.667Z"
+    },
+    {
+      "staffId": 82,
+      "role": "Welcome",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:30:47.168Z"
+    },
+    {
+      "staffId": 103,
+      "role": "Kabin",
+      "level": 1,
+      "updatedAt": "2026-06-10T03:52:42.417Z"
+    },
+    {
+      "staffId": 77,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:25:42.367Z"
+    },
+    {
+      "staffId": 77,
+      "role": "Zone 5",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:25:52.497Z"
+    },
+    {
+      "staffId": 77,
+      "role": "Zone 4",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:25:50.999Z"
+    },
+    {
+      "staffId": 74,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:26:33.573Z"
+    },
+    {
+      "staffId": 74,
+      "role": "Zone 3",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:53:23.745Z"
+    },
+    {
+      "staffId": 104,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:26:50.829Z"
+    },
+    {
+      "staffId": 76,
+      "role": "Zone 3",
+      "level": 0,
+      "updatedAt": "2026-06-17T23:43:50.986Z"
+    },
+    {
+      "staffId": 107,
+      "role": "Zone 4",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:54:33.287Z"
+    },
+    {
+      "staffId": 116,
+      "role": "Zone 2",
+      "level": 4,
+      "updatedAt": "2026-06-14T06:09:31.564Z"
+    },
+    {
+      "staffId": 76,
+      "role": "Zone 2",
+      "level": 4,
+      "updatedAt": "2026-06-15T06:08:07.624Z"
+    },
+    {
+      "staffId": 83,
+      "role": "Sprinter",
+      "level": 4,
+      "updatedAt": "2026-06-17T23:43:37.897Z"
+    },
+    {
+      "staffId": 73,
+      "role": "Sprinter",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:25:25.879Z"
+    },
+    {
+      "staffId": 113,
+      "role": "Zone 2",
+      "level": 0,
+      "updatedAt": "2026-06-17T21:31:08.726Z"
+    },
+    {
+      "staffId": 113,
+      "role": "Kabin Welcomer",
+      "level": 0,
+      "updatedAt": "2026-06-17T21:31:13.680Z"
+    },
+    {
+      "staffId": 113,
+      "role": "Kabin",
+      "level": 0,
+      "updatedAt": "2026-06-17T21:31:14.474Z"
+    },
+    {
+      "staffId": 113,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-06-17T21:31:15.685Z"
+    },
+    {
+      "staffId": 77,
+      "role": "Sprinter",
+      "level": 1,
+      "updatedAt": "2026-06-17T23:43:22.205Z"
+    },
+    {
+      "staffId": 84,
+      "role": "Kabin",
+      "level": 4,
+      "updatedAt": "2026-05-21T00:01:30.887Z"
+    },
+    {
+      "staffId": 88,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:04:37.358Z"
+    },
+    {
+      "staffId": 85,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-05-21T00:01:32.095Z"
+    },
+    {
+      "staffId": 85,
+      "role": "Kabin",
+      "level": 0,
+      "updatedAt": "2026-05-21T00:01:32.248Z"
+    },
+    {
+      "staffId": 85,
+      "role": "Kabin Welcomer",
+      "level": 0,
+      "updatedAt": "2026-05-21T00:01:32.401Z"
+    },
+    {
+      "staffId": 85,
+      "role": "Sprinter",
+      "level": 1,
+      "updatedAt": "2026-05-21T00:01:32.552Z"
+    },
+    {
+      "staffId": 85,
+      "role": "Zone 2",
+      "level": 0,
+      "updatedAt": "2026-05-21T00:01:32.703Z"
+    },
+    {
+      "staffId": 85,
+      "role": "Zone 3",
+      "level": 1,
+      "updatedAt": "2026-05-21T00:01:32.854Z"
+    },
+    {
+      "staffId": 85,
+      "role": "Zone 4",
+      "level": 1,
+      "updatedAt": "2026-05-21T00:01:33.007Z"
+    },
+    {
+      "staffId": 85,
+      "role": "Zone 5",
+      "level": 1,
+      "updatedAt": "2026-05-21T00:01:33.157Z"
+    },
+    {
+      "staffId": 93,
+      "role": "Kabin Welcomer",
+      "level": 4,
+      "updatedAt": "2026-05-21T00:01:43.321Z"
+    },
+    {
+      "staffId": 88,
+      "role": "Welcome",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:04:34.718Z"
+    },
+    {
+      "staffId": 88,
+      "role": "Sprinter",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:04:47.788Z"
+    },
+    {
+      "staffId": 97,
+      "role": "Zone 3",
+      "level": 3,
+      "updatedAt": "2026-09-12T00:18:17.071Z"
+    },
+    {
+      "staffId": 88,
+      "role": "Zone 4",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:05:13.050Z"
+    },
+    {
+      "staffId": 88,
+      "role": "Zone 5",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:05:17.404Z"
+    },
+    {
+      "staffId": 100,
+      "role": "Welcome",
+      "level": 1,
+      "updatedAt": "2026-07-26T08:07:40.935Z"
+    },
+    {
+      "staffId": 100,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:07:44.172Z"
+    },
+    {
+      "staffId": 100,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:07:46.518Z"
+    },
+    {
+      "staffId": 100,
+      "role": "Sprinter",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:07:49.490Z"
+    },
+    {
+      "staffId": 83,
+      "role": "Zone 4",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:53:10.970Z"
+    },
+    {
+      "staffId": 89,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:29:50.873Z"
+    },
+    {
+      "staffId": 95,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-06-14T06:06:34.978Z"
+    },
+    {
+      "staffId": 84,
+      "role": "Zone 3",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:19.489Z"
+    },
+    {
+      "staffId": 90,
+      "role": "Sprinter",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:55:55.012Z"
+    },
+    {
+      "staffId": 87,
+      "role": "Welcome",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:27:47.751Z"
+    },
+    {
+      "staffId": 100,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:07:52.263Z"
+    },
+    {
+      "staffId": 87,
+      "role": "Sprinter",
+      "level": 4,
+      "updatedAt": "2026-06-17T23:43:40.000Z"
+    },
+    {
+      "staffId": 97,
+      "role": "Zone 4",
+      "level": 3,
+      "updatedAt": "2026-09-12T00:18:19.810Z"
+    },
+    {
+      "staffId": 100,
+      "role": "Zone 3",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:07:54.813Z"
+    },
+    {
+      "staffId": 100,
+      "role": "Zone 4",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:07:55.829Z"
+    },
+    {
+      "staffId": 87,
+      "role": "Zone 3",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:54:08.388Z"
+    },
+    {
+      "staffId": 89,
+      "role": "Welcome",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:27:57.601Z"
+    },
+    {
+      "staffId": 87,
+      "role": "Zone 4",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:54:09.977Z"
+    },
+    {
+      "staffId": 87,
+      "role": "Zone 5",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:27:54.407Z"
+    },
+    {
+      "staffId": 89,
+      "role": "Sprinter",
+      "level": 3,
+      "updatedAt": "2026-06-15T06:09:57.687Z"
+    },
+    {
+      "staffId": 91,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-06-19T12:37:35.991Z"
+    },
+    {
+      "staffId": 97,
+      "role": "Kabin",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:29:50.915Z"
+    },
+    {
+      "staffId": 100,
+      "role": "Zone 5",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:07:59.926Z"
+    },
+    {
+      "staffId": 90,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:10:58.743Z"
+    },
+    {
+      "staffId": 90,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:11:01.463Z"
+    },
+    {
+      "staffId": 97,
+      "role": "Welcome",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:08:21.605Z"
+    },
+    {
+      "staffId": 84,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-06-14T06:06:31.930Z"
+    },
+    {
+      "staffId": 87,
+      "role": "Kabin",
+      "level": 1,
+      "updatedAt": "2026-06-17T21:29:40.073Z"
+    },
+    {
+      "staffId": 89,
+      "role": "Zone 5",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:28:01.110Z"
+    },
+    {
+      "staffId": 89,
+      "role": "Zone 3",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:54:21.021Z"
+    },
+    {
+      "staffId": 89,
+      "role": "Zone 4",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:54:22.759Z"
+    },
+    {
+      "staffId": 102,
+      "role": "Kabin",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:09:10.681Z"
+    },
+    {
+      "staffId": 102,
+      "role": "Kabin Welcomer",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:09:11.690Z"
+    },
+    {
+      "staffId": 91,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-06-17T23:44:30.320Z"
+    },
+    {
+      "staffId": 102,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-07-26T08:09:20.895Z"
+    },
+    {
+      "staffId": 90,
+      "role": "Zone 3",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:11:05.928Z"
+    },
+    {
+      "staffId": 91,
+      "role": "Zone 5",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:32:47.312Z"
+    },
+    {
+      "staffId": 91,
+      "role": "Welcome",
+      "level": 2,
+      "updatedAt": "2026-06-19T12:37:32.640Z"
+    },
+    {
+      "staffId": 90,
+      "role": "Zone 5",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:11:14.789Z"
+    },
+    {
+      "staffId": 91,
+      "role": "Sprinter",
+      "level": 4,
+      "updatedAt": "2026-05-21T10:15:11.655Z"
+    },
+    {
+      "staffId": 97,
+      "role": "Zone 5",
+      "level": 3,
+      "updatedAt": "2026-09-12T00:18:58.957Z"
+    },
+    {
+      "staffId": 91,
+      "role": "Zone 4",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:32:45.383Z"
+    },
+    {
+      "staffId": 83,
+      "role": "Zone 5",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:26:57.345Z"
+    },
+    {
+      "staffId": 88,
+      "role": "Zone 3",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:13:32.120Z"
+    },
+    {
+      "staffId": 88,
+      "role": "Zone 2",
+      "level": 3,
+      "updatedAt": "2026-07-26T08:13:33.617Z"
+    },
+    {
+      "staffId": 96,
+      "role": "Welcome",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:30:15.287Z"
+    },
+    {
+      "staffId": 93,
+      "role": "Kabin",
+      "level": 4,
+      "updatedAt": "2026-05-21T10:15:35.496Z"
+    },
+    {
+      "staffId": 97,
+      "role": "Kabin Welcomer",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:29:52.924Z"
+    },
+    {
+      "staffId": 93,
+      "role": "Zone 3",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:24.191Z"
+    },
+    {
+      "staffId": 98,
+      "role": "Zone 3",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:25:57.002Z"
+    },
+    {
+      "staffId": 95,
+      "role": "Kabin",
+      "level": 4,
+      "updatedAt": "2026-05-21T10:16:01.051Z"
+    },
+    {
+      "staffId": 95,
+      "role": "Kabin Welcomer",
+      "level": 4,
+      "updatedAt": "2026-05-21T10:16:02.546Z"
+    },
+    {
+      "staffId": 84,
+      "role": "Zone 2",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:18.810Z"
+    },
+    {
+      "staffId": 96,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:30:23.899Z"
+    },
+    {
+      "staffId": 96,
+      "role": "Sprinter",
+      "level": 3,
+      "updatedAt": "2026-06-15T06:09:50.416Z"
+    },
+    {
+      "staffId": 96,
+      "role": "Zone 3",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:30:20.613Z"
+    },
+    {
+      "staffId": 95,
+      "role": "Zone 3",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:35.575Z"
+    },
+    {
+      "staffId": 98,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:26:02.487Z"
+    },
+    {
+      "staffId": 90,
+      "role": "Welcome",
+      "level": 2,
+      "updatedAt": "2026-06-19T12:37:30.436Z"
+    },
+    {
+      "staffId": 84,
+      "role": "Sprinter",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:17.424Z"
+    },
+    {
+      "staffId": 96,
+      "role": "Kabin",
+      "level": 2,
+      "updatedAt": "2026-06-19T12:36:41.966Z"
+    },
+    {
+      "staffId": 98,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:26:00.941Z"
+    },
+    {
+      "staffId": 91,
+      "role": "Zone 3",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:32:43.714Z"
+    },
+    {
+      "staffId": 89,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:29:52.307Z"
+    },
+    {
+      "staffId": 83,
+      "role": "Zone 3",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:53:09.457Z"
+    },
+    {
+      "staffId": 101,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:12:40.846Z"
+    },
+    {
+      "staffId": 101,
+      "role": "Kabin",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:12:42.200Z"
+    },
+    {
+      "staffId": 101,
+      "role": "Kabin Welcomer",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:12:43.462Z"
+    },
+    {
+      "staffId": 101,
+      "role": "Zone 2",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:12:46.239Z"
+    },
+    {
+      "staffId": 101,
+      "role": "Zone 3",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:12:47.749Z"
+    },
+    {
+      "staffId": 101,
+      "role": "Zone 4",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:12:49.075Z"
+    },
+    {
+      "staffId": 101,
+      "role": "Zone 5",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:12:50.653Z"
+    },
+    {
+      "staffId": 95,
+      "role": "Zone 2",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:30.055Z"
+    },
+    {
+      "staffId": 87,
+      "role": "Kabin Welcomer",
+      "level": 1,
+      "updatedAt": "2026-06-17T21:29:41.051Z"
+    },
+    {
+      "staffId": 93,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-06-14T06:06:33.531Z"
+    },
+    {
+      "staffId": 84,
+      "role": "Zone 4",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:20.395Z"
+    },
+    {
+      "staffId": 84,
+      "role": "Zone 5",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:21.516Z"
+    },
+    {
+      "staffId": 93,
+      "role": "Zone 5",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:22.481Z"
+    },
+    {
+      "staffId": 93,
+      "role": "Zone 4",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:23.350Z"
+    },
+    {
+      "staffId": 93,
+      "role": "Zone 2",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:25.398Z"
+    },
+    {
+      "staffId": 95,
+      "role": "Sprinter",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:29.059Z"
+    },
+    {
+      "staffId": 95,
+      "role": "Zone 4",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:38.992Z"
+    },
+    {
+      "staffId": 95,
+      "role": "Zone 5",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:42.296Z"
+    },
+    {
+      "staffId": 96,
+      "role": "Zone 5",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:51:26.962Z"
+    },
+    {
+      "staffId": 97,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:30:58.058Z"
+    },
+    {
+      "staffId": 96,
+      "role": "Zone 4",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:30:21.942Z"
+    },
+    {
+      "staffId": 98,
+      "role": "Sprinter",
+      "level": 4,
+      "updatedAt": "2026-06-17T21:25:58.829Z"
+    },
+    {
+      "staffId": 98,
+      "role": "Zone 4",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:25:55.452Z"
+    },
+    {
+      "staffId": 98,
+      "role": "Zone 2",
+      "level": 4,
+      "updatedAt": "2026-06-14T06:11:12.065Z"
+    },
+    {
+      "staffId": 89,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:27:59.690Z"
+    },
+    {
+      "staffId": 98,
+      "role": "Welcome",
+      "level": 4,
+      "updatedAt": "2026-06-14T06:10:44.472Z"
+    },
+    {
+      "staffId": 90,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:31:47.513Z"
+    },
+    {
+      "staffId": 91,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:32:42.473Z"
+    },
+    {
+      "staffId": 96,
+      "role": "Kabin Welcomer",
+      "level": 2,
+      "updatedAt": "2026-06-19T12:36:44.505Z"
+    },
+    {
+      "staffId": 87,
+      "role": "Zone 2",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:27:52.756Z"
+    },
+    {
+      "staffId": 98,
+      "role": "Zone 5",
+      "level": 3,
+      "updatedAt": "2026-06-17T21:25:54.006Z"
+    },
+    {
+      "staffId": 104,
+      "role": "Zone 5",
+      "level": 4,
+      "updatedAt": "2026-07-26T08:06:15.372Z"
+    },
+    {
+      "staffId": 107,
+      "role": "Welcome",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:07:15.075Z"
+    },
+    {
+      "staffId": 103,
+      "role": "Zone 3",
+      "level": 1,
+      "updatedAt": "2026-05-21T10:30:58.270Z"
+    },
+    {
+      "staffId": 103,
+      "role": "Zone 4",
+      "level": 1,
+      "updatedAt": "2026-05-21T10:31:03.018Z"
+    },
+    {
+      "staffId": 103,
+      "role": "Zone 5",
+      "level": 1,
+      "updatedAt": "2026-05-21T10:31:05.777Z"
+    },
+    {
+      "staffId": 102,
+      "role": "Sprinter",
+      "level": 0,
+      "updatedAt": "2026-07-26T08:09:17.998Z"
+    },
+    {
+      "staffId": 102,
+      "role": "Zone 2",
+      "level": 0,
+      "updatedAt": "2026-07-26T08:09:24.130Z"
+    },
+    {
+      "staffId": 101,
+      "role": "Sprinter",
+      "level": 0,
+      "updatedAt": "2026-05-29T17:12:44.932Z"
+    },
+    {
+      "staffId": 102,
+      "role": "Zone 3",
+      "level": 0,
+      "updatedAt": "2026-07-26T08:09:26.489Z"
+    },
+    {
+      "staffId": 102,
+      "role": "Zone 4",
+      "level": 0,
+      "updatedAt": "2026-07-26T08:09:29.003Z"
+    },
+    {
+      "staffId": 102,
+      "role": "Zone 5",
+      "level": 0,
+      "updatedAt": "2026-07-26T08:09:33.451Z"
+    },
+    {
+      "staffId": 90,
+      "role": "Zone 4",
+      "level": 2,
+      "updatedAt": "2026-07-26T08:11:10.364Z"
+    },
+    {
+      "staffId": 103,
+      "role": "Sprinter",
+      "level": 1,
+      "updatedAt": "2026-06-10T03:52:11.550Z"
+    },
+    {
+      "staffId": 104,
+      "role": "Zone 3",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:53:32.992Z"
+    },
+    {
+      "staffId": 104,
+      "role": "Zone 4",
+      "level": 4,
+      "updatedAt": "2026-06-10T03:53:34.415Z"
+    },
+    {
+      "staffId": 106,
+      "role": "Kabin",
+      "level": 4,
+      "updatedAt": "2026-06-14T06:08:53.820Z"
+    },
+    {
+      "staffId": 106,
+      "role": "Kabin Welcomer",
+      "level": 4,
+      "updatedAt": "2026-06-14T06:08:54.797Z"
+    },
+    {
+      "staffId": 106,
+      "role": "Welcome",
+      "level": 0,
+      "updatedAt": "2026-06-14T06:08:55.821Z"
+    },
+    {
+      "staffId": 106,
+      "role": "Zone 2",
+      "level": 0,
+      "updatedAt": "2026-06-14T06:08:57.978Z"
+    },
+    {
+      "staffId": 93,
+      "role": "Sprinter",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:26.467Z"
+    },
+    {
+      "staffId": 106,
+      "role": "Sprinter",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:10:50.164Z"
+    },
+    {
+      "staffId": 106,
+      "role": "Zone 3",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:11:02.966Z"
+    },
+    {
+      "staffId": 106,
+      "role": "Zone 4",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:11:11.111Z"
+    },
+    {
+      "staffId": 106,
+      "role": "Zone 5",
+      "level": 0,
+      "updatedAt": "2026-06-15T06:11:20.124Z"
+    },
+    {
+      "staffId": 97,
+      "role": "Sprinter",
+      "level": 2,
+      "updatedAt": "2026-06-17T21:47:52.374Z"
+    },
+    {
+      "staffId": 104,
+      "role": "Sprinter",
+      "level": 4,
+      "updatedAt": "2026-06-17T23:43:35.456Z"
+    },
+    {
+      "staffId": 76,
+      "role": "Sprinter",
+      "level": 0,
+      "updatedAt": "2026-06-17T23:43:48.987Z"
+    },
+    {
+      "staffId": 113,
+      "role": "Sprinter",
+      "level": 1,
+      "updatedAt": "2026-06-17T23:44:18.120Z"
+    }
+  ],
+  "deletedStaffShortNames": [
+    "Ramazan",
+    "Sude",
+    "Yağmur D."
+  ],
+  "pusula": {
+    "pusulaPersonCompetency": [],
+    "pusulaEvidence": [],
+    "pusulaAptitudeSuggestions": [],
+    "pusulaGuidebookProgress": [],
+    "pusulaCompetencyEvals": [],
+    "pusulaPeriodActions": [],
+    "pusulaArchiveNotes": [],
+    "pusulaMentorMatches": [],
+    "pusulaReports": []
+  }
+}
